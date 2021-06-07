@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+
+  app:
+    image: ${IMAGE}:${IMAGE_TAG}
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "${APP_OUT_HOST}:${PORT}"
+    volumes:
+      - app_files:/app/files
+      - app_logs:/app/logs
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:13-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_DB
+      - POSTGRES_PASSWORD
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  app_files:
+  app_logs:
+  pgdata:

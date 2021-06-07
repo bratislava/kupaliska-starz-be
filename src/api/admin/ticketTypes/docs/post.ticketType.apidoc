@@ -1,0 +1,178 @@
+/**
+    @api {post} admin/ticketTypes Create ticket type
+    @apiVersion 1.0.0
+    @apiName AdminPostTicketType
+    @apiGroup AdminTicketType
+    @apiPermission SuperAdmin,Operator
+
+    @apiDescription Create new ticket type
+
+    @apiParam (Body) {String} name Name
+    @apiParam (Body) {String} [description] Description
+    @apiParam (Body) {Number} price Price in EUR, max 2 decimal numbers.
+    @apiParam (Body) {String="ENTRIES","SEASONAL"} type Ticket type
+    @apiParam (Body) {Boolean} nameRequired Is name required?
+    @apiParam (Body) {Boolean} photoRequired Is photo required?
+	@apiParam (Body) {String[]} swimmingPools Array of swimming pool IDS.
+    @apiParam (Body) {Boolean} childrenAllowed Is children allowed? If contains `true` then all children`s properties are required.
+    @apiParam (Body) {Number} [childrenMaxNumber] Max number of the children.
+    @apiParam (Body) {Number} [childrenPrice] Children ticket price in EUR, max 2 decimal numbers.
+    @apiParam (Body) {Number} [childrenAgeFrom] Allowed children age from.
+    @apiParam (Body) {Number} [childrenAgeTo] Allowed children age to.
+    @apiParam (Body) {Number} [childrenAgeToWithAdult] Age to required to enter with an adult.
+    @apiParam (Body) {Boolean} [childrenPhotoRequired] Is children photo required?
+    @apiParam (Body) {String} validFrom The date from which is ticket valid. Format: `yyyy-mm-dd`.
+    @apiParam (Body) {String} validTo The date to which is ticket valid. Format: `yyyy-mm-dd`.
+    @apiParam (Body) {Boolean} hasTicketDuration Has filled `ticketDuration`?
+    @apiParam (Body) {String} [ticketDuration] Ticket duration. Required when `hasTicketDuration`, otherwise forbidden.
+    @apiParam (Body) {String} [entriesNumber] Number of the entries for `ENTRIES` ticket. Required for type=`ENTRIES`, forbidden for type `SEASONAL`.
+    @apiParam (Body) {Boolean} hasEntranceConstraints Has filled `entranceFrom` and `entranceTo` properties?
+    @apiParam (Body) {String} [entranceFrom] The time from which the customer can enter the swimming pool. Required when `hasEntranceConstraints`, otherwise forbidden.
+    @apiParam (Body) {String} [entranceTo] The time to which the customer must exit the swimming pool.  Required when `hasEntranceConstraints`, otherwise forbidden.
+	@apiParam (Body) {String[]} swimmingPools Array of swimming pool IDS.
+
+    @apiExample {curl} Example usage, seasonal ticket with entrance constrains:
+    {
+        "name": "Sezónny tiket",
+        "description": "Lorem epsum lorem epsum lorem epsum",
+        "price": 20,
+        "type": "SEASONAL",
+        "nameRequired": true,
+        "photoRequired": true,
+        "childrenAllowed": true,
+        "childrenMaxNumber": 5,
+        "childrenPrice": 1,
+        "childrenAgeFrom": 3,
+        "childrenAgeTo": 18,
+        "childrenAgeToWithAdult": 10,
+        "childrenPhotoRequired": true,
+        "validFrom": "2021-04-12",
+        "validTo": "2021-07-12",
+        "hasTicketDuration": false,
+        "hasEntranceConstraints": true,
+        "entranceFrom": "10:00",
+        "entranceTo": "14:00",
+        "swimmingPools": ["dc310a7c-60ef-46ef-85c5-2a3250f4f9c1"]
+    }
+
+    @apiExample {curl} Example usage, seasonal ticket with ticket duration:
+    {
+        "name": "Sezónny tiket",
+        "description": "Lorem epsum lorem epsum lorem epsum",
+        "price": 20,
+        "type": "SEASONAL",
+        "nameRequired": true,
+        "photoRequired": true,
+        "childrenAllowed": true,
+        "childrenMaxNumber": 5,
+        "childrenPrice": 1,
+        "childrenAgeFrom": 3,
+        "childrenAgeTo": 18,
+        "childrenAgeToWithAdult": 10,
+        "childrenPhotoRequired": true,
+        "validFrom": "2021-04-12",
+        "validTo": "2021-07-12",
+        "hasEntranceConstraints": false,
+        "hasTicketDuration": true,
+        "ticketDuration": "02:00",
+        "swimmingPools": ["dc310a7c-60ef-46ef-85c5-2a3250f4f9c1"]
+    }
+
+    @apiExample {curl} Example usage, entries ticket.
+    {
+        "name": "Vstupovy tiket",
+        "description": "Lorem epsum lorem epsum lorem epsum",
+        "price": 20,
+        "type": "ENTRIES",
+        "nameRequired": true,
+        "photoRequired": true,
+        "childrenAllowed": false,
+        "validFrom": "2021-04-12",
+        "validTo": "2021-07-12",
+        "hasEntranceConstraints": false,
+        "hasTicketDuration": false,
+        "entriesNumber": 10,
+        "swimmingPools": ["dc310a7c-60ef-46ef-85c5-2a3250f4f9c1"]
+    }
+
+    @apiSuccess (Response) {Object} data Data object
+    @apiSuccess (Response) {String} data.id Ticket type id (UUID4)
+    @apiSuccess (Response) {String} data.ticketType.id Ticket type id (UUID4)
+    @apiSuccess (Response) {String} data.ticketType.name Ticket type name
+    @apiSuccess (Response) {String} data.ticketType.description Ticket type description
+    @apiSuccess (Response) {String="ENTRIES","SEASONAL"} data.ticketType.type Ticket type
+    @apiSuccess (Response) {String} data.ticketType.price Ticket type price
+    @apiSuccess (Response) {Boolean} data.ticketType.nameRequired Is name required?
+    @apiSuccess (Response) {Boolean} data.ticketType.photoRequired Is photo required?
+    @apiSuccess (Response) {Boolean} data.ticketType.childrenAllowed Is children allowed?
+    @apiSuccess (Response) {Number} data.ticketType.childrenMaxNumber Max number of the children.
+    @apiSuccess (Response) {Number} data.ticketType.childrenPrice Children ticket price in EUR, max 2 decimal numbers.
+    @apiSuccess (Response) {Number} data.ticketType.childrenAgeFrom Allowed children age from.
+    @apiSuccess (Response) {Number} data.ticketType.childrenAgeTo Allowed children age to.
+    @apiSuccess (Response) {Number} data.ticketType.childrenAgeToWithAdult Age to required to enter with an adult.
+    @apiSuccess (Response) {Boolean} data.ticketType.childrenPhotoRequired Is children photo required?
+    @apiSuccess (Response) {String} data.ticketType.validFrom The date from which is ticket valid. Format: `yyyy-mm-dd`.
+    @apiSuccess (Response) {String} data.ticketType.validTo The date to which is ticket valid. Format: `yyyy-mm-dd`.
+    @apiSuccess (Response) {Boolean} data.ticketType.hasTicketDuration Has ticket duration?
+    @apiSuccess (Response) {String} data.ticketType.ticketDuration Ticket duration.
+    @apiSuccess (Response) {String} data.ticketType.entriesNumber Number of the entries for `ENTRIES` ticket.
+    @apiSuccess (Response) {Boolean} data.ticketType.hasEntranceConstraints Has entrance contrains?
+    @apiSuccess (Response) {String} data.ticketType.entranceFrom The time from which the customer can enter swimming pool.
+    @apiSuccess (Response) {String} data.ticketType.entranceTo The time to which the customer must exit swimming pool.
+    @apiSuccess (Response) {Object[]} data.ticketType.swimmigPools Array of swimming pools
+    @apiSuccess (Response) {String} data.ticketType.swimmigPools.name Swimming pool name
+    @apiSuccess (Response) {String} data.ticketType.swimmigPools.id Swimming pool ID
+    @apiSuccess (Response) {String} data.ticketType.createdAt Created at (ISO String)
+    @apiSuccess (Response) {Object[]} messages Array of messages
+    @apiSuccess (Response) {String="ERROR", "WARNING", "SUCCESS", "INFO"} messages.type Message type
+    @apiSuccess (Response) {String} messages.message Message description
+
+    @apiSuccessExample Success-Response:
+    HTTP/1.1 200 OK
+    {
+        "data": {
+            "id": "c70954c7-970d-4f1a-acf4-12b91acabe01",
+            "ticketType": {
+                "id": "c70954c7-970d-4f1a-acf4-12b91acabe01",
+                "name": "Vstupový lístok",
+                "description": "Lorem ipsum dolor sit amet",
+                "price": 23.99,
+                "type": "ENTRIES",
+                "nameRequired": true,
+                "photoRequired": true,
+                "childrenAllowed": true,
+                "childrenMaxNumber": 5,
+                "childrenPrice": 1,
+                "childrenAgeFrom": 3,
+                "childrenAgeTo": 18,
+                "childrenAgeToWithAdult": 10,
+                "childrenPhotoRequired": true,
+                "validFrom": "2021-04-12",
+                "validTo": "2021-07-12",
+                "entriesNumber": 5,
+                "hasEntranceConstraints": true,
+                "entranceFrom": "17:00",
+                "entranceFrom": "19:00",
+                "hasTicketDuration": false,
+                "ticketDuration": null,
+                "swimmingPools": [
+                    {
+                        "id": "dc310a7c-60ef-46ef-85c5-2a3250f4f9c1",
+                        "name": "Delfín"
+                    }
+                ],
+                "createdAt": "2020-10-08T06:53:47.477Z"
+            }
+        },
+        "messages": [
+            {
+                "type": "SUCCESS",
+                "message": "Typ lístka bol úspešne vytvorený"
+            }
+        ]
+    }
+
+    @apiUse ErrorResponse
+    @apiUse AuthorizationHeader
+
+*/

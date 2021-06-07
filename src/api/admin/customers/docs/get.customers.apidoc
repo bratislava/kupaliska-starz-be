@@ -1,0 +1,87 @@
+/**
+    @api {get} admin/customers Customers list
+    @apiVersion 1.0.0
+    @apiName AdminGetCustomers
+    @apiGroup AdminCustomers
+    @apiPermission SuperAdmin, Operator
+
+    @apiDescription Endpoint for getting list of customers, grouped by email.
+
+    @apiParam (Query) {Number} [limit=20] Limit
+    @apiParam (Query) {Number} [page=1] Page
+    @apiParam (Query) {Object} [filters] Filters
+    @apiParam (Query) {Object} [filters.customerEmail] Filter by customer email.
+    @apiParam (Query) {String} filters.customerEmail.value Filter value.
+    @apiParam (Query) {String="exact","like"} [filters.customerEmail.type] Filter type. Default: `like`.
+    @apiParam (Query) {Object} [filters.customerName] Filter by customer name.
+    @apiParam (Query) {String} filters.customerName.value Filter value.
+    @apiParam (Query) {String="exact","like"} [filters.customerName.type] Filter type. Default: `like`.
+    @apiParam (Query) {Object} [filters.age] Filter by customer age.
+    @apiParam (Query) {Number} [filters.age.from] Age from value.
+    @apiParam (Query) {Number} [filters.age.to] Age to value.
+    @apiParam (Query) {String="range"} [filters.age.type] Filter type. Default: `range`.
+    @apiParam (Query) {String="customerEmail","customerNames","customerAges","orderCount","lastOrderAt","lastEntryAt"} [order] Order by column. Default by `customerEmail`.
+    @apiParam (Query) {String="asc","desc"} [direction] Order direction. Default `asc`.
+
+    @apiParamExample {json} Request-Query-Example:
+    {
+        "limit": 20,
+        "page": 1,
+        "filter": {
+            "customerName": {
+                "value": "Jozef",
+                "type": "like"
+            },
+            "customerEmail": {
+                "value": "email@example",
+                "type": "like"
+            },
+            "age": {
+                "from": 10,
+                "type": "range"
+            },
+        },
+        "order": "customerEmail",
+        "direction": "asc"
+    }
+
+    @apiSuccess (Response) {Object[]} customers Array of customers
+    @apiSuccess (Response) {String} customers.customerNames All customer names grouped by email. Strings are joined with comma.
+    @apiSuccess (Response) {String} customers.customerEmail Email
+    @apiSuccess (Response) {String} customers.customerAges All customer ages grouped by email. Strings are joined with comma.
+    @apiSuccess (Response) {String} customers.customerZips All customer zip codes grouped by email. Strings are joined with comma.
+    @apiSuccess (Response) {String} customers.orderCount Number of customer`s orders.
+    @apiSuccess (Response) {String} customers.lastOrderAt Customer`s last order timestamp.
+    @apiSuccess (Response) {String} customers.lastEntryAt Customer`s last entry timestamp
+    @apiSuccess (Response) {Object} pagination Pagination object
+    @apiSuccess (Response) {Number} pagination.limit Limit
+    @apiSuccess (Response) {Number} pagination.page Current page
+    @apiSuccess (Response) {Number} pagination.totalPages Total pages
+    @apiSuccess (Response) {Number} pagination.totalCount Total count
+
+    @apiSuccessExample Success-Response-Example:
+    HTTP/1.1 200 OK
+    {
+        "customers": [
+            {
+                "customerEmail": "Erin_Nolan@gmail.com",
+                "customerAge": "15, 31",
+                "customerZips": "64872, 03333",
+                "customerNames": "Saul Nolan V, Juan Chang",
+                "orderCount": 66,
+                "lastOrderAt": "2021-05-21T10:56:00.324Z",
+                "lastEntryAt": "2021-09-09T17:16:14.346Z"
+            },
+        ],
+        "pagination": {
+            "limit": 50,
+            "page": 2,
+            "totalPages": 3,
+            "totalCount": 6
+        }
+    }
+
+    @apiUse ErrorResponse
+    @apiUse AuthorizationHeader
+
+*/

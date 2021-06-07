@@ -1,0 +1,35 @@
+/**
+    @api {post} admin/tickets/swimmingPools/:swimmingPoolId/checkout CheckOUT
+    @apiVersion 1.0.0
+    @apiName PostTicketCheckout
+    @apiGroup AdminTicket
+
+    @apiParam (Query) {String} swimmingPoolId Swimming pool ID
+    @apiPermission SwimmingPoolOperator, SwimmingPoolEmployee, Operator, SuperAdmin
+
+    @apiDescription Customer checkout.
+
+    @apiSuccess (Response) {String="OK","NOK"} status Check-out status. `OK` exit successful, `NOK` not.
+    @apiSuccess (Response) {Object[]} messages Error messages
+    @apiSuccess (Response) {String} messages.text Message text
+    @apiSuccess (Response) {Number} messages.code Check-out error code number.
+    @apiSuccess (Response) {Boolean} messages.optionalCheck If this validation is optional.
+
+    @apiSuccessExample Success-Response:
+	HTTP/1.1 200 OK
+    {
+        "status": "OK",
+        "messages": []
+    }
+
+    @apiUse AuthorizationHeader
+
+    @apiHeader {String} Qr-Code-Authorization Ticket authorization header from qr code.
+
+    @apiHeaderExample {json} Qr-Code-Authorization header example:
+    {
+        "Qr-Code-Authorization": "fagfaf1a6ga1ga6ga8ga1ga89.gaga1g56a1g6a8g1a56g1a6g5a15g6a1gag1a8gagagjhbghjkghjbhgbsg.af1a41a89fa18f1af8a6f128"
+    }
+    @apiUse ErrorResponse
+
+*/

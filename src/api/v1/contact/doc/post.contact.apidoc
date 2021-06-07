@@ -1,0 +1,42 @@
+/**
+    @api {post} v1/contact Send contact form
+    @apiVersion 1.0.0
+    @apiName PostContact
+    @apiGroup Contact
+
+    @apiDescription Send message from contact form via email.
+
+    @apiParam (Body) {String} name Name
+    @apiParam (Body) {String} email Email
+    @apiParam (Body) {String} message Description
+    @apiParam (Body) {Boolean} agreement Agreement
+	@apiParam (Body) {String} recaptcha Recaptcha response
+
+    @apiExample {curl} Example usage:
+    {
+        "name": "Maria Rohačková",
+        "message": "Chcela by som Vás kontaktovať ohladom...",
+        "email": "example@example.com",
+        "agreement": true,
+		"recaptcha": "recaptcha123"
+    }
+
+    @apiSuccess (Response) {Object} data Data object
+    @apiSuccess (Response) {Object[]} messages Array of messages
+    @apiSuccess (Response) {String="ERROR", "WARNING", "SUCCESS", "INFO"} messages.type Message type
+    @apiSuccess (Response) {String} messages.message Message description
+
+    @apiSuccessExample Success-Response:
+    HTTP/1.1 200 OK
+    {
+        "data": {},
+        "messages": [
+            {
+                "type": "SUCCESS",
+                "message": "Správa bola úspešne odoslaná"
+            }
+        ]
+    }
+
+    @apiUse ErrorResponse
+*/

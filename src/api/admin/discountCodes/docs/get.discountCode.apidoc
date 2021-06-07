@@ -1,0 +1,48 @@
+/**
+    @api {get} admin/discountCodes/:discountCodeId Get discount code
+    @apiVersion 1.0.0
+    @apiName GetDiscountCode
+    @apiGroup AdminDiscountCode
+
+    @apiParam (Query) {String} discountCodeId ID
+    @apiPermission SuperAdmin, Operator
+
+    @apiDescription Get discount code
+
+    @apiSuccess (Response) {String} id Discount code id (UUID4)
+    @apiSuccess (Response) {String} code Code
+    @apiSuccess (Response) {String} validFrom Valid from
+    @apiSuccess (Response) {String} validTo Valid to
+    @apiSuccess (Response) {Object[]} ticketTypes Ticket types
+    @apiSuccess (Response) {String} ticketTypes.id Ticket type ID
+    @apiSuccess (Response) {String} ticketTypes.name Ticket type name
+    @apiSuccess (Response) {String} createdAt Created at (ISO String)
+    @apiSuccess (Response) {String} usedAt Used at
+
+    @apiSuccessExample Success-Response:
+	HTTP/1.1 200 OK
+    {
+            "id": "c70954c7-970d-4f1a-acf4-12b91acabe01",
+            "code": "X4ABC2DX",
+            "amount": 20.5,
+            "validFrom": "2021-04-12",
+            "validTo": "2021-07-12",
+            "ticketTypes": [
+                {
+                    "id": "dc310a7c-60ef-46ef-85c5-2a3250f4f9c1",
+                    "name": "Sezónna pernamentka"
+                }
+            ],
+            "createdAt": "2020-10-08T06:53:47.477Z",
+            "usedAt": null
+    }
+
+    @apiErrorExample {json} Error-Response:
+    HTTP/1.1 404 Not Found
+    {
+        "error": "Zľavový kupón sa nenašiel"
+    }
+
+    @apiUse AuthorizationHeader
+
+*/

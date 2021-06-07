@@ -1,0 +1,29 @@
+/**
+    @apiDefine AuthorizationHeader
+        @apiVersion 1.0.0
+        @apiHeader {String} Authorization Authorization header.
+
+        @apiHeaderExample {json} Request-Header-Example:
+        {
+            "Authorization": "Bearer fagfaf1a6ga1ga6ga8ga1ga89.gaga1g56a1g6a8g1a56g1a6g5a15g6a1gag1a8gagagjhbghjkghjbhgbsg.af1a41a89fa18f1af8a6f128"
+        }
+*/
+
+
+/**
+    @apiDefine ErrorResponse
+        @apiVersion 1.0.0
+        @apiError (Errors 400 | 401 | 403 | 404 | 409 | 500) {Object[]} messages Array of error objects
+        @apiError (Errors 400 | 401 | 403 | 404 | 409 | 500) {String="Error"} messages.type Type of message
+        @apiError (Errors 400 | 401 | 403 | 404 | 409 | 500) {String} messages.message Message text
+        @apiError (Errors 400 | 401 | 403 | 404 | 409 | 500) {String} [messages.path] Property path or specific error key
+        @apiErrorExample Error-response:
+        HTTP/1.1 400 BadRequest
+        {
+            "messages": [{
+                "type": "ERROR",
+                "path": "body.tickets.name",
+                "message": "Error message"
+            }]
+        }
+*/

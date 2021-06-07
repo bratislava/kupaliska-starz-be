@@ -1,0 +1,8 @@
+{
+	"name": "Kupaliska Bratislava API",
+	"version": "1.0.0",
+	"description": "API for Bratislava project - Kupaliska.",
+	"title": "Apidoc | Kupaliska Bratislava API",
+	"url" : "starz-api.dev.amcef.sk/api/",
+	"sampleUrl": "/api/"
+}

@@ -1,0 +1,88 @@
+/**
+    @api {get} admin/swimmingPools/:swimmingPoolId/dailyVisits Get swimming pool daily visits
+    @apiVersion 1.0.0
+    @apiName GetSwimmingPoolDailyVisits
+    @apiGroup AdminSwimmingPool
+
+    @apiParam (Query) {String} swimmingPoolId ID
+    @apiPermission SuperAdmin, Operator, SwimmingPoolOperator
+
+    @apiDescription Get swimming pool dayli visits
+
+    @apiParam (Query) {String} day Report date. Format: `YYYY-MM-DD`.
+    @apiParam (Query) {String="age","zip"} [intervalDividedBy] Interval will be additionaly split by this category.
+    @apiParam (Query) {Number} [ageInterval=10] The size of the age interval. It applies only when `intervalDividedBy` is set to `age`.
+    @apiParam (Query) {Number} [intervalInMinutes=60] The size of the main interval in minutes.
+
+    @apiParamExample {json} Request-Query-Example:
+    {
+        "day": "2021-06-16",
+        "intervalDividedBy": "age",
+        "ageRange": 10,
+        "intervalInMinutes": 60
+    }
+
+
+    @apiSuccess (Response) {Object[]} data Array of visits
+
+    @apiSuccessExample Success-Response:
+	HTTP/1.1 200 OK
+    {
+        "data": [
+            40,
+            79,
+            133,
+            176,
+            220,
+            256,
+            300,
+            334,
+            374,
+            409,
+            458,
+            489
+        ]
+    }
+
+    @apiSuccessExample Success-Response (Divided by age):
+	HTTP/1.1 200 OK
+    {
+        "data": [
+            {
+                "0-49": 30,
+                "50-99": 8,
+                "100-149": 0,
+                "Nevyplnené": 2
+            },
+            {
+                "0-49": 64,
+                "50-99": 13,
+                "100-149": 0,
+                "Nevyplnené": 2
+            }
+        ]
+    }
+
+    @apiSuccessExample Success-Response (Divided by zip):
+	HTTP/1.1 200 OK
+    {
+        "data": [
+            {
+                "26437": 1,
+                "52465": 1,
+                "25703-6954": 1
+            },
+            {
+                "26437": 1,
+                "52465": 1,
+                "05711-9490": 1,
+                "04239-8858": 1,
+                "25703-6954": 1,
+                "51525-9852": 1
+            }
+        ]
+    }
+
+    @apiUse AuthorizationHeader
+
+*/

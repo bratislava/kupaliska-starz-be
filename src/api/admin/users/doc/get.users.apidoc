@@ -1,0 +1,73 @@
+/**
+    @api {get} admin/users Get users list
+    @apiVersion 1.0.0
+    @apiName GetUsers
+    @apiGroup AdminUsers
+    @apiPermission SuperAdmin,Operator
+
+    @apiDescription Endpoint for getting list of users
+
+    @apiParam (Query) {Number} [limit=20] Limit
+    @apiParam (Query) {Number} [page=1] Page
+    @apiParam (Query) {String} [search] Search
+    @apiParam (Query) {String} [order] Order
+    @apiParam (Query) {String} [direction] Order direction
+
+    @apiParamExample {json} Request-Query-Example:
+    {
+        "limit": 20,
+        "page": 1,
+        "search": "Jozef",
+        "order": "name",
+        "direction": "asc"
+    }
+
+    @apiSuccess (Response) {Object[]} users Array of users
+    @apiSuccess (Response) {String} users.id User id (UUID4)
+    @apiSuccess (Response) {String} users.name User name
+    @apiSuccess (Response) {String} users.email User email
+    @apiSuccess (Response) {Boolean} users.isConfirmed Confirmed
+    @apiSuccess (Response) {Object[]} users.swimmigPools Array of swimming pools
+    @apiSuccess (Response) {String} users.swimmigPools.name Swimming pool name
+    @apiSuccess (Response) {String} users.swimmigPools.id Swimming pool ID
+	@apiSuccess (Response) {String="BASIC","OPERATOR","SWIMMING_POOL_OPERATOR","SWIMMING_POOL_EMPLOYEE","SUPER_ADMIN"} users.role User role
+    @apiSuccess (Response) {String} users.createdAt Created at (ISO String)
+    @apiSuccess (Response) {String} users.updatedAt Updated at (ISO String)
+    @apiSuccess (Response) {String} users.deletedAt Deleted at (ISO String)
+    @apiSuccess (Response) {Object} pagination Pagination object
+    @apiSuccess (Response) {Number} pagination.limit Limit
+    @apiSuccess (Response) {Number} pagination.page Current page
+    @apiSuccess (Response) {Number} pagination.totalPages Total pages
+    @apiSuccess (Response) {Number} pagination.totalCount Total count
+
+    @apiSuccessExample Success-Response-Example:
+    HTTP/1.1 200 OK
+    {
+        "users": [{
+            "id": "c70954c7-970d-4f1a-acf4-12b91acabe01",
+            "name": "Jozko Mak",
+            "email": "jozko@mak.sk",
+            "isConfirmed": true,
+            "role": "OPERATOR",
+            "swimmingPools": [
+                {
+                    "id": "dc310a7c-60ef-46ef-85c5-2a3250f4f9c1",
+                    "name": "Delfín"
+                }
+            ],
+            "createdAt": "2020-10-08T06:53:47.477Z",
+            "updatedAt": "2020-10-08T06:53:47.477Z",
+            "deletedAt": "2020-10-08T06:53:47.477Z"
+        }],
+        "pagination": {
+            "limit": 50,
+            "page": 2,
+            "totalPages": 3,
+            "totalCount": 6
+        }
+    }
+
+    @apiUse ErrorResponse
+    @apiUse AuthorizationHeader
+
+*/

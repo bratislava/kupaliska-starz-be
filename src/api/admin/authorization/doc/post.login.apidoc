@@ -1,0 +1,54 @@
+/**
+    @api {post} admin/authorization/login Login
+    @apiVersion 1.0.0
+    @apiName AdminPostLogin
+    @apiGroup AdminAuthorization
+
+    @apiDescription Endpoint for administrator login
+
+    @apiParam (Body) {String} email Email
+    @apiParam (Body) {String} password password
+
+    @apiExample {curl} Example usage:
+    {
+        "email": "user1@example.com",
+        "password": "MyPassword1"
+    }
+
+    @apiSuccess {Object} data Data object
+    @apiSuccess {Object[]} messages Array of messages
+    @apiSuccess {String="ERROR", "WARNING", "SUCCESS", "INFO"} messages.type Message type
+    @apiSuccess {String} messages.message Message description
+    @apiSuccess {String} data.accessToken Jwt token
+    @apiSuccess {Object} data.profile User object
+    @apiSuccess {String} data.profile.name User name
+    @apiSuccess {String="BASIC","OPERATOR","SWIMMING_POOL_OPERATOR","SWIMMING_POOL_EMPLOYEE","SUPER_ADMIN"} data.profile.role User role
+    @apiSuccess {String} data.profile.email User email
+    @apiSuccess {String} data.profile.latLoginAt Last login
+    @apiSuccess {Object[]} data.profile.swimmingPools User`s swimming pools
+    @apiSuccess {String} data.profile.swimmingPools.id Swimming pool ID
+    @apiSuccess {String} data.profile.swimmingPools.name Swimming pool name
+
+    @apiSuccessExample Success-Response:
+	HTTP/1.1 200 OK
+	{
+    "data": {
+        "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOjMsImlhdCI6MTU5MTI4NzAxMCwiZXhwIjoxNTkxMjg3MDEwLCJhdWQiOiJqd3QtYWRtaW4ifQ.wioMKx0RjC_fqU7UND5zr2-lkiEI-Pt9c2dSkDgvoOw",
+        "profile": {
+            "id": "8efd0fa2-ccf4-43a7-aff9-c0c7fe0f5013",
+            "name": "Richard Boroš",
+            "role": "BASIC",
+            "email": "richard.boros@example.com",
+            "lastLoginAt": "2020-06-04T16:09:52.627Z",
+            "swimmingPools": [
+                {
+                    "id": "dc310a7c-60ef-46ef-85c5-2a3250f4f9c1",
+                    "name": "Delfín"
+                }
+            ]
+        }
+    },
+    "messages": []
+}
+
+*/
