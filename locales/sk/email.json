@@ -1,0 +1,6 @@
+{
+    "contactSubject": "Nová správa z kupaliska.bratislava.sk",
+    "orderSubject": "Posielame Vám Vašu {{ ticketName }} na letné kúpaliská.",
+    "resetPasswordSubject": "Posielame Vám odkaz na nastavenie nového hesla",
+    "setPasswordSubject": "Vytvorený nový účet"
+}

@@ -1,0 +1,32 @@
+/**
+    @api {delete} admin/swimmingPools/:id Delete swimming pool
+    @apiVersion 1.0.0
+    @apiName AdminDeleteSwimmingPool
+    @apiGroup AdminSwimmingPool
+    @apiPermission SuperAdmin,Operator, SwimmingPoolOperator
+
+    @apiDescription Delete swimming pool
+
+	@apiParam (Query) {String} id Swimming pool ID (UUID4)
+
+    @apiSuccessExample Success-Response:
+	HTTP/1.1 200 OK
+	{
+        "data": {},
+        "messages": [
+            {
+                "type": "SUCCESS",
+                "message": "Kúpalisko úspešne vymazané"
+            }
+        ]
+    }
+
+    @apiErrorExample {json} Error-Response:
+        HTTP/1.1 404 Not Found
+        {
+          "error": "Kúpalisko sa nenašlo"
+        }
+
+    @apiUse AuthorizationHeader
+*/
+

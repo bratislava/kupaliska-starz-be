@@ -1,0 +1,68 @@
+/**
+    @api {get} v1/swimmingPools Swimming pools list
+    @apiVersion 1.0.0
+    @apiName GetSwimmingPools
+    @apiGroup SwimmingPool
+
+    @apiDescription Endpoint for getting list of swimming pools
+
+    @apiParam (Query) {Number} [limit=20] Limit
+    @apiParam (Query) {Number} [page=1] Page
+    @apiParam (Query) {String} [search] Search
+    @apiParam (Query) {String} [order] Order
+    @apiParam (Query) {String} [direction] Order direction
+
+    @apiParamExample {json} Request-Query-Example:
+    {
+        "limit": 20,
+        "page": 1,
+        "search": "Delfin",
+        "order": "name",
+        "direction": "asc"
+    }
+
+    @apiSuccess (Response) {Object[]} swimmingPools Array of swimming pools
+    @apiSuccess (Response) {String} swimmingPools.id Swimming pool id (UUID4)
+    @apiSuccess (Response) {String} swimmingPools.name Swimming pool name
+    @apiSuccess (Response) {String} swimmingPools.description Swimming pool description
+    @apiSuccess (Response) {String} swimmingPools.locationUrl Location url
+    @apiSuccess (Response) {Object} swimmingPools.image Image object
+    @apiSuccess (Response) {String} swimmingPools.image.originalFile Original file
+    @apiSuccess (Response) {String} swimmingPools.image.thumbnailSize Thumbnail file
+    @apiSuccess (Response) {String} swimmingPools.image.smallSize Small file
+    @apiSuccess (Response) {String} swimmingPools.image.mediumSize Medium file
+    @apiSuccess (Response) {String} swimmingPools.image.largeSize Large file
+    @apiSuccess (Response) {String} swimmingPools.image.altText Alt text
+    @apiSuccess (Response) {Object} pagination Pagination object
+    @apiSuccess (Response) {Number} pagination.limit Limit
+    @apiSuccess (Response) {Number} pagination.page Current page
+    @apiSuccess (Response) {Number} pagination.totalPages Total pages
+    @apiSuccess (Response) {Number} pagination.totalCount Total count
+
+    @apiSuccessExample Success-Response-Example:
+    HTTP/1.1 200 OK
+    {
+        "swimmingPools": [{
+            "id": "c70954c7-970d-4f1a-acf4-12b91acabe01",
+            "name": "Delfín",
+            "description": "Kúpalisko Delfín nájdete priamo...",
+            "locationUrl" : "https://goo.gl/maps/YST1w1Q7Vt7EpBDh9",
+            "image": {
+                "originalFile": "https://starz-api.dev.amcef.sk/files/public/swimming-pools/filename.png",
+                "thumbnailSize": "https://starz-api.dev.amcef.sk/files/public/swimming-pools/filename.png",
+                "smallSize": "https://starz-api.dev.amcef.sk/files/public/swimming-pools/filename.png",
+                "mediumSize": "https://starz-api.dev.amcef.sk/files/public/swimming-pools/filename.png",
+                "largeSize": "https://starz-api.dev.amcef.sk/files/public/swimming-pools/filename.png",
+                "altText": "Kupalisko"
+            }
+        }],
+        "pagination": {
+            "limit": 50,
+            "page": 2,
+            "totalPages": 3,
+            "totalCount": 6
+        }
+    }
+
+    @apiUse ErrorResponse
+*/

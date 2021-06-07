@@ -1,0 +1,34 @@
+{
+    "admin": {
+        "discountCodes": {
+            "created": "Zľavové kupóny úspešne vytvorené",
+            "deleted": "Zľavový kupón úspešne vymazaný"
+        },
+        "swimmingPools": {
+            "created": "Kúpalisko úspešne vytvorené",
+            "deleted": "Kúpalisko úspešne vymazané",
+            "updated": "Kúpalisko úspešne upravené"
+        },
+        "ticketTypes": {
+            "created": "Typ lístka úspešne vytvorený",
+            "deleted": "Typ lístka úspešne vymazaný",
+            "updated": "Typ lístka úspešne upravený"
+        },
+        "users": {
+            "created": "Používateľ úspešne vytvorený",
+            "deleted": "Používateľ úspešne deaktivovaný",
+            "passwordChanged": "Heslo úspešne zmenené",
+            "passwordHasBeenReset": "Heslo úspešne zmenené",
+            "updated": "Používateľ úspešne upravený",
+            "restored": "Používateľ úspešne aktivovaný"
+        },
+		"order": {
+			"updated": "Objednávka úspešne upravená"
+		}
+    },
+    "contactSent": "Správa bola úspešne odoslaná",
+    "emailSent": "Email bol úspešne odoslaný",
+    "orderCreated": "Objednávka úspešne vytvorená",
+    "passwordResetEmailSent": "Email na resetovanie hesla úspešne odoslaný.",
+    "sucessfulLogout": "Používateľ úspešne odhláseny zo všetkých zariadení"
+}

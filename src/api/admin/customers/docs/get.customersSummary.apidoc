@@ -1,0 +1,37 @@
+/**
+    @api {get} admin/customers/summary Customers summary statistics.
+    @apiVersion 1.0.0
+    @apiName AdminGetCustomersSummary
+    @apiGroup AdminCustomers
+    @apiPermission SuperAdmin, Operator
+
+    @apiDescription Endpoint for getting customers summary statistics.
+
+    @apiSuccess (Response) {Number} customerCount Number of customers.
+    @apiSuccess (Response) {Number} maxCustomerAge Max customer age.
+    @apiSuccess (Response) {Number} minCustomerAge Min customer age.
+    @apiSuccess (Response) {Number} averageCustomerAge Average customer age.
+    @apiSuccess (Response) {Number} ticketCount Number of all tickets.
+    @apiSuccess (Response) {String} mostFrequentZipCode Most frequent zip code.
+    @apiSuccess (Response) {Number} zipCodeFrequency Frequency of the most frequent zip code.
+    @apiSuccess (Response) {Number} maxNumberOfOrders Maximal number of the orders.
+    @apiSuccess (Response) {Number} averageNumberOfOrders Average number of the orders.
+
+    @apiSuccessExample Success-Response-Example:
+    HTTP/1.1 200 OK
+    {
+        "customerCount": 7007,
+        "maxCustomerAge": 117,
+        "minCustomerAge": 0,
+        "averageCustomerAge": 25.13,
+        "ticketCount": 7106,
+        "mostFrequentZipCode": "03251",
+        "zipCodeFrequency": 7,
+        "maxNumberOfOrders": 74,
+        "averageNumberOfOrders": 1.01
+    }
+
+    @apiUse ErrorResponse
+    @apiUse AuthorizationHeader
+
+*/

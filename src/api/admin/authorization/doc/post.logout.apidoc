@@ -1,0 +1,26 @@
+/**
+    @api {post} admin/authorization/logout Logout
+    @apiVersion 1.0.0
+    @apiName AdminPostLogout
+    @apiGroup AdminAuthorization
+
+    @apiDescription Endpoint for users to log out of all active devices
+
+    @apiSuccess {Object} data Data object
+    @apiSuccess {Object[]} messages Array of messages
+    @apiSuccess {String="ERROR", "WARNING", "SUCCESS", "INFO"} messages.type Message type
+    @apiSuccess {String} messages.message Message description
+
+    @apiSuccessExample Success-Response:
+	HTTP/1.1 200 OK
+	{
+        "data": {},
+        "messages": [
+            {
+                "type": "SUCCESS",
+                "message": "Používateľ úspešne odhlásený zo všetkých zariadení"
+            }
+        ]
+}
+
+*/

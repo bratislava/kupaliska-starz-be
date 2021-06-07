@@ -1,0 +1,32 @@
+/**
+    @api {post} admin/orders/:orderId/resend Resend order email
+    @apiVersion 1.0.0
+    @apiName AdminPostResendOrderEmail
+    @apiGroup AdminOrders
+    @apiPermission SuperAdmin, Operator
+
+    @apiDescription Resend order email.
+
+	@apiParam (Query) {String} orderId Order ID
+
+    @apiSuccess (Response) {Object} data Data object
+    @apiSuccess (Response) {Object[]} messages Array of messages
+    @apiSuccess (Response) {String="ERROR", "WARNING", "SUCCESS", "INFO"} messages.type Message type
+    @apiSuccess (Response) {String} messages.message Message description
+
+    @apiSuccessExample Success-Response:
+    HTTP/1.1 200 OK
+    {
+        "data": {},
+        "messages": [
+            {
+                "type": "SUCCESS",
+                "message": "Email bol úspešne odoslaný"
+            }
+        ]
+    }
+
+    @apiUse ErrorResponse
+    @apiUse AuthorizationHeader
+
+*/

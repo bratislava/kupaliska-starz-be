@@ -1,0 +1,44 @@
+/**
+    @api {patch} admin/orders/:orderId Patch order
+    @apiVersion 1.0.0
+    @apiName AdminPatchOrder
+    @apiGroup AdminOrders
+    @apiPermission SuperAdmin, Operator
+
+    @apiDescription Patch order.
+
+	@apiParam (Query) {String} orderId Order ID
+
+    @apiParam (Body) {String="CREATED","PAID","FAILED","CANCELED"} [state] Order new state
+    @apiParam (Body) {String} [email] Ticket email
+
+    @apiExample {curl} Example usage:
+    {
+        "state": "PAID",
+        "email": "example@example.com"
+    }
+
+    @apiSuccess (Response) {Object} data Data object
+    @apiSuccess (Response) {String} data.id Order id
+    @apiSuccess (Response) {Object[]} messages Array of messages
+    @apiSuccess (Response) {String="ERROR", "WARNING", "SUCCESS", "INFO"} messages.type Message type
+    @apiSuccess (Response) {String} messages.message Message description
+
+    @apiSuccessExample Success-Response:
+    HTTP/1.1 200 OK
+    {
+        "data": {
+            "id": "c70954c7-970d-4f1a-acf4-12b91acabe01"
+        },
+        "messages": [
+            {
+                "type": "SUCCESS",
+                "message": "Objednávka úspešne upravená"
+            }
+        ]
+    }
+
+    @apiUse ErrorResponse
+    @apiUse AuthorizationHeader
+
+*/

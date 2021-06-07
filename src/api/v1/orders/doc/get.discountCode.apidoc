@@ -1,0 +1,25 @@
+/**
+    @api {get} v1/orders/discountCodes/:code/ticketTypes/:ticketTypeId Get discount code
+    @apiVersion 1.0.0
+    @apiName GetDiscountCode
+    @apiGroup Orders
+
+    @apiParam (Query) {String} ticketTypeId Ticket type id
+    @apiParam (Query) {String} code Discount code
+
+    @apiDescription Find out if discount code is valid for given ticket type.
+
+    @apiSuccess (Response) {Object} discountCode Discount code object
+    @apiSuccess (Response) {Number} discountCode.amount Amount in percent.
+    @apiSuccess (Response) {String} discountCode.code Code.
+
+    @apiSuccessExample Success-Response:
+	HTTP/1.1 200 OK
+    {
+        "discountCode": {
+                "amount": 15,
+                "code": "XJ23KLO3",
+        }
+    }
+
+*/

@@ -1,0 +1,55 @@
+/**
+    @api {get} admin/swimmingPools/:swimmingPoolId Get swimming pool
+    @apiVersion 1.0.0
+    @apiName GetSwimmingPool
+    @apiGroup AdminSwimmingPool
+
+    @apiParam (Query) {String} swimmingPoolId ID
+    @apiPermission SuperAdmin,Operator
+
+    @apiDescription Get swimming pool
+
+    @apiSuccess (Response) {String} id Swimming pool id (UUID4)
+    @apiSuccess (Response) {String} name Name
+    @apiSuccess (Response) {String} description Swimming pool description
+    @apiSuccess (Response) {String} expandedDescription Swimming pool expanded description
+    @apiSuccess (Response) {Number} waterTemp Swimming pool price
+    @apiSuccess (Response) {Object[]} openingHours Array of opening hours interval
+    @apiSuccess (Response) {String[]} facilities Array of facility keys
+    @apiSuccess (Response) {Number} maxCapacity Swimming pool max capacity
+    @apiSuccess (Response) {String} locationUrl Location url
+    @apiSuccess (Response) {Object} image Image object
+    @apiSuccess (Response) {String} image.originalFile Original file
+    @apiSuccess (Response) {String} image.thumbnailSize Thumbnail file
+    @apiSuccess (Response) {String} image.smallSize Small file
+    @apiSuccess (Response) {String} image.mediumSize Medium file
+    @apiSuccess (Response) {String} image.largeSize large file
+    @apiSuccess (Response) {String} image.altText Alt text
+    @apiSuccess (Response) {String} createdAt Created at (ISO String)
+
+    @apiSuccessExample Success-Response:
+	HTTP/1.1 200 OK
+    {
+            "id": "c70954c7-970d-4f1a-acf4-12b91acabe01",
+            "name": "Delfín",
+            "description": "Kúpalisko Delfín nájdete priamo v centre Ružinova, kde na vás čaká nový tobogán - kamikadze.",
+            "expandedDescription": "Kúpalisko Delfín nájdete priamo v centre Ružinova, kde na vás čaká nový tobogán - kamikadze. Okrem toho máte k dispozícii tri bazény a štandardné vybavenie ako bazény, sprchy, šatne a sauny.",
+            "waterTemp": 22,
+            "maxCapacity": 500,
+            "facilities": ["changing-room", "food", "playground"],
+            "openingHours": [],
+            "image": {
+                "originalFile": "https://starz-api.dev.amcef.sk/files/public/swimming-pools/filename.png",
+                "thumbnailSize": "https://starz-api.dev.amcef.sk/files/public/swimming-pools/filename.png",
+                "smallSize": "https://starz-api.dev.amcef.sk/files/public/swimming-pools/filename.png",
+                "mediumSize": "https://starz-api.dev.amcef.sk/files/public/swimming-pools/filename.png",
+                "largeSize": "https://starz-api.dev.amcef.sk/files/public/swimming-pools/filename.png",
+                "altText": "Kupalisko"
+            },
+            "locationUrl" : "https://goo.gl/maps/YST1w1Q7Vt7EpBDh9",
+            "createdAt": "2020-10-08T06:53:47.477Z"
+    }
+
+    @apiUse AuthorizationHeader
+
+*/
