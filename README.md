@@ -8,7 +8,7 @@ To start app run you should follow this steps:
 2. create .env file from .env.example
 3. set right .env variables (eg. database credentials)
 4. npm run migrate:dev
-5. npm run seed:dev
+5. npm run seed:dev (this will hang aat 07-fakeOrders, that's ok and you can safely exit the process)
 6. npm run debug/npm run start
 
 You can also use docker and docker-compose.
