@@ -117,7 +117,7 @@ stages:
               buildImages: false
               dockerComposeFileArgs: |
                 IMAGE=docker.pkg.github.com/$(dockerRepository)
-                IMAGE_TAG=$(tag)
+                IMAGE_TAG=$(tag)-dev
 
 - stage: Production
   jobs:
@@ -153,4 +153,4 @@ stages:
               buildImages: false
               dockerComposeFileArgs: |
                 IMAGE=docker.pkg.github.com/$(dockerRepository)
-                IMAGE_TAG=$(tag)
+                IMAGE_TAG=$(tag)-prod
