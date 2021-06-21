@@ -1,0 +1,133 @@
+# Docker
+# Build a Docker image
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- master
+
+variables:
+  tag: '$(Build.SourceVersion)'
+  dockerRepository: bratislava/kupaliska-starz-be/kupaliska-starz-be
+resources:
+  containers:
+  - container: postgres
+    image: postgres:13-alpine
+
+stages:
+- stage: Test
+  jobs:
+  - job: Test
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - script: yarn install --frozen-lockfile --cache-folder .yarn
+      displayName: Yarn Install
+    - script: yarn test-cmd
+      displayName: Yarn Test
+    variables:
+      NODE_ENV: "test"
+      DB_DIALECT: "postgres"
+      DB_POSTGRES_CS: "postgres://kupaliska:kupaliska@postgres:5432/kupaliska"
+      POSTGRES_USER: "kupaliska"
+      POSTGRES_PASSWORD: "kupaliska"
+      POSTGRES_DB: "kupaliska"
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    services:
+      postgres: postgres
+
+- stage: Build
+  displayName: Build image
+  condition: and(succeeded(), eq(variables['Build.Reason'], 'IndividualCI'))
+  jobs:
+  - job: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: Docker@2
+      displayName: Build and push Dev Image
+      inputs:
+        containerRegistry: 'Github Packages'
+        repository: $(dockerRepository)
+        command: 'buildAndPush'
+        Dockerfile: 'docker/Dockerfile.dev'
+        tags: '$(tag)-dev'
+    - task: Docker@2
+      displayName: Build and push Prod Image
+      inputs:
+        containerRegistry: 'Github Packages'
+        repository: $(dockerRepository)
+        command: 'buildAndPush'
+        Dockerfile: 'docker/Dockerfile.prod'
+        tags: '$(tag)-prod'
+    
+- stage: Staging
+  jobs:
+  - deployment: Staging
+    environment:
+      name: Staging
+      resourceType: VirtualMachine
+      tags: docker
+    variables:
+      DEPLOY_PATH: "~/deployments/kupaliska/stage"
+      STACK_NAME: "kupaliska_starz_be_stage"
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+          - download: none
+          - task: DownloadSecureFile@1
+            name: EnvFile
+            inputs:
+              secureFile: '.env.kupaliska.staging'
+            displayName: Download Env File
+          - script: mv $(EnvFile.secureFilePath) $(Build.SourcesDirectory)/.env
+            displayName: Rename Env File
+          - task: DockerCompose@0
+            inputs:
+              containerregistrytype: 'Container Registry'
+              dockerRegistryEndpoint: 'Github Packages'
+              dockerComposeFile: 'docker-compose.yml'
+              additionalDockerComposeFiles: 'docker-compose.mglogger.yml'
+              projectName: '$(STACK_NAME)'
+              action: 'Run services'
+              buildImages: false
+              dockerComposeFileArgs: |
+                IMAGE=docker.pkg.github.com/$(dockerRepository)
+                IMAGE_TAG=$(tag)
+
+- stage: Production
+  jobs:
+  - deployment: Production
+    environment:
+      name: Production
+      resourceType: VirtualMachine
+      tags: docker
+    variables:
+      DEPLOY_PATH: "/home/gitlab-runner/deployments/kupaliska/prod"
+      STACK_NAME: "kupaliska_starz_be"
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+          - download: none
+          - task: DownloadSecureFile@1
+            name: EnvFile
+            inputs:
+              secureFile: '.env.kupaliska.production'
+            displayName: Download Env File
+          - script: mv $(EnvFile.secureFilePath) $(Build.SourcesDirectory)/.env
+            displayName: Rename Env File
+          - task: DockerCompose@0
+            inputs:
+              containerregistrytype: 'Container Registry'
+              dockerRegistryEndpoint: 'Github Packages'
+              dockerComposeFile: 'docker-compose.yml'
+              additionalDockerComposeFiles: 'docker-compose.mglogger.yml'
+              projectName: '$(STACK_NAME)'
+              action: 'Run services'
+              buildImages: false
+              dockerComposeFileArgs: |
+                IMAGE=docker.pkg.github.com/$(dockerRepository)
+                IMAGE_TAG=$(tag)
