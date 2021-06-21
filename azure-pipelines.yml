@@ -12,8 +12,6 @@ resources:
   containers:
   - container: postgres
     image: postgres:13-alpine
-  - container: node
-    image: node:14-alpine
 
 stages:
 - stage: Test
@@ -21,7 +19,9 @@ stages:
     npm_config_cache: $(Pipeline.Workspace)/.npm
   jobs:
   - job: Test
-    container: node
+    pool:
+      vmImage: 'ubuntu-18.04'
+    container: ubuntu:18.04
     steps:
     - task: DownloadSecureFile@1
       name: EnvFile
