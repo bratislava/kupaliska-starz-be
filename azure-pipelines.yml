@@ -8,20 +8,22 @@ trigger:
 variables:
   tag: '$(Build.SourceVersion)'
   dockerRepository: bratislava/kupaliska-starz-be/kupaliska-starz-be
-resources:
-  containers:
-  - container: postgres
-    image: postgres:13-alpine
+  npm_config_cache: $(Pipeline.Workspace)/.npm
+
 
 stages:
 - stage: Test
-  variables:
-    npm_config_cache: $(Pipeline.Workspace)/.npm
   jobs:
   - job: Test
     pool:
       vmImage: 'ubuntu-latest'
     container: node:14
+    variables:
+      POSTGRES_USER: "kupaliskabratislava_test"
+      POSTGRES_PASSWORD: "kupaliskabratislava_test"
+      POSTGRES_DB: "kupaliskabratislava_test"
+    services:
+      postgres: postgres:13-alpine
     steps:
     - task: DownloadSecureFile@1
       name: EnvFile
@@ -46,12 +48,6 @@ stages:
       inputs:
         command: 'custom'
         customCommand: 'run test'
-    variables:
-      POSTGRES_USER: "kupaliskabratislava_test"
-      POSTGRES_PASSWORD: "kupaliskabratislava_test"
-      POSTGRES_DB: "kupaliskabratislava_test"
-    services:
-      postgres: postgres
 
 - stage: Build
   displayName: Build image
