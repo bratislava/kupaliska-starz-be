@@ -14,26 +14,26 @@ resources:
     image: postgres:13-alpine
 
 stages:
-- stage: Test
-  jobs:
-  - job: Test
-    pool:
-      vmImage: ubuntu-latest
-    steps:
-    - script: yarn install --frozen-lockfile --cache-folder .yarn
-      displayName: Yarn Install
-    - script: yarn test-cmd
-      displayName: Yarn Test
-    variables:
-      NODE_ENV: "test"
-      DB_DIALECT: "postgres"
-      DB_POSTGRES_CS: "postgres://kupaliska:kupaliska@postgres:5432/kupaliska"
-      POSTGRES_USER: "kupaliska"
-      POSTGRES_PASSWORD: "kupaliska"
-      POSTGRES_DB: "kupaliska"
-      POSTGRES_HOST_AUTH_METHOD: "trust"
-    services:
-      postgres: postgres
+# - stage: Test
+#   jobs:
+#   - job: Test
+#     pool:
+#       vmImage: ubuntu-latest
+#     steps:
+#     - script: yarn install --frozen-lockfile --cache-folder .yarn
+#       displayName: Yarn Install
+#     - script: yarn test-cmd
+#       displayName: Yarn Test
+#     variables:
+#       NODE_ENV: "test"
+#       DB_DIALECT: "postgres"
+#       DB_POSTGRES_CS: "postgres://kupaliska:kupaliska@postgres:5432/kupaliska"
+#       POSTGRES_USER: "kupaliska"
+#       POSTGRES_PASSWORD: "kupaliska"
+#       POSTGRES_DB: "kupaliska"
+#       POSTGRES_HOST_AUTH_METHOD: "trust"
+#     services:
+#       postgres: postgres
 
 - stage: Build
   displayName: Build image
