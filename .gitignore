@@ -125,8 +125,3 @@ dist
 test-files
 files/private/*
 files/public/swimming-pools
-
-# keys
-resources/*
-!resources/keys
-!resources/test-keys
