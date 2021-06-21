@@ -14,26 +14,43 @@ resources:
     image: postgres:13-alpine
 
 stages:
-# - stage: Test
-#   jobs:
-#   - job: Test
-#     pool:
-#       vmImage: ubuntu-latest
-#     steps:
-#     - script: yarn install --frozen-lockfile --cache-folder .yarn
-#       displayName: Yarn Install
-#     - script: yarn test-cmd
-#       displayName: Yarn Test
-#     variables:
-#       NODE_ENV: "test"
-#       DB_DIALECT: "postgres"
-#       DB_POSTGRES_CS: "postgres://kupaliska:kupaliska@postgres:5432/kupaliska"
-#       POSTGRES_USER: "kupaliska"
-#       POSTGRES_PASSWORD: "kupaliska"
-#       POSTGRES_DB: "kupaliska"
-#       POSTGRES_HOST_AUTH_METHOD: "trust"
-#     services:
-#       postgres: postgres
+- stage: Test
+  variables:
+    npm_config_cache: $(Pipeline.Workspace)/.npm
+  jobs:
+  - job: Test
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: DownloadSecureFile@1
+      name: EnvFile
+      inputs:
+        secureFile: '.env.kupaliska.test'
+      displayName: Download Env File
+    - script: mv $(EnvFile.secureFilePath) $(Build.SourcesDirectory)/.env.test
+      displayName: Rename Env File
+    - task: Cache@2
+      inputs:
+        key: 'npm | "$(Agent.OS)" | package-lock.json'
+        restoreKeys: |
+          npm | "$(Agent.OS)"
+        path: $(npm_config_cache)
+      displayName: Cache npm
+    - task: Npm@1
+      displayName: NPM Install
+      inputs:
+        command: 'ci'
+    - task: Npm@1
+      displayName: NPM Run Test
+      inputs:
+        command: 'custom'
+        customCommand: 'run test'
+    variables:
+      POSTGRES_USER: "kupaliskabratislava_test"
+      POSTGRES_PASSWORD: "kupaliskabratislava_test"
+      POSTGRES_DB: "kupaliskabratislava_test"
+    services:
+      postgres: postgres
 
 - stage: Build
   displayName: Build image
@@ -47,17 +64,20 @@ stages:
       displayName: Build and push Dev Image
       inputs:
         containerRegistry: 'Github Packages'
-        repository: $(dockerRepository)
+        repository: '$(dockerRepository)'
         command: 'buildAndPush'
         Dockerfile: 'docker/Dockerfile.dev'
+        buildContext: '$(Build.SourcesDirectory)'
         tags: '$(tag)-dev'
+
     - task: Docker@2
       displayName: Build and push Prod Image
       inputs:
         containerRegistry: 'Github Packages'
-        repository: $(dockerRepository)
+        repository: '$(dockerRepository)'
         command: 'buildAndPush'
         Dockerfile: 'docker/Dockerfile.prod'
+        buildContext: '$(Build.SourcesDirectory)'
         tags: '$(tag)-prod'
     
 - stage: Staging
