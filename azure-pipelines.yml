@@ -20,8 +20,8 @@ stages:
   jobs:
   - job: Test
     pool:
-      vmImage: 'ubuntu-18.04'
-    container: ubuntu:18.04
+      vmImage: 'ubuntu-latest'
+    container: node:14
     steps:
     - task: DownloadSecureFile@1
       name: EnvFile
