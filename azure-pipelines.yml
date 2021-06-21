@@ -17,7 +17,7 @@ stages:
   - job: Test
     pool:
       vmImage: 'ubuntu-latest'
-    container: node:14
+    container: node:14-slim
     variables:
       POSTGRES_USER: "kupaliskabratislava_test"
       POSTGRES_PASSWORD: "kupaliskabratislava_test"
