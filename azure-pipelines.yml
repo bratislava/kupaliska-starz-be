@@ -10,6 +10,16 @@ variables:
   dockerRepository: bratislava/kupaliska-starz-be/kupaliska-starz-be
   npm_config_cache: $(Pipeline.Workspace)/.npm
 
+resources:
+ containers:
+  - container: postgres
+    image: postgres:13-alpine
+    ports:
+    - 5432:5432
+    env:
+      POSTGRES_USER: "kupaliskabratislava_test"
+      POSTGRES_PASSWORD: "kupaliskabratislava_test"
+      POSTGRES_DB: "kupaliskabratislava_test"
 
 stages:
 - stage: Test
@@ -17,15 +27,9 @@ stages:
   - job: Test
     pool:
       vmImage: 'ubuntu-latest'
-    variables:
-      POSTGRES_USER: "kupaliskabratislava_test"
-      POSTGRES_PASSWORD: "kupaliskabratislava_test"
-      POSTGRES_DB: "kupaliskabratislava_test"
     services:
-      postgres: 
-        image: postgres:13-alpine
-        ports:
-        - 5432:5432
+      postgres: postgres
+          
     steps:
     - task: DownloadSecureFile@1
       name: EnvFile
