@@ -96,6 +96,34 @@ stages:
     pool:
       vmImage: ubuntu-latest
     steps:
+    - task: DownloadSecureFile@1
+      name: PrivateKeyProd
+      inputs:
+        secureFile: kupaliska_starz_be.merchant-pvk.key
+      displayName: Download Production Private Key
+    - task: DownloadSecureFile@1
+      name: PublicKeyProd
+      inputs:
+        secureFile: kupaliska_starz_be.gpe.signing.pem
+      displayName: Download Production Public Key
+    - task: DownloadSecureFile@1
+      name: PrivateKeyTest
+      inputs:
+        secureFile: kupaliska_starz_be_stage.merchant-pvk.key
+      displayName: Download Test Private Key
+    - task: DownloadSecureFile@1
+      name: PublicKeyTest
+      inputs:
+        secureFile: kupaliska_starz_be_stage.gpe.signing.pem
+      displayName: Download Test Public Key
+    - script: |
+        mkdir -p $(Build.SourcesDirectory)/resources/test-keys
+        mkdir -p $(Build.SourcesDirectory)/resources/keys
+        mv $(PublicKeyTest.secureFilePath)  $(Build.SourcesDirectory)/resources/test-keys/gpe.signing.pem
+        mv $(PrivateKeyTest.secureFilePath) $(Build.SourcesDirectory)/resources/test-keys/merchant-pvk.key
+        mv $(PublicKeyProd.secureFilePath)  $(Build.SourcesDirectory)/resources/keys/gpe.signing.pem
+        mv $(PrivateKeyProd.secureFilePath) $(Build.SourcesDirectory)/resources/keys/merchant-pvk.key
+      displayName: Move Keys To required locations
     - task: Docker@2
       displayName: Build and push Dev Image
       inputs:
@@ -136,8 +164,6 @@ stages:
           steps:
           - template: release-template.yml
             parameters:
-              PrivateKeySecureFile: kupaliska_starz_be_stage.merchant-pvk.key
-              PublicKeySecureFile: kupaliska_starz_be_stage.gpe.signing.pem
               ProjectNameSuffix: _stage
               ImageTagSuffix: -dev
 - stage: Production
@@ -161,6 +187,4 @@ stages:
           steps:
           - template: release-template.yml
             parameters:
-              PrivateKeySecureFile: kupaliska_starz_be.merchant-pvk.key
-              PublicKeySecureFile: kupaliska_starz_be.gpe.signing.pem
               ImageTagSuffix: -prod
