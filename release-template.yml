@@ -26,8 +26,11 @@ steps:
   displayName: Download Public Key
 - script: |
     mkdir -p $(Build.SourcesDirectory)/$GP_WEBPAY_KEYS_PATH
-    mv $(PublicKey.secureFilePath) $(Build.SourcesDirectory)/$GP_WEBPAY_KEYS_PATH/${${{ parameters.PublicKeySecureFile }}#*.}
-    mv $(PrivateKey.secureFilePath) $(Build.SourcesDirectory)/$GP_WEBPAY_KEYS_PATH/${${{ parameters.PrivateKeySecureFile }}#*.}
+    mv $(PublicKey.secureFilePath) $(Build.SourcesDirectory)/$GP_WEBPAY_KEYS_PATH/${PUBLIC_KEY_NAME#*.}
+    mv $(PrivateKey.secureFilePath) $(Build.SourcesDirectory)/$GP_WEBPAY_KEYS_PATH/${PRIVATE_KEY_NAME#*.}
+  env: 
+    PRIVATE_KEY_NAME: ${{ parameters.PrivateKeySecureFile }}
+    PUBLIC_KEY_NAME: ${{ parameters.PublicKeySecureFile }}
   displayName: Move Keys To required locations
 - task: DockerCompose@0
   inputs:
