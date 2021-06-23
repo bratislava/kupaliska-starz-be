@@ -1,0 +1,48 @@
+# Release template for a single stage
+
+parameters:
+- name: PrivateKeySecureFile
+  type: string
+- name: PublicKeySecureFile
+  type: string
+- name: ProjectNameSuffix
+  type: string
+  default: ""
+- name: ImageTagSuffix
+  type: string
+
+steps:
+- checkout: self
+- download: none
+- task: DownloadSecureFile@1
+  name: PrivateKey
+  inputs:
+    secureFile: ${{ parameters.PrivateKeySecureFile }}
+  displayName: Download Private Key
+- task: DownloadSecureFile@1
+  name: PublicKey
+  inputs:
+    secureFile: ${{ parameters.PublicKeySecureFile }}
+  displayName: Download Public Key
+- script: |
+    mkdir -p $(Build.SourcesDirectory)/$GP_WEBPAY_KEYS_PATH
+    mv $(PublicKey.secureFilePath) $(Build.SourcesDirectory)/$GP_WEBPAY_KEYS_PATH/${${{ parameters.PublicKeySecureFile }}#*.}
+    mv $(PrivateKey.secureFilePath) $(Build.SourcesDirectory)/$GP_WEBPAY_KEYS_PATH/${${{ parameters.PrivateKeySecureFile }}#*.}
+  displayName: Move Keys To required locations
+- task: DockerCompose@0
+  inputs:
+    containerregistrytype: 'Container Registry'
+    dockerRegistryEndpoint: 'Github Packages'
+    dockerComposeFile: 'docker-compose.yml'
+    projectName: "$(underscoreName)${{ parameters.ProjectNameSuffix }}"
+    action: 'Run services'
+    buildImages: false
+  env:
+    IMAGE: docker.pkg.github.com/$(dockerRepository)
+    IMAGE_TAG: $(tag)
+    # Expose Secret Variables to env
+    JWT_SECRET: $(JWT_SECRET)
+    MAILGUN_API_KEY: $(MAILGUN_API_KEY)
+    GP_WEBPAY_PRIV_KEY_PASS: $(GP_WEBPAY_PRIV_KEY_PASS)
+    POSTGRES_PASSWORD: $(POSTGRES_PASSWORD)
+    RECAPTCHA_CLIENT_SECRET: $(RECAPTCHA_CLIENT_SECRET)
