@@ -4,7 +4,7 @@ services:
     image: ${IMAGE}:${IMAGE_TAG}
     restart: unless-stopped
     ports:
-      - "${APP_OUT_HOST}:${PORT}"
+      - "${APP_HOST_OUT}:${PORT}"
     volumes:
       - app_files:/app/files
       - app_logs:/app/logs
