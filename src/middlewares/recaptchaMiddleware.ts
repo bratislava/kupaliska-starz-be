@@ -14,11 +14,11 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 			method: 'POST',
 			url: 'https://recaptchaenterprise.googleapis.com/v1beta1/projects/kupaliska/assessments?key=AIzaSyBylFCQ0PBYSTjdwxOjtIvA6K7Cv7xBZjg',
 			headers: { 'Content-Type': 'application/json' },
-			data: JSON.stringify({
+			data: {
 				siteKey: googleServiceConfig.recaptcha.clientSecret,
 				token: recaptchaResponse,
 				expectedAction: "order"
-			})
+			}
 		  })
 
 		if (response.status !== 200 || response.data.tokenProperties.valid !== true) {
