@@ -9,6 +9,7 @@ variables:
   tag: '$(Build.SourceVersion)'
   dockerRepository: bratislava/kupaliska-starz-be/kupaliska-starz-be
   npm_config_cache: $(Pipeline.Workspace)/.npm
+  underscoreName: kupaliska_starz_be
 
 resources:
  containers:
@@ -25,19 +26,51 @@ stages:
 - stage: Test
   jobs:
   - job: Test
+    variables:
+      NODE_ENV: TEST
+      HOST: 0.0.0.0
+      PORT: 8000
+      CORS_ORIGINS: '["localhost", "127.0.0.1"]'
+      JWT_SECRET: "secret"
+      TZ: Europe/Bratislava
+      FILES_PATH: test-files
+      LOGS_PATH: logs
+      MAILGUN_API_KEY: testtest
+      MAILGUN_DOMAIN: sandboxa111111111.mailgun.org
+      MAILGUN_EMAIL_FROM: "Mesto Bratislava <kupaliska.test@bratislava.sk>"
+      MAILGUN_TEMPLATE_RESET_PASSWORD: temp_kupaliska_reset_pass
+      MAILGUN_TEMPLATE_ORDER: temp_kupaliska_order
+      MAILGUN_TEMPLATE_SET_PASSWORD: set-password
+      POSTGRES_USER: kupaliskabratislava_test
+      POSTGRES_DB: kupaliskabratislava_test
+      POSTGRES_PASSWORD: kupaliskabratislava_test
+      POSTGRES_HOST: postgres:5432
+      MAX_TICKET_PURCHASE_LIMIT: 10
+      COMMISSION_COEFFICIENT: 0.015
+      GP_WEBPAY_HTTP_API_URL: https://test.3dsecure.gpwebpay.com/pgw/order.do
+      GP_WEBPAY_CURRENCY: 978
+      GP_WEBPAY_KEYS_PATH: resources/test-keys
+      GP_WEBPAY_CLIENT_APP_URL: http://localhost:8000
+      GP_WEBPAY_PROVIDER: 0902
     pool:
       vmImage: 'ubuntu-latest'
     services:
       postgres: postgres
-          
     steps:
     - task: DownloadSecureFile@1
-      name: EnvFile
+      name: PrivateKey
       inputs:
-        secureFile: '.env.kupaliska.test'
-      displayName: Download Env File
-    - script: mv $(EnvFile.secureFilePath) $(Build.SourcesDirectory)/.env.test
-      displayName: Rename Env File
+        secureFile: kupaliska_starz_be_stage.merchant-pvk.key
+      displayName: Download Private Key
+    - task: DownloadSecureFile@1
+      name: PublicKey
+      inputs:
+        secureFile: kupaliska_starz_be_stage.gpe.signing.pem
+      displayName: Download Public Key
+    - script: |
+        mkdir -p $(Build.SourcesDirectory)/$GP_WEBPAY_KEYS_PATH
+        mv $(PublicKey.secureFilePath) $(Build.SourcesDirectory)/$GP_WEBPAY_KEYS_PATH/gpe.signing.pem
+        mv $(PrivateKey.secureFilePath) $(Build.SourcesDirectory)/$GP_WEBPAY_KEYS_PATH/merchant-pvk.key
     - task: Cache@2
       inputs:
         key: 'npm | "$(Agent.OS)" | package-lock.json'
@@ -72,7 +105,6 @@ stages:
         Dockerfile: 'docker/Dockerfile.dev'
         buildContext: '$(Build.SourcesDirectory)'
         tags: '$(tag)-dev'
-
     - task: Docker@2
       displayName: Build and push Prod Image
       inputs:
@@ -97,28 +129,12 @@ stages:
       runOnce:
         deploy:
           steps:
-          - checkout: self
-          - download: none
-          - task: DownloadSecureFile@1
-            name: EnvFile
-            inputs:
-              secureFile: '.env.kupaliska.staging'
-            displayName: Download Env File
-          - script: mv $(EnvFile.secureFilePath) $(Build.SourcesDirectory)/.env
-            displayName: Rename Env File
-          - task: DockerCompose@0
-            inputs:
-              containerregistrytype: 'Container Registry'
-              dockerRegistryEndpoint: 'Github Packages'
-              dockerComposeFile: 'docker-compose.yml'
-              additionalDockerComposeFiles: 'docker-compose.mglogger.yml'
-              projectName: '$(STACK_NAME)'
-              action: 'Run services'
-              buildImages: false
-              dockerComposeFileArgs: |
-                IMAGE=docker.pkg.github.com/$(dockerRepository)
-                IMAGE_TAG=$(tag)-dev
-
+          - template: release-template.yml
+            parameters:
+              PrivateKeySecureFile: kupaliska_starz_be_stage.merchant-pvk.key
+              PublicKeySecureFile: kupaliska_starz_be_stage.gpe.signing.pem
+              ProjectNameSuffix: _stage
+              ImageTagSuffix: -dev
 - stage: Production
   jobs:
   - deployment: Production
@@ -133,24 +149,8 @@ stages:
       runOnce:
         deploy:
           steps:
-          - checkout: self
-          - download: none
-          - task: DownloadSecureFile@1
-            name: EnvFile
-            inputs:
-              secureFile: '.env.kupaliska.production'
-            displayName: Download Env File
-          - script: mv $(EnvFile.secureFilePath) $(Build.SourcesDirectory)/.env
-            displayName: Rename Env File
-          - task: DockerCompose@0
-            inputs:
-              containerregistrytype: 'Container Registry'
-              dockerRegistryEndpoint: 'Github Packages'
-              dockerComposeFile: 'docker-compose.yml'
-              additionalDockerComposeFiles: 'docker-compose.mglogger.yml'
-              projectName: '$(STACK_NAME)'
-              action: 'Run services'
-              buildImages: false
-              dockerComposeFileArgs: |
-                IMAGE=docker.pkg.github.com/$(dockerRepository)
-                IMAGE_TAG=$(tag)-prod
+          - template: release-template.yml
+            parameters:
+              PrivateKeySecureFile: kupaliska_starz_be.merchant-pvk.key
+              PublicKeySecureFile: kupaliska_starz_be.gpe.signing.pem
+              ImageTagSuffix: -prod
