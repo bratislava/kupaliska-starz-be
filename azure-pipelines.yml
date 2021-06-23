@@ -44,7 +44,7 @@ stages:
       POSTGRES_USER: kupaliskabratislava_test
       POSTGRES_DB: kupaliskabratislava_test
       POSTGRES_PASSWORD: kupaliskabratislava_test
-      POSTGRES_HOST: postgres:5432
+      POSTGRES_HOST: localhost:5432
       MAX_TICKET_PURCHASE_LIMIT: 10
       COMMISSION_COEFFICIENT: 0.015
       GP_WEBPAY_HTTP_API_URL: https://test.3dsecure.gpwebpay.com/pgw/order.do
