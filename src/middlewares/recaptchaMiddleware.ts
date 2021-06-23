@@ -23,7 +23,7 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 			}
 		  })
 
-		if (response.status !== 200 || response.data.tokenProperties.valid !== true) {
+		if (response.status !== 200 || response.data.score > 0.5) {
 			throw new ErrorBuilder(400, req.t('error:invalidRecaptcha'))
 		}
 		return next()
