@@ -3,7 +3,6 @@ import config from 'config'
 import { IGoogleServiceConfig } from '../types/interfaces'
 import ErrorBuilder from '../utils/ErrorBuilder'
 import axios from 'axios'
-import formUrlEncoded from 'form-urlencoded'
 
 const googleServiceConfig: IGoogleServiceConfig = config.get('googleService')
 
@@ -13,15 +12,16 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 
 		const response = await axios({
 			method: 'POST',
-			url: 'https://www.google.com/recaptcha/api/siteverify',
-			headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-			data: formUrlEncoded({
-				secret: googleServiceConfig.recaptcha.clientSecret,
-				response: recaptchaResponse
+			url: 'https://recaptchaenterprise.googleapis.com/v1beta1/projects/kupaliska/assessments?key=AIzaSyBylFCQ0PBYSTjdwxOjtIvA6K7Cv7xBZjg',
+			headers: { 'Content-Type': 'application/json' },
+			data: JSON.stringify({
+				siteKey: googleServiceConfig.recaptcha.clientSecret,
+				token: recaptchaResponse,
+				expectedAction: "order"
 			})
 		  })
 
-		if (response.status !== 200 || response.data.success !== true) {
+		if (response.status !== 200 || response.data.tokenProperties.valid !== true) {
 			throw new ErrorBuilder(400, req.t('error:invalidRecaptcha'))
 		}
 		return next()
