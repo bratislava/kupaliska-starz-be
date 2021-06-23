@@ -15,9 +15,11 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 			url: 'https://recaptchaenterprise.googleapis.com/v1beta1/projects/kupaliska/assessments?key=AIzaSyBylFCQ0PBYSTjdwxOjtIvA6K7Cv7xBZjg',
 			headers: { 'Content-Type': 'application/json' },
 			data: {
-				siteKey: googleServiceConfig.recaptcha.clientSecret,
-				token: recaptchaResponse,
-				expectedAction: "order"
+				event: {
+					siteKey: googleServiceConfig.recaptcha.clientSecret,
+					token: recaptchaResponse,
+					expectedAction: "order"
+				}
 			}
 		  })
 
