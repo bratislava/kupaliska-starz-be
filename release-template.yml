@@ -20,7 +20,7 @@ steps:
     buildImages: false
   env:
     IMAGE: docker.pkg.github.com/$(dockerRepository)
-    IMAGE_TAG: $(tag)
+    IMAGE_TAG: $(tag)${{ parameters.ImageTagSuffix }}
     # Expose Secret Variables to env
     JWT_SECRET: $(JWT_SECRET)
     MAILGUN_API_KEY: $(MAILGUN_API_KEY)
