@@ -116,6 +116,12 @@ stages:
         tags: '$(tag)-prod'
     
 - stage: Staging
+  variables:
+  - group: Kupaliska-Common-Stage
+  - group: Kupaliska-GPWebPay-Stage
+  - group: Kupaliska-Mailgun
+  - group: Kupaliska-Postgres-Stage
+  - group: Kupaliska-Sentry-Stage
   jobs:
   - deployment: Staging
     environment:
@@ -124,7 +130,6 @@ stages:
       tags: docker
     variables:
       DEPLOY_PATH: "~/deployments/kupaliska/stage"
-      STACK_NAME: "kupaliska_starz_be_stage"
     strategy:
       runOnce:
         deploy:
@@ -136,6 +141,12 @@ stages:
               ProjectNameSuffix: _stage
               ImageTagSuffix: -dev
 - stage: Production
+  variables:
+  - group: Kupaliska-Common-Prod
+  - group: Kupaliska-GPWebPay-Prod
+  - group: Kupaliska-Mailgun
+  - group: Kupaliska-Postgres-Prod
+  - group: Kupaliska-Sentry-Prod
   jobs:
   - deployment: Production
     environment:
@@ -144,7 +155,6 @@ stages:
       tags: docker
     variables:
       DEPLOY_PATH: "/home/gitlab-runner/deployments/kupaliska/prod"
-      STACK_NAME: "kupaliska_starz_be"
     strategy:
       runOnce:
         deploy:
