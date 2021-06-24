@@ -12,7 +12,7 @@
     "test": "cross-env DOTENV_CONFIG_PATH=.env.test NODE_ENV=test JWT_SECRET=jwtrandomsecret npm run test:real",
     "test:coverage": "cross-env  DOTENV_CONFIG_PATH=.env.test NODE_ENV=test  JWT_SECRET=jwtrandomsecret npm run test:coverage:real",
     "test:real": "npm run clean && node -r dotenv/config --expose-gc \"./node_modules/jest/bin/jest.js\" --runInBand --passWithNoTests --logHeapUsage",
-    "test:coverage:real": "npm run clean && node -r dotenv/config --expose-gc \"./node_modules/jest/bin/jest.js\" --runInBand --passWithNoTests --coverage --coverageReporters=cobertura --reporters=jest-junit",
+    "test:coverage:real": "npm run clean && node -r dotenv/config --expose-gc \"./node_modules/jest/bin/jest.js\" --passWithNoTests --coverage --coverageReporters=cobertura --reporters=jest-junit",
     "clean": "npm run build:db && npm run migrate:undo:all && npm run migrate",
     "lint": "esw src tests --color --ext .js --ext .ts",
     "lint:fix": "esw src tests --color --ext .js --ext .ts --fix",

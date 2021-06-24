@@ -86,7 +86,7 @@ stages:
       displayName: NPM Run Test
       inputs:
         command: 'custom'
-        customCommand: 'run test'
+        customCommand: 'run test:coverage'
     - task: PublishTestResults@2
       condition: succeededOrFailed()
       inputs:
