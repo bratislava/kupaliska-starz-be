@@ -2,6 +2,10 @@
 
 This app is built on Node.js framework Express.
 
+## Install
+
+Before you start you need to have Postgres database running locally - you can configure the credentials and database name via `.env` file. Check `.env.example` to see the example setup. Check the [Confluence Postgres cheatsheet](https://inovaciebratislava.atlassian.net/wiki/spaces/DEV/overview?homepageId=98745) or internet resources for help with setup of local database.
+
 To start app run you should follow this steps:
 
 1. npm install
@@ -13,6 +17,35 @@ To start app run you should follow this steps:
 
 You can also use docker and docker-compose.
 
+## Deployment
+
+### Staging
+
+These are accessible through VPN only.
+
+kupaliska-backend: http://172.25.5.138:9004/
+
+kupaliska-frontend: http://172.25.5.138:9005/
+
+Presently the app is deployed from Azure git repo (TODO consolidate this) - https://dev.azure.com/bratislava-innovation/Inovacie
+
+To add it as a second remote use:
+
+```
+git remote add azure git@ssh.dev.azure.com:v3/bratislava-innovation/Inovacie/name-of-repo
+```
+
+Commits in master are deployed to staging automatically
+
+```
+git push azure master
+```
+
+You can also manually deploy, master or other branch, Pipelines -> kupaliska-starz-be -> Run pipeline.
+
+### Production
+
+To promote to production, approve the production build step in a successful staging deploy in Azure Devops (Pipelines -> kupaliska-starz-be -> choose build -> Review).
 
 ## Apidoc
 
