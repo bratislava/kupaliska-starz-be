@@ -23,7 +23,9 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 			}
 		  })
 
-		if (response.status !== 200 || response.data.score > 0.5) {
+		if (response.status !== 200 || response.data.score < 0.5) {
+			console.log(response.data.tokenProperties.invalidReason)
+			console.log(response.data.reasons)
 			throw new ErrorBuilder(400, req.t('error:invalidRecaptcha'))
 		}
 		return next()
