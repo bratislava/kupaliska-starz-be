@@ -125,3 +125,6 @@ dist
 test-files
 files/private/*
 files/public/swimming-pools
+
+# Junit report
+/junit.xml
