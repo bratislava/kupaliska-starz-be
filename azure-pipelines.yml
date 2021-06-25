@@ -176,6 +176,36 @@ stages:
             parameters:
               ProjectNameSuffix: _stage
               ImageTagSuffix: -dev
+
+- stage: ProductionStaging
+  variables:
+  - group: Kupaliska-Common-Prod
+  - group: Kupaliska-GPWebPay-Prod
+  - group: Kupaliska-Mailgun
+  - group: Kupaliska-Postgres-Prod
+  - group: Kupaliska-Sentry-Prod
+  jobs:
+  - deployment: Production
+    environment:
+      name: Production
+      resourceType: VirtualMachine
+      tags: docker
+    variables:
+      DEPLOY_PATH: "/home/gitlab-runner/deployments/kupaliska/stage"
+      APP_OUT_HOST: 18000
+      HOST: https://kupaliska-api-staging.bratislava.sk
+      CORS_ORIGINS: [\"https://kupaliska-staging.bratislava.sk\", \"https://kupaliska-admin-staging.bratislava.sk\"]
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - template: release-template.yml
+            parameters:
+              ImageTagSuffix: -prod
+              ProjectNameSuffix: _stage
+
+
+
 - stage: Production
   variables:
   - group: Kupaliska-Common-Prod
