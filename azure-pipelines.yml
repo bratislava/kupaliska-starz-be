@@ -153,7 +153,7 @@ stages:
         buildContext: '$(Build.SourcesDirectory)'
         tags: '$(tag)-prod'
     
-- stage: Staging
+- stage: Development
   variables:
   - group: Kupaliska-Common-Stage
   - group: Kupaliska-GPWebPay-Stage
@@ -161,7 +161,7 @@ stages:
   - group: Kupaliska-Postgres-Stage
   - group: Kupaliska-Sentry-Stage
   jobs:
-  - deployment: Staging
+  - deployment: Development
     environment:
       name: Staging
       resourceType: VirtualMachine
@@ -177,7 +177,7 @@ stages:
               ProjectNameSuffix: _stage
               ImageTagSuffix: -dev
 
-- stage: ProductionStaging
+- stage: Staging
   variables:
   - group: Kupaliska-Common-Prod
   - group: Kupaliska-GPWebPay-Prod
@@ -185,7 +185,7 @@ stages:
   - group: Kupaliska-Postgres-Prod
   - group: Kupaliska-Sentry-Prod
   jobs:
-  - deployment: Production
+  - deployment: Staging
     environment:
       name: Production
       resourceType: VirtualMachine
