@@ -101,7 +101,7 @@ export default (sequelize: Sequelize) => {
 			allowNull: false,
 			get() {
 				const value = this.getDataValue('price');
-				return value ? parseFloat(value) : undefined
+				return value !== undefined ? parseFloat(value) : undefined
 			}
 		},
 		discount: {
@@ -110,7 +110,7 @@ export default (sequelize: Sequelize) => {
 			defaultValue: 0,
 			get() {
 				const value = this.getDataValue('discount');
-				return value ? parseFloat(value) : undefined
+				return value !== undefined ? parseFloat(value) : undefined
 			}
 		},
 		createdAt: {

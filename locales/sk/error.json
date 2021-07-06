@@ -45,5 +45,6 @@
     "userAlreadyExists": "Používateľ už existuje",
     "userEmailAlreadyExists": "Email už existuje",
     "userNotFound": "Používateľ sa nenašiel",
-    "wrongEmail": "Používateľ so zadaným emailom neexistuje"
+    "wrongEmail": "Používateľ so zadaným emailom neexistuje",
+	"exceededOrderingNumber": "Prekročené maximálne poradie"
 }

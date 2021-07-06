@@ -3,7 +3,7 @@
     @apiVersion 1.0.0
     @apiName AdminGetTicketTypes
     @apiGroup AdminTicketType
-    @apiPermission SuperAdmin,Operator
+    @apiPermission SuperAdmin,Operator, SwimmingPoolOperator
 
     @apiDescription Endpoint for getting list of ticket types
 
@@ -12,6 +12,7 @@
     @apiParam (Query) {String} [search] Search
     @apiParam (Query) {String} [order] Order
     @apiParam (Query) {String} [direction] Order direction
+    @apiParam (Query) {Boolean} [withSoftDeleted=false] Show soft deleted records?
 
     @apiParamExample {json} Request-Query-Example:
     {
@@ -19,7 +20,8 @@
         "page": 1,
         "search": "Nazov listka",
         "order": "name",
-        "direction": "asc"
+        "direction": "asc",
+        "withSoftDeleted": "true"
     }
 
     @apiSuccess (Response) {Object[]} ticketTypes Array of ticket types
@@ -39,6 +41,7 @@
     @apiSuccess (Response) {String} ticketTypes.entranceFrom The time from which the customer can enter swimming pool.
     @apiSuccess (Response) {String} ticketTypes.entranceTo The time to which the customer must exit swimming pool.
     @apiSuccess (Response) {String} ticketTypes.createdAt Created at (ISO String)
+    @apiSuccess (Response) {String} ticketTypes.deletedAt Deleted at (ISO String)
     @apiSuccess (Response) {Boolean} ticketTypes.nameRequired Is name required?
     @apiSuccess (Response) {Boolean} ticketTypes.photoRequired Is photo required?
     @apiSuccess (Response) {Object[]} ticketTypes.swimmigPools Array of swimming pools
@@ -78,7 +81,8 @@
                     "name": "Delfín"
                 }
             ],
-            "createdAt": "2020-10-08T06:53:47.477Z"
+            "createdAt": "2020-10-08T06:53:47.477Z",
+            "deletedAt": null
         }],
         "pagination": {
             "limit": 50,

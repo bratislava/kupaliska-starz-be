@@ -1,7 +1,8 @@
 FROM node:14-alpine as development
 
-ENV NODE_ENV development
+RUN apk add --no-cache tini
 WORKDIR /app
+ENV NODE_ENV development
 
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -14,15 +15,11 @@ RUN npm run apidoc:scan
 RUN npm run build
 
 
-FROM development
+FROM development as runtime
 
-COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT [ "/entrypoint.sh" ]
-
-COPY docker/start.sh /start.sh
-RUN chmod +x /start.sh
-CMD [ "/start.sh" ]
+ADD https://raw.githubusercontent.com/eficode/wait-for/master/wait-for /wait-for
+COPY docker/entrypoint.sh docker/start.sh docker/deploy.sh /
+RUN chmod +x /entrypoint.sh /start.sh /deploy.sh /wait-for
 
 COPY .sequelizerc /app/.sequelizerc
 COPY resources /app/resources
@@ -33,3 +30,6 @@ COPY --from=builder /app/dist/config /app/config
 COPY --from=builder /app/dist /app/dist
 
 VOLUME ["/app/files", "/app/logs"]
+
+ENTRYPOINT [ "tini", "--", "/entrypoint.sh" ]
+CMD [ "/start.sh" ]

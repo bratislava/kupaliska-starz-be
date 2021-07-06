@@ -12,13 +12,13 @@ const router: Router = Router()
 export default () => router
 	router.get('/',
 		passport.authenticate('jwt'),
-		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
+		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN, USER_ROLE.SWIMMING_POOL_OPERATOR]),
 		schemaMiddleware(GetCustomers.schema),
 		GetCustomers.workflow)
 
 	router.get('/summary',
 		passport.authenticate('jwt'),
-		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
+		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN, USER_ROLE.SWIMMING_POOL_OPERATOR]),
 		schemaMiddleware(GetCustomersSummary.schema),
 		GetCustomersSummary.workflow)
 

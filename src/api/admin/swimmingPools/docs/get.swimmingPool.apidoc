@@ -26,6 +26,7 @@
     @apiSuccess (Response) {String} image.largeSize large file
     @apiSuccess (Response) {String} image.altText Alt text
     @apiSuccess (Response) {String} createdAt Created at (ISO String)
+    @apiSuccess (Response) {Number} ordering Swimming pool order
 
     @apiSuccessExample Success-Response:
 	HTTP/1.1 200 OK
@@ -47,7 +48,8 @@
                 "altText": "Kupalisko"
             },
             "locationUrl" : "https://goo.gl/maps/YST1w1Q7Vt7EpBDh9",
-            "createdAt": "2020-10-08T06:53:47.477Z"
+            "createdAt": "2020-10-08T06:53:47.477Z",
+            "ordering": 3
     }
 
     @apiUse AuthorizationHeader

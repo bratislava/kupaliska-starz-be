@@ -4,6 +4,7 @@ import config from 'config'
 import { forEach, isArray } from 'lodash'
 import path from 'path'
 import fs from 'fs'
+import initWorkers from './workers'
 
 import app from './app'
 import { IAppConfig } from './types/interfaces'
@@ -23,6 +24,9 @@ forEach(appConfig.subdirs, (subdir) => {
 	// eslint-disable-next-line no-unused-expressions
 	fs.existsSync(absolutePath) || fs.mkdirSync(absolutePath, { recursive: true })
 })
+
+// Init workers
+initWorkers()
 
 httpServer.listen(appConfig.port).on('listening', () => {
 	console.log(`Server started in ${process.env.NODE_ENV} mode at port ${appConfig.port}`.green)

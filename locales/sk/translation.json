@@ -37,6 +37,7 @@
 	"price": "Suma (EUR)",
 	"discount": "Zľava (EUR)",
 	"ticketName": "Typ lístka",
+	"numberOfTickets": "Počet kúpených lístkov",
 	"createdAt": "Dátum",
 	"empty": "Nezadané",
 	"totalAmount": "Suma spolu",
@@ -45,5 +46,12 @@
 	"states_paid": "Zaplatená",
 	"states_failed": "Objednávka zlyhala",
 	"states_canceled": "Zrušená",
-	"none": "Nevyplnené"
+	"none": "Nevyplnené",
+	"discountCode": "Zľavový kód",
+	"discountAmount": "Zľava (v %)",
+	"validFrom": "Platný od",
+	"validTo": "Platný do",
+	"usedAt": "Použitý",
+	"discountCodecreatedAt": "Dátum vytvorenia",
+    "customerEmail": "Email zákazníka"
 }

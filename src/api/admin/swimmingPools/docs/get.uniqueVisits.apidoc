@@ -1,0 +1,79 @@
+/**
+    @api {get} admin/swimmingPools/uniqueVisits Get swimming pools unique visits
+    @apiVersion 1.0.0
+    @apiName GetSwimmingPoolsUniqueVisits
+    @apiGroup AdminSwimmingPool
+
+    @apiPermission SuperAdmin, Operator, SwimmingPoolOperator
+
+    @apiDescription Get swimming pool unique visits
+
+    @apiParam (Query) {String[]} swimmingPools Array of swimming pools IDS
+    @apiParam (Query) {String} from From date. Format: `YYYY-MM-DD`.
+    @apiParam (Query) {String} to To date. Format: `YYYY-MM-DD`.
+    @apiParam (Query) {Number} [ageInterval=10] The size of the age interval.
+    @apiParam (Query) {Number} [ageMinimum=0] Age buckets start from this age.
+
+    @apiParamExample {json} Request-Query-Example:
+    {
+        "from": "2021-06-16",
+        "to": "2021-07-16",
+        "swimmingPools": ["9bea96d9-aadb-424c-9dc7-d26f8a71eb2c", "9bea96d9-aadb-424c-9dc7-d26f8a71eb2d"],
+        "ageInterval": 10,
+        "ageMinimum": 0
+    }
+
+    @apiSuccess (Response) {Object} data Data object
+    @apiSuccess (Response) {Object[]} data.swimmingPools Array of swimming pools with number of unique visits
+    @apiSuccess (Response) {String} data.swimmingPools.id Swimming pool id
+    @apiSuccess (Response) {String} data.swimmingPools.name Swimming pool name
+    @apiSuccess (Response) {String} data.swimmingPools.total Total number of unique visits
+    @apiSuccess (Response) {Object} data.swimmingPools.ages Object of dynamic ages as keys and number of unique visits as values.
+    @apiSuccess (Response) {Object} data.ages Object of dynamic ages as keys and total number of unique visits as values.
+
+    @apiSuccessExample Success-Response:
+	HTTP/1.1 200 OK
+    {
+        "data": {
+            "swimmingPools": [
+                {
+                    "id": "9bea96d9-aadb-424c-9dc7-d26f8a71eb2c",
+                    "name": "Delfín",
+                    "total": 71468,
+                    "total": "00:00:28",
+                    "ages": {
+                        "3-10": 12038,
+                        "11-18": 10692,
+                        "19-26": 1330,
+                        "27-34": 1331,
+                        "35-42": 1388,
+                        "43-50": 1485,
+                        "51-58": 1450,
+                        "59-66": 1302,
+                        "67-74": 1411,
+                        "75-82": 1427,
+                        "83-90": 1406,
+                        "91-98": 1343,
+                        "Nevyplnené": 7655
+                    }
+                }
+            ],
+            "ages": {
+                "20-29": 5387,
+                "30-39": 5348,
+                "40-49": 5819,
+                "50-59": 5831,
+                "60-69": 5689,
+                "70-79": 5800,
+                "80-89": 5568,
+                "90-99": 5441,
+                "100-109": 5136,
+                "110-119": 4751,
+                "Nevyplnené": 88200
+            }
+        }
+    }
+
+    @apiUse AuthorizationHeader
+
+*/

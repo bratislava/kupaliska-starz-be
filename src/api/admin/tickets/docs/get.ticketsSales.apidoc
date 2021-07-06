@@ -1,0 +1,101 @@
+/**
+    @api {get} admin/tickets/sales Get tickets sales
+    @apiVersion 1.0.0
+    @apiName GetTicketsSales
+    @apiGroup AdminTicket
+    @apiPermission SuperAdmin, Operator, SwimmingPoolOperator
+
+    @apiDescription Endpoint for getting tickets sales
+
+    @apiParam (Query) {String[]} swimmingPools Filter by swimming pools ID
+    @apiParam (Query) {Boolean} [multipleEntries=false] Whether we count visit only for first visited swimming pool in day (multipleEntries === false).
+    @apiParam (Query) {Object} [day] Filter by day.
+    @apiParam (Query) {String} [day.from] Day from date.
+    @apiParam (Query) {String} [day.to] Day to date.
+    @apiParam (Query) {String="range"} [day.type="range"] Filter type.
+
+    @apiSuccess (Response) {Object[]} data Array of data
+    @apiSuccess (Response) {Number} data.finalPrice Final price
+    @apiSuccess (Response) {Number} data.commission Commission
+    @apiSuccess (Response) {Number} data.cleanPrice Price without commission
+    @apiSuccess (Response) {Number} data.price Ticket price
+    @apiSuccess (Response) {Number} data.entryPrice Ticket price for one entry
+    @apiSuccess (Response) {String} data.ticketTypeId Ticket type ID
+    @apiSuccess (Response) {String} data.ticketTypeName Ticket type name
+    @apiSuccess (Response) {Boolean} data.isChildren Is it ticket for children?
+    @apiSuccess (Response) {Number} data.numberOfUses Number of ticket uses
+    @apiSuccess (Response) {Number} data.remainingEntries Number of unused entries
+    @apiSuccess (Response) {Object[]} data.swimmingPools Swimming pools array
+    @apiSuccess (Response) {Number} data.swimmingPools.numberOfUses Number of uses for given swimming pool
+    @apiSuccess (Response) {String} data.swimmingPools.id Swimming pool ID
+    @apiSuccess (Response) {String} data.swimmingPools.name Swimming pool name
+
+    @apiSuccessExample Success-Response-Example:
+    HTTP/1.1 200 OK
+    {
+        "data": [
+            {
+                "finalPrice": 411.22,
+                "commission": 12.34,
+                "cleanPrice": 398.88,
+                "price": 0.8,
+                "entryPrice": 0.01,
+                "ticketTypeId": "11cd5516-557a-4636-89df-0a5b590003ce",
+                "ticketTypeName": "Sezónna permanentka",
+                "isChildren": true,
+                "numberOfUses": 41122,
+                "remainingEntries": null,
+                "swimmingPools": [
+                    {
+                        "numberOfUses": 20559,
+                        "id": "9bea96d9-aadb-424c-9dc7-d26f8a71eb2c",
+                        "name": "Delfín"
+                    },
+                    {
+                        "numberOfUses": 20563,
+                        "id": "15d5e25c-3b1e-476a-99d7-889beeedc581",
+                        "name": "Rosnička"
+                    },
+                    {
+                        "numberOfUses": 0,
+                        "id": "1afd208a-4fca-4988-8a2c-7e45bd5c0222",
+                        "name": "Delfín Test 2"
+                    }
+                ]
+            },
+            {
+                "finalPrice": 10490.88,
+                "provision": 314.73,
+                "cleanPrice": 10176.15,
+                "price": 19.2,
+                "entryPrice": 1.92,
+                "ticketTypeId": "dd84bf4d-be00-41b2-b59c-83f26b89f3ac",
+                "ticketTypeName": "Permanentka na 10 vstupov po 17:00",
+                "isChildren": false,
+                "numberOfUses": 5464,
+                "remainingEntries": 2114,
+                "swimmingPools": [
+                    {
+                        "numberOfUses": 2727,
+                        "id": "9bea96d9-aadb-424c-9dc7-d26f8a71eb2c",
+                        "name": "Delfín"
+                    },
+                    {
+                        "numberOfUses": 2737,
+                        "id": "15d5e25c-3b1e-476a-99d7-889beeedc581",
+                        "name": "Rosnička"
+                    },
+                    {
+                        "numberOfUses": 0,
+                        "id": "1afd208a-4fca-4988-8a2c-7e45bd5c0222",
+                        "name": "Delfín Test 2"
+                    }
+                ]
+            }
+        ]
+    }
+
+    @apiUse ErrorResponse
+    @apiUse AuthorizationHeader
+
+*/

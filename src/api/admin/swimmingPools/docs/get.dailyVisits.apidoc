@@ -13,13 +13,15 @@
     @apiParam (Query) {String="age","zip"} [intervalDividedBy] Interval will be additionaly split by this category.
     @apiParam (Query) {Number} [ageInterval=10] The size of the age interval. It applies only when `intervalDividedBy` is set to `age`.
     @apiParam (Query) {Number} [intervalInMinutes=60] The size of the main interval in minutes.
+    @apiParam (Query) {Number} [ageMinimum=0] Age buckets start from this age.
 
     @apiParamExample {json} Request-Query-Example:
     {
         "day": "2021-06-16",
         "intervalDividedBy": "age",
-        "ageRange": 10,
-        "intervalInMinutes": 60
+        "ageInterval": 10,
+        "intervalInMinutes": 60,
+        "ageMinimum": 0
     }
 
 

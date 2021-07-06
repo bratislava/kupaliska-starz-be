@@ -1,14 +1,24 @@
 import config from 'config'
 import path from 'path'
 import { CronJob } from 'cron'
-import { fork } from 'child_process'
+import { ChildProcess, fork } from 'child_process'
+import fs from 'fs'
 
 import { IWorkersConfig } from '../types/interfaces'
 
 const workersConfig: IWorkersConfig = config.get('workers')
 
 function workerCallback(workerName: string, data: any) {
-	const workerProcess = fork(path.resolve(process.cwd(), 'src', 'workers', workerName))
+	const workerPath = path.join(process.cwd(), 'dist', 'src', 'workers', `${workerName}.js`)
+	const workerPathTs = path.join(process.cwd(), 'src', 'workers', `${workerName}.ts`)
+
+	let workerProcess: ChildProcess
+	if (fs.existsSync(workerPath)) {
+		workerProcess = fork(workerPath)
+	} else {
+		workerProcess = fork(workerPathTs)
+	}
+
 	workerProcess.send({
 		...data
 	})
@@ -19,5 +29,6 @@ function workerCallback(workerName: string, data: any) {
 }
 
 export default async () => {
-	// This is intentional
+	new CronJob(workersConfig.schedule.visitsComputation, () => workerCallback('visitsComputation', {}), null, true, 'Europe/Bratislava').start(),
+	new CronJob(workersConfig.schedule.refreshCustomersView, () => workerCallback('refreshCustomersView', {}), null, true, 'Europe/Bratislava').start()
 }

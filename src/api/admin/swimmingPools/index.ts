@@ -12,15 +12,31 @@ import * as GetSwimmingPools from './get.swimmingPools'
 import * as GetSwimmingPool from './get.swimmingPool'
 import * as DeleteSwimmingPool from './delete.swimmingPool'
 import * as GetDailyVisits from './get.dailyVisits'
+import * as GetCurrentVisits from './get.currentVisits'
+import * as GetAverageVisits from './get.averageVisits'
+import * as GetUniqueVisits from './get.uniqueVisits'
 import authorizationMiddleware from '../../../middlewares/authorizationMiddleware'
 import { USER_ROLE } from '../../../utils/enums'
 import conditionalSchemaMiddleware from '../../../middlewares/conditionalSchemaMiddleware'
 import swimmingPoolAuthorizationMiddleware from '../../../middlewares/swimmingPoolAuthorizationMiddleware'
-
 const router: Router = Router()
 const swimmingPoolId = ':swimmingPoolId'
 
 export default () => {
+	router.get(`/averageVisits`,
+		passport.authenticate('jwt'),
+		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN, USER_ROLE.SWIMMING_POOL_OPERATOR]),
+		swimmingPoolAuthorizationMiddleware('query'),
+		schemaMiddleware(GetAverageVisits.schema),
+		GetAverageVisits.workflow)
+
+	router.get(`/uniqueVisits`,
+		passport.authenticate('jwt'),
+		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN, USER_ROLE.SWIMMING_POOL_OPERATOR]),
+		swimmingPoolAuthorizationMiddleware('query'),
+		schemaMiddleware(GetUniqueVisits.schema),
+		GetUniqueVisits.workflow)
+
 	router.post('/',
 		passport.authenticate('jwt'),
 		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
@@ -40,7 +56,7 @@ export default () => {
 
 	router.get('/',
 		passport.authenticate('jwt'),
-		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
+		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN, USER_ROLE.SWIMMING_POOL_OPERATOR]),
 		schemaMiddleware(GetSwimmingPools.schema),
 		GetSwimmingPools.workflow)
 
@@ -64,6 +80,17 @@ export default () => {
 		schemaMiddleware(GetDailyVisits.schema),
 		GetDailyVisits.workflow)
 
+	router.get(`/${swimmingPoolId}/currentVisits`,
+		passport.authenticate('jwt'),
+		authorizationMiddleware([
+			USER_ROLE.OPERATOR,
+			USER_ROLE.SUPER_ADMIN,
+			USER_ROLE.SWIMMING_POOL_OPERATOR,
+			USER_ROLE.SWIMMING_POOL_EMPLOYEE
+		]),
+		swimmingPoolAuthorizationMiddleware(),
+		schemaMiddleware(GetCurrentVisits.schema),
+		GetCurrentVisits.workflow)
 
 	return router
 }

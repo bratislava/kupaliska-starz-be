@@ -5,6 +5,7 @@ import { models } from '../../../db/models'
 import { map } from 'lodash'
 import { formatSwimmingPool } from '../../../utils/formatters'
 import { USER_ROLE } from '../../../utils/enums'
+import { UserModel } from '../../../db/models/user'
 
 export const schema = Joi.object().keys({
 	body: Joi.object(),
@@ -18,6 +19,7 @@ export const schema = Joi.object().keys({
 			'expandedDescription',
 			'waterTemp',
 			'maxCapacity',
+			'ordering',
 			'createdAt',
 		).empty(['', null]).default('createdAt'),
 		direction: Joi.string().lowercase().valid('asc', 'desc').empty(['', null]).default('desc')
@@ -32,10 +34,20 @@ const {
 export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { query }: any = req
+		const user = req.user as UserModel
+
 		const { limit, page } = query
 		const offset = (limit * page) - limit
 
 		const where: any = {}
+
+		await user.reload({ include: { association: 'swimmingPools' } })
+		const usersSwimmingPools = map(user.swimmingPools, (pool) => pool.id)
+		if (user.role === USER_ROLE.SWIMMING_POOL_OPERATOR) {
+			where.id = {
+				[Op.in]: usersSwimmingPools
+			}
+		}
 
 		if (query.search) {
 			where.name = {
@@ -54,6 +66,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				'facilities',
 				'openingHours',
 				'locationUrl',
+				'ordering',
 				'createdAt',
 			],
 			where,

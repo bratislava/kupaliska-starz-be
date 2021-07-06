@@ -9,6 +9,7 @@ import {
 } from 'sequelize'
 
 import { DatabaseModel } from '../../types/models'
+import { OrderModel } from './order'
 import { TicketTypeModel } from './ticketType'
 
 export class DiscountCodeModel extends DatabaseModel {
@@ -22,6 +23,8 @@ export class DiscountCodeModel extends DatabaseModel {
 	createdAt: Date
 	updatedAt: Date
 	deletedAt: Date
+	// foreign
+	order: OrderModel
 	// getters
 	getInverseAmount: number
 }
@@ -44,7 +47,7 @@ export default (sequelize: Sequelize) => {
 			allowNull: false,
 			get() {
 				const value = this.getDataValue('amount');
-				return value ? parseFloat(value) : undefined
+				return value !== undefined ? parseFloat(value) : undefined
 			}
 		},
 		validFrom: {

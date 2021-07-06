@@ -16,6 +16,7 @@ export const schema = Joi.object().keys({
 			'name',
 			'description',
 			'createdAt',
+			'ordering'
 		).empty(['', null]).default('createdAt'),
 		direction: Joi.string().lowercase().valid('asc', 'desc').empty(['', null]).default('desc')
 	}),
@@ -46,6 +47,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				'name',
 				'description',
 				'locationUrl',
+				'ordering',
 			],
 			where,
 			limit,

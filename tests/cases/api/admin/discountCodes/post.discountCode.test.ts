@@ -57,13 +57,20 @@ describe(`[POST] ${endpoint})`, () => {
 		expect(response.status).toBe(403)
 	})
 
-	it('Response should return code 200', async () => {
+	it('Expect status 403 | Unathorized (Operator)', async () => {
 		const response = await request.post(endpoint)
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
+		expect(response.status).toBe(403)
+	})
+
+	it('Response should return code 200', async () => {
+		const response = await request.post(endpoint)
+			.set('Content-Type', 'application/json')
+			.set('Authorization', `Bearer ${process.env.jwtSuperAdmin}`)
 			.send({
 				quantity: 5,
-				amount: 20.5,
+				amount: 20,
 				validFrom: "2021-04-12",
 				validTo: "2021-07-12",
 				ticketTypes: [ticketTypeId]
@@ -74,7 +81,7 @@ describe(`[POST] ${endpoint})`, () => {
 		expect(schema.validate(response.body).error).toBeUndefined()
 		expect(response.body.data.discountCodes).toHaveLength(5)
 
-		expect(response.body.data.discountCodes[4].amount).toStrictEqual(20.50)
+		expect(response.body.data.discountCodes[4].amount).toStrictEqual(20)
 		expect(response.body.data.discountCodes[4].validFrom).toBe("2021-04-12")
 		expect(response.body.data.discountCodes[4].validTo).toBe("2021-07-12")
 		expect(response.body.data.discountCodes[4].code).toBeTruthy()
