@@ -30,14 +30,6 @@ describe(`[GET] ${endpoint})`, () => {
 		expect(response.status).toBe(403)
 	})
 
-	it('Expect status 403 | Unathorized (Swimming operator)', async () => {
-		const response = await request.get(endpoint)
-			.set('Content-Type', 'application/json')
-			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolOperator}`)
-		expect(response.status).toBe(403)
-
-	})
-
 	it('Expect status 403 | Unathorized (Swimming employee)', async () => {
 		const response = await request.get(endpoint)
 			.set('Content-Type', 'application/json')
@@ -49,6 +41,15 @@ describe(`[GET] ${endpoint})`, () => {
 		const response = await request.get(endpoint)
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
+		expect(response.status).toBe(200)
+		expect(response.type).toBe('application/json')
+		expect(schema.validate(response.body).error).toBeUndefined()
+	})
+
+    it('Response should return code 200 - swimming pool operator', async () => {
+		const response = await request.get(endpoint)
+			.set('Content-Type', 'application/json')
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolOperator}`)
 		expect(response.status).toBe(200)
 		expect(response.type).toBe('application/json')
 		expect(schema.validate(response.body).error).toBeUndefined()

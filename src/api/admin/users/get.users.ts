@@ -16,7 +16,8 @@ export const schema = Joi.object().keys({
 			'email',
 			'role',
 			'createdAt',
-			'updatedAt'
+			'updatedAt',
+			'deletedAt'
 		).empty(['', null]).default('createdAt'),
 		direction: Joi.string().lowercase().valid('asc', 'desc').empty(['', null]).default('desc')
 	}),

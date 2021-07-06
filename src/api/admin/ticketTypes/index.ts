@@ -21,7 +21,7 @@ export default () => {
 
 	router.get('/',
 		passport.authenticate('jwt'),
-		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
+		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN, USER_ROLE.SWIMMING_POOL_OPERATOR]),
 		schemaMiddleware(GetTicketTypes.schema),
 		GetTicketTypes.workflow)
 

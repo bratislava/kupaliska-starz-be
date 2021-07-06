@@ -34,7 +34,7 @@ export default (sequelize: Sequelize) => {
 			allowNull: false,
 			get() {
 				const value = this.getDataValue('paymentAmount');
-				return value ? parseFloat(value) : undefined;
+				return value !== undefined ? parseFloat(value) : undefined
 			}
 		},
 		createdAt: {

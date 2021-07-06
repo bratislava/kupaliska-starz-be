@@ -10,8 +10,8 @@
     @apiParam (Query) {Number} [limit=20] Limit
     @apiParam (Query) {Number} [page=1] Page
     @apiParam (Query) {String} [search] Search
-    @apiParam (Query) {String} [order] Order
-    @apiParam (Query) {String} [direction] Order direction
+    @apiParam (Query) {String="name","description","expandedDescription","waterTemp","maxCapacity","ordering","createdAt"} [order="createdAt"] Order
+    @apiParam (Query) {String="desc","asc"} [direction="desc"] Order direction
 
     @apiParamExample {json} Request-Query-Example:
     {
@@ -40,6 +40,7 @@
     @apiSuccess (Response) {String} swimmingPools.image.largeSize large file
     @apiSuccess (Response) {String} swimmingPools.image.altText Alt text
     @apiSuccess (Response) {String} swimmingPools.createdAt Created at (ISO String)
+    @apiSuccess (Response) {Number} swimmingPools.ordering Swimming pool order
     @apiSuccess (Response) {Object} pagination Pagination object
     @apiSuccess (Response) {Number} pagination.limit Limit
     @apiSuccess (Response) {Number} pagination.page Current page
@@ -67,7 +68,8 @@
                 "altText": "Kupalisko"
             },
             "locationUrl" : "https://goo.gl/maps/YST1w1Q7Vt7EpBDh9",
-            "createdAt": "2020-10-08T06:53:47.477Z"
+            "createdAt": "2020-10-08T06:53:47.477Z",
+            "ordering": 3
         }],
         "pagination": {
             "limit": 50,

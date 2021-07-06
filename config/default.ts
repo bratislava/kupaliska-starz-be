@@ -12,13 +12,21 @@ export = {
 		subdirs: [['private', 'profile-photos'], ['public', 'swimming-pools']],
 		feResetPasswordUrl: process.env.FE_RESET_PASSWORD_URL,
 		maxTicketPurchaseLimit: process.env.MAX_TICKET_PURCHASE_LIMIT || 10,
-		contactEmail: process.env.CONTACT_EMAIL
+		contactEmail: process.env.CONTACT_EMAIL,
+		minZipCodeFrequency: process.env.MIN_ZIP_CODE_FREQUENCY || 10,
+		commissionCoefficient: process.env.COMMISSION_COEFFICIENT || 0.015
 	},
 	sentry: <ISentryConfig>{
 		dsn: process.env.SENTRY_DSN || null,
 		env: process.env.SENTRY_ENV || false,
 		tracesSampleRate: process.env.SENTRY_TRACES_SAMPLE_RATE || 0.01,
 		debug: process.env.SENTRY_DEBUG ? (process.env.SENTRY_DEBUG === 'true' ? true : false) : false
+	},
+	workers: {
+		schedule: {
+			visitsComputation: process.env.SCHEDULE_VISITS_COMPUTATION || '00 00 23 * * *', // Run visits computation at 23:00 every day
+			refreshCustomersView: process.env.SCHEDULE_REFRESH_CUSTOMERS_VIEW || '00 00 23 * * *' // Refresh customers views at 23:00 every day
+		}
 	},
 	i18next: <I18nextOptions>{
 		preload: ['sk'],

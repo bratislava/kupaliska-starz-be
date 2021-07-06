@@ -7,6 +7,7 @@ import { USER_ROLE } from '../../../utils/enums'
 import * as GetTicketScan from './get.ticket.scan'
 import * as GetTickets from './get.tickets'
 import * as GetTicketsSummary from './get.ticketsSummary'
+import * as GetTicketsSales from './get.ticketsSales'
 import * as PostTicketCheckin from './post.ticket.checkin'
 import * as PostTicketCheckout from './post.ticket.checkout'
 
@@ -81,5 +82,17 @@ router.get('/swimmingPools/:swimmingPoolId/summary',
 	swimmingPoolAuthorizationMiddleware(),
 	schemaMiddleware(GetTicketsSummary.schema),
 	GetTicketsSummary.workflow
+)
+
+router.get('/sales',
+	passport.authenticate('jwt'),
+	authorizationMiddleware([
+		USER_ROLE.SWIMMING_POOL_OPERATOR,
+		USER_ROLE.OPERATOR,
+		USER_ROLE.SUPER_ADMIN
+	]),
+	swimmingPoolAuthorizationMiddleware('query'),
+	schemaMiddleware(GetTicketsSales.schema),
+	GetTicketsSales.workflow
 )
 

@@ -119,7 +119,7 @@ export default (sequelize: Sequelize) => {
 			allowNull: false,
 			get() {
 				const value = this.getDataValue('price');
-				return value ? parseFloat(value) : undefined;
+				return value !== undefined ? parseFloat(value) : undefined
 			}
 		},
 		isChildren: {

@@ -86,7 +86,8 @@ describe(`[PATCH] ${endpoint})`, () => {
 				image: {
 					base64: "data:image/jpeg;base64,asda",
 					altText: 'Fotka kupaliska delfin'
-				}
+				},
+				ordering: 1
 			})
 
 		expect(response.status).toBe(200)
@@ -100,8 +101,8 @@ describe(`[PATCH] ${endpoint})`, () => {
 		expect(response.body.data.swimmingPool.locationUrl).toBe('https://goo.gl/maps/YST1w1Q7Vt7EpAAA10')
 		expect(response.body.data.swimmingPool.openingHours).toStrictEqual([{ startFrom: '2021-01-01', startTo: '2022-01-01' }])
 		expect(response.body.data.swimmingPool.facilities).toStrictEqual(["voleyball"])
-
 		expect(response.body.data.swimmingPool.image.altText).toBe('Fotka kupaliska delfin')
+		expect(response.body.data.swimmingPool.ordering).toBe(1)
 	})
 
 	it('Operator CAN patch his swimming pool', async () => {
@@ -111,14 +112,16 @@ describe(`[PATCH] ${endpoint})`, () => {
 			.send({
 				waterTemp: 0,
 				maxCapacity: 100,
+				openingHours: [{ startFrom: '2021-01-01', startTo: '2022-01-01' }]
 			})
 
 		expect(response.status).toBe(200)
 		expect(response.body.data.swimmingPool.waterTemp).toBe(0)
 		expect(response.body.data.swimmingPool.maxCapacity).toBe(100)
+		expect(response.body.data.swimmingPool.openingHours).toStrictEqual([{ startFrom: '2021-01-01', startTo: '2022-01-01' }])
 	})
 
-	it('Operator CAN patch only waterTemp and maxCapacity', async () => {
+	it('Operator CAN patch only waterTemp, maxCapacity and opening hours', async () => {
 		const response = await request.patch(endpoint(swimmingPoolId))
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolOperator}`)
@@ -134,7 +137,8 @@ describe(`[PATCH] ${endpoint})`, () => {
 				image: {
 					"base64": "data:image/jpeg;base64,asda",
 					altText: 'Fotka kupaliska delfin'
-				}
+				},
+				ordering: 1
 			})
 
 		expect(response.status).toBe(400)
@@ -146,13 +150,13 @@ describe(`[PATCH] ${endpoint})`, () => {
 		expect(response.body.messages).toEqual(expect.arrayContaining([expect.objectContaining(
 			{ path: 'body.expandedDescription' })]))
 		expect(response.body.messages).toEqual(expect.arrayContaining([expect.objectContaining(
-			{ path: 'body.openingHours' })]))
-		expect(response.body.messages).toEqual(expect.arrayContaining([expect.objectContaining(
 			{ path: 'body.facilities' })]))
 		expect(response.body.messages).toEqual(expect.arrayContaining([expect.objectContaining(
 			{ path: 'body.locationUrl' })]))
 		expect(response.body.messages).toEqual(expect.arrayContaining([expect.objectContaining(
 			{ path: 'body.image' })]))
+		expect(response.body.messages).toEqual(expect.arrayContaining([expect.objectContaining(
+			{ path: 'body.ordering' })]))
 	})
 
 	it('Operator CANOT patch other swimming pool', async () => {
@@ -162,6 +166,7 @@ describe(`[PATCH] ${endpoint})`, () => {
 			.send({
 				waterTemp: 0,
 				maxCapacity: 100,
+				openingHours: [{ startFrom: '2021-01-01', startTo: '2022-01-01' }]
 			})
 
 		expect(response.status).toBe(403)

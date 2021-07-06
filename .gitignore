@@ -128,3 +128,8 @@ files/public/swimming-pools
 
 # Junit report
 /junit.xml
+
+# keys
+resources/*
+!resources/keys
+!resources/test-keys

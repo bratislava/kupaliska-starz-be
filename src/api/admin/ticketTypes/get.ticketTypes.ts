@@ -18,7 +18,8 @@ export const schema = Joi.object().keys({
 			'type',
 			'createdAt',
 		).empty(['', null]).default('name'),
-		direction: Joi.string().lowercase().valid('asc', 'desc').empty(['', null]).default('asc')
+		direction: Joi.string().lowercase().valid('asc', 'desc').empty(['', null]).default('asc'),
+		withSoftDeleted: Joi.boolean().default(false)
 	}),
 	params: Joi.object()
 })
@@ -61,16 +62,19 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				'photoRequired',
 				'nameRequired',
 				'createdAt',
+				'deletedAt'
 			],
 			include: { association: 'swimmingPools' },
 			where,
 			limit,
 			offset,
-			order: [[query.order, query.direction]]
+			order: [[query.order, query.direction]],
+			paranoid: !Boolean(query.withSoftDeleted)
 		})
 
 		const count = await TicketType.count({
-			where
+			where,
+			paranoid: !Boolean(query.withSoftDeleted)
 		})
 
 		return res.json({

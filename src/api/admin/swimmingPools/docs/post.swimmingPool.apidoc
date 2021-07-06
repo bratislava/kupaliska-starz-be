@@ -18,6 +18,7 @@
     @apiParam (Body) {Object[]} openingHours Opening hours array of interval
     @apiParam (Body) {String[]} facilities Array of facility keys
     @apiParam (Body) {String} locationUrl Location url
+    @apiParam (Body) {Number} [ordering] Swimming pool order. Default: max allowed.
 
     @apiExample {curl} Example usage:
     {
@@ -32,7 +33,8 @@
         "image": {
             "base64": "data:image/png;base64,asda",
             "altText": "Fotka kupaliska"
-        }
+        },
+        "ordering": 4
     }
 
     @apiSuccess (Response) {Object} data Data object
@@ -45,6 +47,7 @@
     @apiSuccess (Response) {Number} data.swimmingPool.waterTemp Water waterTemp
     @apiSuccess (Response) {Number} data.swimmingPool.maxCapacity Max capacity
     @apiSuccess (Response) {String} data.swimmingPool.locationUrl Location url
+    @apiSuccess (Response) {Number} data.swimmingPool.ordering Swimming pool order
     @apiSuccess (Response) {Object} data.swimmingPool.image Image object
     @apiSuccess (Response) {String} data.swimmingPool.image.originalFile Original file
     @apiSuccess (Response) {String} data.swimmingPool.image.thumbnailSize Thumbnail file
@@ -80,7 +83,8 @@
                     "largeSize": "https://starz-api.dev.amcef.sk/files/public/swimming-pools/filename.png",
                     "altText": "Kupalisko"
                 },
-                "locationUrl" : "https://goo.gl/maps/YST1w1Q7Vt7EpBDh9"
+                "locationUrl" : "https://goo.gl/maps/YST1w1Q7Vt7EpBDh9",
+                "ordering": 3
             }
         },
         "messages": [

@@ -4,12 +4,14 @@ import { NextFunction, Request, Response } from 'express'
 import { models } from '../../../db/models'
 import { map } from 'lodash'
 import { formatDiscountCode } from '../../../utils/formatters'
+import { downloadDiscountCodesAsCsv } from '../../../utils/csvExport'
 
 export const schema = Joi.object().keys({
 	body: Joi.object(),
 	query: Joi.object().keys({
 		search: Joi.string().allow(null, ''),
 		limit: Joi.number().integer().min(1).default(20).empty(['', null]),
+		export: Joi.boolean().default(false),
 		page: Joi.number().integer().min(1).default(1).empty(['', null]),
 		order: Joi.string().valid(
 			'code',
@@ -53,11 +55,36 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				'usedAt'
 			],
 			where,
-			limit,
-			offset,
+			limit: query.export ? undefined : limit,
+			offset: query.export ? undefined : offset,
 			order: [[query.order, query.direction]],
-			include: { association: "ticketTypes" }
+			include: [
+				{
+					association: "ticketTypes"
+				},
+				{
+					association: "order",
+					include: [{
+						required: false,
+						separate: true,
+						association: 'tickets',
+						limit: 1,
+						where: {
+							isChildren: {
+								[Op.is]: false
+							}
+						},
+						include: [{
+							association: 'profile'
+						}]
+					}]
+				}
+			],
 		})
+
+		if (query.export) {
+			return downloadDiscountCodesAsCsv(res, 'discount-codes.csv', discountCodes)
+		}
 
 		const count = await DiscountCode.count({
 			where

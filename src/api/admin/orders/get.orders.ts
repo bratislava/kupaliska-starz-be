@@ -28,7 +28,8 @@ export const filtersSchema = Joi.object().keys({
 	createdAt: Joi.object().keys({
 		from: Joi.date(),
 		to: Joi.date().when('type', { is: Joi.valid('range'), then: Joi.when('from', { is: Joi.required(), otherwise: Joi.required() }) }),
-		type: Joi.string().valid('range').default('range')
+		type: Joi.string().valid('range').default('range'),
+		dataType: Joi.string().default('date')
 	}),
 })
 
@@ -64,7 +65,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		const offset = (limit * page) - limit
 
 		const { swimmingPools, ticketTypes, email, ...otherFilters } = query.filters || {}
-		const orderFilters = getSequelizeFilters(otherFilters || {})
+		const orderFilters = getSequelizeFilters(otherFilters || {}, "order")
 		const swimmingPoolFilter = getSequelizeFilters(swimmingPools ? { swimmingPoolId: swimmingPools } : {})
 		const ticketTypeFilter = getSequelizeFilters(ticketTypes ? { ticketTypeId: ticketTypes } : {})
 		const profileFilter = getSequelizeFilters(email ? { email } : {})
@@ -113,8 +114,8 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 					},
 				]
 			}],
-			limit,
-			offset,
+			limit: query.export ? undefined : limit,
+			offset: query.export ? undefined : offset,
 			where: {
 				[Op.and]: orderFilters,
 			},

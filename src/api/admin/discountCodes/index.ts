@@ -14,26 +14,26 @@ const router: Router = Router()
 export default () => {
 	router.post('/',
 		passport.authenticate('jwt'),
-		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
+		authorizationMiddleware([USER_ROLE.SUPER_ADMIN]),
 		schemaMiddleware(PostDiscountCode.schema),
 		PostDiscountCode.workflow)
 
 
 	router.get('/',
 		passport.authenticate('jwt'),
-		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
+		authorizationMiddleware([USER_ROLE.SUPER_ADMIN]),
 		schemaMiddleware(GetDiscountCodes.schema),
 		GetDiscountCodes.workflow)
 
 	router.get('/:discountCodeId',
 		passport.authenticate('jwt'),
-		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
+		authorizationMiddleware([USER_ROLE.SUPER_ADMIN]),
 		schemaMiddleware(GetDiscountCode.schema),
 		GetDiscountCode.workflow)
 
 	router.delete('/:discountCodeId',
 		passport.authenticate('jwt'),
-		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
+		authorizationMiddleware([USER_ROLE.SUPER_ADMIN]),
 		schemaMiddleware(DeleteDiscountCode.schema),
 		DeleteDiscountCode.workflow)
 

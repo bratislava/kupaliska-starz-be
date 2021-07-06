@@ -17,6 +17,7 @@
     @apiSuccess (Response) {String[]} facilities Array of facility keys
     @apiSuccess (Response) {Number} maxCapacity Swimming pool max capacity
     @apiSuccess (Response) {String} locationUrl Location url
+    @apiSuccess (Response) {Number} ordering Order
     @apiSuccess (Response) {Object} image Image object
     @apiSuccess (Response) {String} image.originalFile Original file
     @apiSuccess (Response) {String} image.thumbnailSize Thumbnail file
@@ -44,7 +45,8 @@
                 "largeSize": "https://starz-api.dev.amcef.sk/files/public/swimming-pools/filename.png",
                 "altText": "Kupalisko"
             },
-            "locationUrl" : "https://goo.gl/maps/YST1w1Q7Vt7EpBDh9"
+            "locationUrl" : "https://goo.gl/maps/YST1w1Q7Vt7EpBDh9",
+            "ordering": 1
     }
 
 */

@@ -1,14 +1,15 @@
+import { SwimmingPoolModel } from './../db/models/swimmingPool';
 import { TicketModel } from './../db/models/ticket';
 import { OrderModel } from './../db/models/order';
 import config from 'config'
 import { IAppConfig } from '../types/interfaces'
 import { FileModel } from '../db/models/file'
-import { filter, map, reduce } from 'lodash';
-import { SwimmingPoolModel } from '../db/models/swimmingPool';
+import { Dictionary, filter, map, reduce } from 'lodash';
 import { UserModel } from '../db/models/user';
 import { USER_ROLE } from './enums';
 import { TicketTypeModel } from '../db/models/ticketType';
 import { DiscountCodeModel } from '../db/models/discountCode';
+import i18next from 'i18next';
 
 const appConfig: IAppConfig = config.get('app')
 
@@ -68,7 +69,8 @@ export const formatSwimmingPool = (swimmingPool: SwimmingPoolModel, role?: USER_
 		locationUrl: swimmingPool.locationUrl,
 		createdAt: swimmingPool.createdAt,
 		updatedAt: swimmingPool.updatedAt,
-		image: formatImage(swimmingPool.image)
+		image: formatImage(swimmingPool.image),
+		ordering: swimmingPool.ordering
 	}
 }
 
@@ -85,7 +87,7 @@ export const formatUser = (user: UserModel) => {
 		swimmingPools: user.swimmingPools ? map(user.swimmingPools, (pool) => ({
 			id: pool.id,
 			name: pool.name
-		})): undefined,
+		})) : undefined,
 		createdAt: user.createdAt,
 		updatedAt: user.updatedAt,
 		deletedAt: user.deletedAt,
@@ -124,6 +126,7 @@ export const formatTicketType = (ticketType: TicketTypeModel) => {
 			name: pool.name
 		})) : undefined,
 		createdAt: ticketType.createdAt,
+		deletedAt: ticketType.deletedAt
 	}
 }
 
@@ -140,7 +143,8 @@ export const formatDiscountCode = (discountCode: DiscountCodeModel) => {
 		ticketTypes: discountCode.ticketTypes ? map(discountCode.ticketTypes, (ticketType) => ({
 			id: ticketType.id,
 			name: ticketType.name
-		})): undefined,
+		})) : undefined,
+		customerEmail: discountCode.order && discountCode.order.tickets[0] ? discountCode.order.tickets[0].profile.email : '',
 		createdAt: discountCode.createdAt,
 		usedAt: discountCode.usedAt
 	}
@@ -169,9 +173,56 @@ export const formatOrder = (order: OrderModel) => {
 		numberOfChildren: order.tickets ? reduce(order.tickets, (number, ticket) => (ticket.isChildren ? number + 1 : number), 0) : undefined,
 		email: order.tickets ? order.tickets[0].profile.email : undefined,
 		userName: adultTickets ? userName : undefined,
-		ticketName: order.tickets ? order.tickets[0].ticketType.name: undefined,
+		ticketName: order.tickets ? order.tickets[0].ticketType.name : undefined,
 		createdAt: order.createdAt,
 		updatedAt: order.updatedAt
 	}
 }
 
+export const formatVisits = (
+	allSwimmingPools: SwimmingPoolModel[],
+	allAges: string[],
+	swimmingPoolsVisits: Dictionary<{
+		id: string;
+		range: {
+			age: string;
+			value: string;
+		};
+	}[]>,
+	swimmingPoolsAverageVisits: {
+		id: string;
+		total: string;
+	}[],
+	valueFormat = 'number',
+) => {
+
+	return map(allSwimmingPools, (swimmingPool) => {
+
+		const zero = valueFormat === 'number' ? 0 : '00:00:00'
+		const swimmingPoolAverageVisits = filter(swimmingPoolsAverageVisits, (obj) => obj.id === swimmingPool.id)
+		const average = swimmingPoolAverageVisits.length > 0 ? swimmingPoolAverageVisits[0].total : zero
+
+		return {
+			id: swimmingPool.id,
+			name: swimmingPool.name,
+			total: average,
+			ages: reduce(allAges, (allRanges, age) => {
+
+				const findAge = filter(swimmingPoolsVisits[swimmingPool.id], (obj) => obj.range.age === age)
+
+				if (findAge.length > 0) {
+					let ageTitle = findAge[0].range.age
+					if (findAge[0].range.age === null) {
+						ageTitle = i18next.t('none')
+					}
+					allRanges[ageTitle] = findAge[0].range.value
+				} else {
+					allRanges[age === null ? i18next.t('none') : age] = zero
+				}
+				return allRanges
+
+			}, {} as any)
+		}
+	})
+
+}

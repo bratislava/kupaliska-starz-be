@@ -19,6 +19,7 @@
     @apiParam (Query) {Object} [filters.age] Filter by customer age.
     @apiParam (Query) {Number} [filters.age.from] Age from value.
     @apiParam (Query) {Number} [filters.age.to] Age to value.
+    @apiParam (Query) {Boolean} [filters.age.showUnspecified=false] Show also records with unspecified age?
     @apiParam (Query) {String="range"} [filters.age.type] Filter type. Default: `range`.
     @apiParam (Query) {String="customerEmail","customerNames","customerAges","orderCount","lastOrderAt","lastEntryAt"} [order] Order by column. Default by `customerEmail`.
     @apiParam (Query) {String="asc","desc"} [direction] Order direction. Default `asc`.
@@ -38,7 +39,8 @@
             },
             "age": {
                 "from": 10,
-                "type": "range"
+                "type": "range",
+                "showUnspecified": true
             },
         },
         "order": "customerEmail",
@@ -65,7 +67,7 @@
         "customers": [
             {
                 "customerEmail": "Erin_Nolan@gmail.com",
-                "customerAge": "15, 31",
+                "customerAges": "15, 31",
                 "customerZips": "64872, 03333",
                 "customerNames": "Saul Nolan V, Juan Chang",
                 "orderCount": 66,

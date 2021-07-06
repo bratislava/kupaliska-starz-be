@@ -60,7 +60,8 @@ describe(`[POST] ${endpoint})`, () => {
 				image: {
 					"base64": "data:image/jpeg;base64,asda",
 					altText: 'Fotka kupaliska delfin'
-				}
+				},
+				ordering: 1
 			})
 		expect(response.status).toBe(200)
 		expect(response.type).toBe('application/json')
@@ -70,5 +71,6 @@ describe(`[POST] ${endpoint})`, () => {
 		expect(response.body.data.swimmingPool.locationUrl).toBe('https://goo.gl/maps/YST1w1Q7Vt7EpBDh9')
 		expect(response.body.data.swimmingPool.openingHours).toStrictEqual([{ startFrom: '2021-01-01', startTo: '2022-01-01' }])
 		expect(response.body.data.swimmingPool.facilities).toStrictEqual(["changing-room", "food", "playground"])
+		expect(response.body.data.swimmingPool.ordering).toBe(1)
 	})
 })

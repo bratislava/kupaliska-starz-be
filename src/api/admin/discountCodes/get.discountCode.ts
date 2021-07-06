@@ -34,7 +34,28 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			where: {
 				id: { [Op.eq]: params.discountCodeId }
 			},
-			include: { association: "ticketTypes" }
+			include: [
+				{
+					association: "ticketTypes"
+				},
+				{
+					association: "order",
+					include: [{
+						required: false,
+						separate: true,
+						association: 'tickets',
+						limit: 1,
+						where: {
+							isChildren: {
+								[Op.is]: false
+							}
+						},
+						include: [{
+							association: 'profile'
+						}]
+					}]
+				}
+			]
 		})
 
 		if (!discountCode) {

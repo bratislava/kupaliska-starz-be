@@ -22,6 +22,7 @@ export const swimmingPoolOperatorPatchSchema = Joi.object().keys({
 	body: Joi.object().keys({
 		waterTemp: Joi.number(),
 		maxCapacity: Joi.number(),
+		openingHours: Joi.array()
 	}),
 	...baseSchema
 })
@@ -39,7 +40,8 @@ export const operatorPatchSchema = Joi.object().keys({
 		maxCapacity: Joi.number().min(0),
 		openingHours: Joi.array(),
 		facilities: Joi.array().items(Joi.string()),
-		locationUrl: Joi.string().max(1000).uri()
+		locationUrl: Joi.string().max(1000).uri(),
+		ordering: Joi.number().integer().min(1).default(0)
 	}),
 	...baseSchema
 })

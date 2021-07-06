@@ -24,6 +24,7 @@
     @apiParam (Query) {Object} [filters.age] Filter by age
     @apiParam (Query) {String} [filters.age.from] From age
     @apiParam (Query) {String} [filters.age.to] To age
+    @apiParam (Query) {Boolean} [filters.age.showUnspecified=false] Show also records with unspecified age?
     @apiParam (Query) {String="range"} [filters.age.type="range"] Filter type
 
     @apiParam (Query) {Object} [filters.numberOfVisits] Filter by number of visits
@@ -31,9 +32,9 @@
     @apiParam (Query) {String} [filters.numberOfVisits.to] To number of visits
     @apiParam (Query) {String="range"} [filters.numberOfVisits.type="range"] Filter type
 
-    @apiParam (Query) {Object} [filters.createdAt] Filter by created at.
-    @apiParam (Query) {String} [filters.createdAt.from] Created at from date.
-    @apiParam (Query) {String} [filters.createdAt.to] Created at to date.
+    @apiParam (Query) {Object} [filters.createdAt] Filter by date when the ticket was used.
+    @apiParam (Query) {String} [filters.createdAt.from] Date from.
+    @apiParam (Query) {String} [filters.createdAt.to] Date to.
     @apiParam (Query) {String="range"} [filters.createdAt.type="range"] Filter type.
 
     @apiParamExample {json} Request-Query-Example:
@@ -49,7 +50,8 @@
             },
             "age": {
                 "from": 30,
-                "type": "range"
+                "type": "range",
+                "showUnspecified": true
             },
             "numberOfVisits": {
                 "to": 10,

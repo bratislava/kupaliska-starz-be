@@ -8,7 +8,7 @@ export async function up(queryInterface: QueryInterface) {
 			id: 'c70954c7-970d-4f1a-acf4-12b91acabe02',
 			name: 'Sezónny tiket',
 			description: faker.lorem.paragraph(15),
-			price: 20,
+			price: 0.8,
 			type: 'SEASONAL',
 			nameRequired: true,
 			photoRequired: false,

@@ -9,8 +9,8 @@
     @apiParam (Query) {Number} [limit=20] Limit
     @apiParam (Query) {Number} [page=1] Page
     @apiParam (Query) {String} [search] Search
-    @apiParam (Query) {String} [order] Order
-    @apiParam (Query) {String} [direction] Order direction
+    @apiParam (Query) {String="name","description","createdAt","ordering"} [order="createdAt"] Order
+    @apiParam (Query) {String} [direction="desc"] Order direction
 
     @apiParamExample {json} Request-Query-Example:
     {
@@ -26,6 +26,7 @@
     @apiSuccess (Response) {String} swimmingPools.name Swimming pool name
     @apiSuccess (Response) {String} swimmingPools.description Swimming pool description
     @apiSuccess (Response) {String} swimmingPools.locationUrl Location url
+    @apiSuccess (Response) {Number} swimmingPools.ordering Order
     @apiSuccess (Response) {Object} swimmingPools.image Image object
     @apiSuccess (Response) {String} swimmingPools.image.originalFile Original file
     @apiSuccess (Response) {String} swimmingPools.image.thumbnailSize Thumbnail file
@@ -47,6 +48,7 @@
             "name": "Delfín",
             "description": "Kúpalisko Delfín nájdete priamo...",
             "locationUrl" : "https://goo.gl/maps/YST1w1Q7Vt7EpBDh9",
+            "ordering": 1,
             "image": {
                 "originalFile": "https://starz-api.dev.amcef.sk/files/public/swimming-pools/filename.png",
                 "thumbnailSize": "https://starz-api.dev.amcef.sk/files/public/swimming-pools/filename.png",

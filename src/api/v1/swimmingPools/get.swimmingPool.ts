@@ -32,6 +32,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				'facilities',
 				'openingHours',
 				'locationUrl',
+				'ordering',
 			],
 			where: {
 				id: { [Op.eq]: params.swimmingPoolId }

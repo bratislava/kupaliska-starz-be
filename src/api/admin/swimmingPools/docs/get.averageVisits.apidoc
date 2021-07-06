@@ -1,0 +1,84 @@
+/**
+    @api {get} admin/swimmingPools/averageVisits Get swimming pools average visits
+    @apiVersion 1.0.0
+    @apiName GetSwimmingPoolsAverageVisits
+    @apiGroup AdminSwimmingPool
+
+    @apiPermission SuperAdmin, Operator, SwimmingPoolOperator
+
+    @apiDescription Get swimming pools average visits
+
+    @apiParam (Query) {String[]} swimmingPools Array of swimming pools IDS
+    @apiParam (Query) {String} from From date. Format: `YYYY-MM-DD`.
+    @apiParam (Query) {String} to To date. Format: `YYYY-MM-DD`.
+    @apiParam (Query) {Number} [ageInterval=10] The size of the age interval.
+    @apiParam (Query) {Number} [ageMinimum=0] Age buckets start from this age.
+
+    @apiParamExample {json} Request-Query-Example:
+    {
+        "from": "2021-06-16",
+        "to": "2021-07-16",
+        "swimmingPools": ["9bea96d9-aadb-424c-9dc7-d26f8a71eb2c", "9bea96d9-aadb-424c-9dc7-d26f8a71eb2d"],
+        "ageInterval": 10,
+        "ageMinimum": 0
+    }
+
+    @apiSuccess (Response) {Object} data Data object
+    @apiSuccess (Response) {Object[]} data.swimmingPools Array of swimming pools with visits
+    @apiSuccess (Response) {String} data.swimmingPools.id Swimming pool id
+    @apiSuccess (Response) {String} data.swimmingPools.name Swimming pool name
+    @apiSuccess (Response) {String} data.swimmingPools.total Total average visit duration
+    @apiSuccess (Response) {Object} data.swimmingPools.ages Object of dynamic ages as keys and average visit duration as values.
+    @apiSuccess (Response) {Object} data.ages Object of dynamic ages as keys and total average visit duration as values.
+
+    @apiSuccessExample Success-Response:
+	HTTP/1.1 200 OK
+    {
+        "data": {
+            "swimmingPools": [
+                {
+                    "id": "9bea96d9-aadb-424c-9dc7-d26f8a71eb2c",
+                    "name": "Delfín",
+                    "total": "00:00:28",
+                    "ages": {
+                        "3-9": "00:00:32",
+                        "10-16": "00:00:27",
+                        "17-23": "00:00:27",
+                        "24-30": "00:00:38",
+                        "31-37": "00:00:41",
+                        "38-44": "00:00:35",
+                        "45-51": "00:00:15",
+                        "52-58": "00:00:47",
+                        "59-65": "00:00:26",
+                        "66-72": "00:00:35",
+                        "73-79": "00:00:42",
+                        "80-86": "00:00:43",
+                        "87-93": "00:00:40",
+                        "94-100": "00:00:35",
+                        "Nevyplnené": "00:00:22"
+                    }
+                }
+            ],
+            "ages": {
+                "3-9": "00:00:29",
+                "10-16": "00:00:29",
+                "17-23": "00:00:29",
+                "24-30": "00:00:29",
+                "31-37": "00:00:28",
+                "38-44": "00:00:29",
+                "45-51": "00:00:26",
+                "52-58": "00:00:27",
+                "59-65": "00:00:29",
+                "66-72": "00:00:28",
+                "73-79": "00:00:31",
+                "80-86": "00:00:27",
+                "87-93": "00:00:30",
+                "94-100": "00:00:27",
+                "Nevyplnené": "00:00:28"
+            }
+        }
+    }
+
+    @apiUse AuthorizationHeader
+
+*/

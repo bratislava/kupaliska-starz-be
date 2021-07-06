@@ -2,7 +2,7 @@ import { TicketModel } from './../../../db/models/ticket';
 import Joi from 'joi'
 import { QueryTypes } from 'sequelize'
 import { NextFunction, Request, Response } from 'express'
-import sequelize, { models } from '../../../db/models'
+import sequelize from '../../../db/models'
 import { getFilters } from '../../../utils/dbFilters';
 import { map } from 'lodash';
 import { ENTRY_TYPE } from '../../../utils/enums';
@@ -19,6 +19,7 @@ export const filtersSchema = Joi.object().keys({
 	age: Joi.object().keys({
 		from: Joi.number(),
 		to: Joi.number().when('type', { is: Joi.valid('range'), then: Joi.when('from', { is: Joi.required(), otherwise: Joi.required() }) }),
+		showUnspecified: Joi.boolean().default(false),
 		type: Joi.string().valid('range').default('range')
 	}),
 	price: Joi.object().keys({
@@ -34,7 +35,8 @@ export const filtersSchema = Joi.object().keys({
 	createdAt: Joi.object().keys({
 		from: Joi.date(),
 		to: Joi.date().when('type', { is: Joi.valid('range'), then: Joi.when('from', { is: Joi.required(), otherwise: Joi.required() }) }),
-		type: Joi.string().valid('range').default('range')
+		type: Joi.string().valid('range').default('range'),
+		dataType: Joi.string().default('date')
 	})
 })
 
@@ -71,8 +73,8 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		let havingVariables: any = {}
 
 		if (numberOfVisits) {
-			havingSQL += numberOfVisits.from ? ` AND COUNT(entries) >= $numberOfVisitsFrom ` : ''
-			havingSQL += numberOfVisits.to ? `AND COUNT(entries) <= $numberOfVisitsTo ` : ''
+			havingSQL += numberOfVisits.from ? ` AND COUNT(visits) >= $numberOfVisitsFrom ` : ''
+			havingSQL += numberOfVisits.to ? `AND COUNT(visits) <= $numberOfVisitsTo ` : ''
 			havingVariables.numberOfVisitsFrom = numberOfVisits.from
 			havingVariables.numberOfVisitsTo = numberOfVisits.to
 		}
@@ -85,33 +87,50 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		}
 
 		const [ticketsFilterVariables, ticketsFilterSQL] = getFilters(otherFilters, "tickets")
-		const [profilesFilterVariables, profilesFilterSQL] = getFilters({ zip, age }, "profiles")
+		const [profilesFilterVariables, profilesFilterSQL] = getFilters({ zip}, "profiles")
 		const [ticketTypesFilterVariables, ticketTypesFilterSQL] = getFilters({ id: ticketTypes }, "ticketTypes")
 
+		let ageFilterSql = ''
+		let ageFilterVariables = {}
+		if (age) {
+			ageFilterSql += age.from ? `"profiles"."age" >= $ageFrom` : ''
+			const addAnd = age.from ? 'AND' : ''
+			ageFilterSql += age.to ? ` ${addAnd} "profiles"."age" <= $ageTo` : ''
+			ageFilterSql = age.showUnspecified ? `(${ageFilterSql} OR "profiles"."age" IS NULL)` : ageFilterSql
+
+			ageFilterVariables = {
+				[`ageFrom`]: age.from ? age.from : undefined,
+				[`ageTo`]: age.to ? age.to : undefined,
+			}
+
+			ageFilterSql = `AND ${ageFilterSql}`
+		}
+
 		let tickets = await sequelize.query<TicketModel>(`
-			SELECT 
-				tickets.id, tickets.price as "price", tickets."isChildren", tickets."createdAt" as "createdAt", tickets."numberOfVisits" AS "numberOfVisits", 
+			SELECT
+				tickets.id, tickets.price as "price", tickets."isChildren", tickets."createdAt" as "createdAt", tickets."numberOfVisits" AS "numberOfVisits",
 				profiles.id as "profile.id", profiles.age as "profile.age", profiles.zip as "profile.zip",
 				"ticketTypes".id as "ticketType.id", "ticketTypes".name as "ticketType.name"
 			FROM "ticketTypes"
 			INNER JOIN (
-				SELECT 
-					tickets.id, tickets.price, tickets."isChildren", tickets."createdAt", tickets."ticketTypeId", tickets."profileId", COUNT(entries) as "numberOfVisits"
-				FROM tickets 
-				INNER JOIN ( 
-					SELECT entries."ticketId" from entries
-						where entries."swimmingPoolId" = $swimmingPoolId and entries."type" = $entryType
-						group by DATE_TRUNC('day', entries.timestamp), entries."ticketId"
-				) as entries 
-					ON tickets.id = entries."ticketId"
+				SELECT
+					tickets.id, tickets.price, tickets."isChildren", tickets."createdAt", tickets."ticketTypeId", tickets."profileId", COUNT(visits) as "numberOfVisits"
+				FROM tickets
+				INNER JOIN (
+					SELECT visits."ticketId" FROM visits
+					WHERE
+						"numberOfCheckIn" > 0
+						AND "swimmingPoolId" = $swimmingPoolId
+				) as visits
+					ON tickets.id = visits."ticketId"
 				WHERE (tickets."deletedAt" IS NULL) ${ticketsFilterSQL}
 				GROUP BY tickets.id
 				HAVING 1=1 ${havingSQL}
-			) as tickets 
-				ON "ticketTypes".id = tickets."ticketTypeId" 
-			INNER JOIN 
-				profiles ON tickets."profileId" = profiles.id AND (profiles."deletedAt" IS NULL) 
-			WHERE 1=1 ${profilesFilterSQL} ${ticketTypesFilterSQL}
+			) as tickets
+				ON "ticketTypes".id = tickets."ticketTypeId"
+			INNER JOIN
+				profiles ON tickets."profileId" = profiles.id AND (profiles."deletedAt" IS NULL)
+			WHERE 1=1 ${profilesFilterSQL} ${ticketTypesFilterSQL} ${ageFilterSql}
 			ORDER BY "${query.order}" ${query.direction}
 			LIMIT $limit
 			OFFSET $offset;`,
@@ -120,50 +139,51 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 					limit: limit,
 					offset: offset,
 					swimmingPoolId: params.swimmingPoolId,
-					entryType: ENTRY_TYPE.CHECKIN,
 					...havingVariables,
 					...ticketsFilterVariables,
 					...profilesFilterVariables,
 					...ticketTypesFilterVariables,
+					...ageFilterVariables
 				},
 				model: TicketModel,
 				raw: true,
 				mapToModel: true,
 				nest: true,
-				type: QueryTypes.SELECT,
+				type: QueryTypes.SELECT
 			}
 		)
 
 		const ticketsCount = await sequelize.query<{ count: number }>(`
-			SELECT 
+			SELECT
 				COUNT(*) as "count"
 			FROM "ticketTypes"
 			INNER JOIN (
-				SELECT 
-					tickets.id, tickets."ticketTypeId", tickets."profileId" 
-				FROM tickets 
-				INNER JOIN ( 
-					SELECT entries."ticketId" from entries
-						where entries."swimmingPoolId" = $swimmingPoolId and entries."type" = $entryType
-						group by DATE_TRUNC('day', entries.timestamp), entries."ticketId"
-				) as entries 
-					ON tickets.id = entries."ticketId"
+				SELECT
+					tickets.id, tickets."ticketTypeId", tickets."profileId"
+				FROM tickets
+				INNER JOIN (
+					SELECT visits."ticketId" FROM visits
+					WHERE
+						"numberOfCheckIn" > 0
+						AND "swimmingPoolId" = $swimmingPoolId
+				) as visits
+					ON tickets.id = visits."ticketId"
 				WHERE (tickets."deletedAt" IS NULL) ${ticketsFilterSQL}
 				GROUP BY tickets.id
 				HAVING 1=1 ${havingSQL}
-			) as tickets 
-				ON "ticketTypes".id = tickets."ticketTypeId" 
-			INNER JOIN 
-				profiles ON tickets."profileId" = profiles.id AND (profiles."deletedAt" IS NULL) 
-			WHERE 1=1 ${profilesFilterSQL} ${ticketTypesFilterSQL};`,
+			) as tickets
+				ON "ticketTypes".id = tickets."ticketTypeId"
+			INNER JOIN
+				profiles ON tickets."profileId" = profiles.id AND (profiles."deletedAt" IS NULL)
+			WHERE 1=1 ${profilesFilterSQL} ${ticketTypesFilterSQL} ${ageFilterSql};`,
 			{
 				bind: {
 					swimmingPoolId: params.swimmingPoolId,
-					entryType: ENTRY_TYPE.CHECKIN,
 					...havingVariables,
 					...ticketsFilterVariables,
 					...profilesFilterVariables,
 					...ticketTypesFilterVariables,
+					...ageFilterVariables
 				},
 				raw: true,
 				nest: true,

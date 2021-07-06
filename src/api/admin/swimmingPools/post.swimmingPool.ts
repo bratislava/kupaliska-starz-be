@@ -25,7 +25,8 @@ export const swimmingPoolAddSchema = {
 	maxCapacity: Joi.number().min(0).required(),
 	openingHours: Joi.array().required(),
 	facilities: Joi.array().items(Joi.string()),
-	locationUrl: Joi.string().max(1000).required().uri()
+	locationUrl: Joi.string().max(1000).required().uri(),
+	ordering: Joi.number().integer().min(1).default(0)
 }
 
 export const schema = Joi.object().keys({
@@ -55,6 +56,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			openingHours: body.openingHours,
 			facilities: body.facilities,
 			locationUrl: body.locationUrl,
+			ordering: body.ordering
 		}, { transaction })
 
 		const image = await uploadImage(req, body.image, swimmingPool.id, transaction)

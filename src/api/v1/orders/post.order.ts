@@ -131,11 +131,10 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				validate(true, ticket.children, Joi.forbidden(), req.t('error:ticket.childrenAreNotAllowed'), 'childrenAreNotAllowed')
 			}
 
-			let ticketsPrice = await saveTickets(ticket, ticketType, order.id, numberOfChildren, transaction)
+			const ticketsPrice = await saveTickets(ticket, ticketType, order.id, numberOfChildren, transaction)
 			const totals = await getDiscount(ticketsPrice, applyDiscount, discount, discountCode, transaction)
-			orderPrice += totals.ticketsPrice
+			orderPrice += totals.newTicketsPrice
 			discount = totals.discount
-
 		}
 
 		await order.update({
@@ -182,13 +181,21 @@ const saveTickets = async (ticket: any, ticketType: TicketTypeModel, orderId: st
  * Get price after discount if discount can be applied. Otherwise return the original price.
  */
 const getDiscount = async (ticketsPrice: number, applyDiscount: boolean, discount: number, discountCode: DiscountCodeModel, transaction: any) => {
+	let newTicketsPrice = ticketsPrice
 	if (applyDiscount) {
-		discount = ticketsPrice - (Math.floor(ticketsPrice * discountCode.getInverseAmount * 100) / 100)
-		ticketsPrice = (Math.floor(ticketsPrice * discountCode.getInverseAmount * 100) / 100)
+
+		const priceWithDiscount = (Math.floor(ticketsPrice * discountCode.getInverseAmount * 100) / 100)
+		if (priceWithDiscount < 0.01) { // price cant be 0
+			newTicketsPrice = 0.01
+			discount = ticketsPrice - priceWithDiscount - 0.01
+		} else {
+			newTicketsPrice = priceWithDiscount
+			discount = ticketsPrice - priceWithDiscount
+		}
 
 		await discountCode.update({ usedAt: Sequelize.literal('CURRENT_TIMESTAMP') }, { transaction })
 	}
-	return { ticketsPrice, discount }
+	return { newTicketsPrice, discount }
 }
 
 /**

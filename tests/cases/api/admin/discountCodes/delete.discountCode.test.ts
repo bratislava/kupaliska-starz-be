@@ -66,10 +66,17 @@ describe(`[DELETE] ${endpoint})`, () => {
 			expect(response.status).toBe(403)
 	})
 
-	it('Response should return code 200', async () => {
+	it('Expect status 403 | Unathorized (Operator)', async () => {
 		const response = await request.delete(endpoint())
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
+			expect(response.status).toBe(403)
+	})
+
+	it('Response should return code 200', async () => {
+		const response = await request.delete(endpoint())
+			.set('Content-Type', 'application/json')
+			.set('Authorization', `Bearer ${process.env.jwtSuperAdmin}`)
 		expect(response.status).toBe(200)
 		expect(response.type).toBe('application/json')
 		expect(schema.validate(response.body).error).toBeUndefined()
@@ -83,7 +90,7 @@ describe(`[DELETE] ${endpoint})`, () => {
 	it('Response should return code 404', async () => {
 		const response = await request.delete(endpoint())
 			.set('Content-Type', 'application/json')
-			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
+			.set('Authorization', `Bearer ${process.env.jwtSuperAdmin}`)
 		expect(response.status).toBe(404)
 		expect(response.type).toBe('application/json')
 		expect(schemaNotFound.validate(response.body).error).toBeUndefined()

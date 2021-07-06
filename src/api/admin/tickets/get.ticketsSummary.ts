@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import { QueryTypes } from 'sequelize'
+import { Op, QueryTypes } from 'sequelize'
 import { NextFunction, Request, Response } from 'express'
 import sequelize, { models } from '../../../db/models'
 import { getFilters } from '../../../utils/dbFilters';
@@ -25,63 +25,89 @@ const {
 export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { query, params }: any = req
-		const { limit, page } = query
-		const offset = (limit * page) - limit
 
-		const { ticketTypes, zip, age, numberOfVisits, ...otherFilters } = query.filters || {}
+		const { ticketTypes, zip, age, createdAt, numberOfVisits, ...otherFilters } = query.filters || {}
 
 		let havingSQL = ''
 		let havingVariables: any = {}
 
 		if (numberOfVisits) {
-			havingSQL += numberOfVisits.from ? ` AND COUNT(entries) >= $numberOfVisitsFrom ` : ''
-			havingSQL += numberOfVisits.to ?  `AND COUNT(entries) <= $numberOfVisitsTo ` : ''
+			havingSQL += numberOfVisits.from ? ` AND COUNT(visits) >= $numberOfVisitsFrom ` : ''
+			havingSQL += numberOfVisits.to ?  `AND COUNT(visits) <= $numberOfVisitsTo ` : ''
 			havingVariables.numberOfVisitsFrom = numberOfVisits.from
 			havingVariables.numberOfVisitsTo = numberOfVisits.to
 		}
 
+		const [visitsFilterVariables, visitsFilterSql] = getFilters({ day: createdAt })
 		const [ticketsFilterVariables, ticketsFilterSQL] = getFilters(otherFilters, "tickets")
-		const [profilesFilterVariables, profilesFilterSQL] = getFilters({ zip, age }, "profiles")
+		const [profilesFilterVariables, profilesFilterSQL] = getFilters({ zip }, "profiles")
 		const [ticketTypesFilterVariables, ticketTypesFilterSQL] = getFilters({ id: ticketTypes }, "ticketTypes")
 
+		let ageFilterSql = ''
+		let ageFilterVariables = {}
+		if (age) {
+			ageFilterSql += age.from ? `"profiles"."age" >= $ageFrom` : ''
+			const addAnd = age.from ? 'AND' : ''
+			ageFilterSql += age.to ? ` ${addAnd} "profiles"."age" <= $ageTo` : ''
+			ageFilterSql = age.showUnspecified ? `(${ageFilterSql} OR "profiles"."age" IS NULL)` : ageFilterSql
+
+			ageFilterVariables = {
+				[`ageFrom`]: age.from ? age.from : undefined,
+				[`ageTo`]: age.to ? age.to : undefined,
+			}
+
+			ageFilterSql = `AND ${ageFilterSql}`
+		}
+
 		const ticketsSales = await sequelize.query<{ ticketTypeId: string, amount: string, soldTickets: number }>(`
-			SELECT 
-				"ticketTypes".id as "ticketTypeId", COUNT(tickets.id) AS "soldTickets", SUM(tickets.price) AS "amount" 
+			SELECT
+				"ticketTypes".id as "ticketTypeId", COUNT(tickets.id) AS "soldTickets", SUM(tickets.price) AS "amount"
 			FROM "ticketTypes"
 			INNER JOIN (
-				SELECT 
-					tickets.id, tickets.price, tickets."ticketTypeId", tickets."profileId" 
-				FROM tickets 
-				INNER JOIN ( 
-					SELECT entries."ticketId" from entries
-						where entries."swimmingPoolId" = $swimmingPoolId and entries."type" = $entryType
-						group by DATE_TRUNC('day', entries.timestamp), entries."ticketId"
-				) as entries 
-					ON tickets.id = entries."ticketId"
+				SELECT
+					tickets.id, tickets.price, tickets."ticketTypeId", tickets."profileId"
+				FROM tickets
+				INNER JOIN (
+					SELECT visits."ticketId" FROM visits
+					WHERE
+						"numberOfCheckIn" > 0
+						AND "swimmingPoolId" = $swimmingPoolId
+						${visitsFilterSql}
+				) as visits
+					ON tickets.id = visits."ticketId"
 				WHERE (tickets."deletedAt" IS NULL) ${ticketsFilterSQL}
 				GROUP BY tickets.id
 				HAVING 1=1 ${havingSQL}
-			) as tickets 
-				ON "ticketTypes".id = tickets."ticketTypeId" 
-			INNER JOIN 
-				profiles ON tickets."profileId" = profiles.id AND (profiles."deletedAt" IS NULL) 
-			WHERE 1=1 ${profilesFilterSQL} ${ticketTypesFilterSQL}
+			) as tickets
+				ON "ticketTypes".id = tickets."ticketTypeId"
+			INNER JOIN
+				profiles ON tickets."profileId" = profiles.id AND (profiles."deletedAt" IS NULL)
+			WHERE 1=1 ${profilesFilterSQL} ${ticketTypesFilterSQL} ${ageFilterSql}
 			GROUP BY "ticketTypes".id;`,
 			{
 				bind: {
 					swimmingPoolId: params.swimmingPoolId,
-					entryType: ENTRY_TYPE.CHECKIN,
 					...havingVariables,
 					...ticketsFilterVariables,
 					...profilesFilterVariables,
 					...ticketTypesFilterVariables,
+					...ageFilterVariables,
+					...visitsFilterVariables
 				},
 				raw: true,
 				type: QueryTypes.SELECT
 			}
 		)
 
+		let where = {} as any
+		if (ticketTypes && ticketTypes.value.length > 0) {
+			where.id = {
+				[Op.in]: ticketTypes.value
+			}
+		}
+
 		const allTicketTypes = await TicketType.findAll({
+			where,
 			paranoid: false
 		})
 
