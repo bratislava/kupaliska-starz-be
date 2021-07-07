@@ -3,9 +3,10 @@ import Joi from "joi";
 import config from "config";
 import { map, reduce } from "lodash";
 import { Op, Sequelize } from "sequelize";
+import formUrlEncoded from "form-urlencoded";
 import { v4 as uuidv4 } from "uuid";
 import { models, sequelize } from "../../../db/models";
-import { IAppConfig } from "../../../types/interfaces";
+import { IAppConfig, IPassportConfig } from "../../../types/interfaces";
 import { MESSAGE_TYPE, ORDER_STATE } from "../../../utils/enums";
 import ErrorBuilder from "../../../utils/ErrorBuilder";
 import { TicketTypeModel } from "../../../db/models/ticketType";
@@ -14,6 +15,7 @@ import uploadFileFromBase64 from "../../../utils/uploader";
 import { createPayment } from "../../../services/webpayService";
 import { getDiscountCode } from "../../../services/discountCodeValidationService";
 import { DiscountCodeModel } from "../../../db/models/discountCode";
+import { createJwt } from "../../../utils/authorization";
 
 const { Order, Ticket, TicketType, File } = models;
 
@@ -22,6 +24,7 @@ interface TicketTypesHashMap {
 }
 
 const appConfig: IAppConfig = config.get("app");
+const passportConfig: IPassportConfig = config.get("passport");
 
 const uploadFolder = "private/profile-photos";
 const maxFileSize = 5 * 1024 * 1024; // 5MB
@@ -233,7 +236,41 @@ export const workflow = async (
 			},
 			{ transaction }
 		);
+
 		await uploadProfilePhotos(req, body.tickets, transaction);
+
+		if (discountCode.amount === 100) {
+			const orderAccessToken = await createJwt(
+				{
+					uid: order.id,
+				},
+				{
+					audience: passportConfig.jwt.orderResponse.audience,
+					expiresIn: passportConfig.jwt.orderResponse.exp,
+				}
+			);
+
+			await transaction.commit();
+			transaction = null;
+
+			return res.json({
+				data: {
+					id: order.id,
+					url: "/order-result",
+					formurlencoded: formUrlEncoded({
+						success: true,
+						orderId: order.id,
+						orderAccessToken,
+					}),
+				},
+				messages: [
+					{
+						type: MESSAGE_TYPE.SUCCESS,
+						message: req.t("success:orderCreated"),
+					},
+				],
+			});
+		}
 
 		const paymentData = await createPayment(order, transaction);
 
