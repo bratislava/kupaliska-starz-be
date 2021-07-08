@@ -240,6 +240,13 @@ export const workflow = async (
 		await uploadProfilePhotos(req, body.tickets, transaction);
 
 		if (discountCode.amount === 100) {
+			await order.update(
+				{
+					state: ORDER_STATE.PAID,
+				},
+				{ transaction }
+			);
+
 			const orderAccessToken = await createJwt(
 				{
 					uid: order.id,
