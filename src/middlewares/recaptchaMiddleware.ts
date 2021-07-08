@@ -11,9 +11,6 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 	try {
 		const recaptchaResponse = req.body.recaptcha;
 
-		console.log(recaptchaResponse);
-		console.log(googleServiceConfig.recaptcha);
-
 		const response = await axios({
 			method: "POST",
 			url: "https://www.google.com/recaptcha/api/siteverify",
@@ -23,8 +20,6 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 				response: recaptchaResponse,
 			}),
 		});
-
-		console.log(response);
 
 		if (response.status !== 200 || response.data.success !== true) {
 			throw new ErrorBuilder(400, req.t("error:invalidRecaptcha"));
