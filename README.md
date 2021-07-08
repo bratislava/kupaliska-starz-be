@@ -17,6 +17,15 @@ To start app run you should follow this steps:
 
 You can also use docker and docker-compose.
 
+## ENV setup
+
+**Recaptcha**
+
+To make recaptcha work properly in local environment, you need to set `RECAPTCHA_CLIENT_SECRET` variable from
+[Recaptcha Admin Site](https://www.google.com/recaptcha/admin/site/450722714/settings). From there use the "SECRET KEY".
+
+For production use [this](https://www.google.com/recaptcha/admin/site/450632804/settings) link instead.
+
 ## Deployment
 
 ### Staging
