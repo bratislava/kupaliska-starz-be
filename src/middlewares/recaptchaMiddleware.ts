@@ -9,21 +9,26 @@ const googleServiceConfig: IGoogleServiceConfig = config.get("googleService");
 
 export default async (req: Request, _res: Response, next: NextFunction) => {
 	try {
-		// const recaptchaResponse = req.body.recaptcha
+		const recaptchaResponse = req.body.recaptcha;
 
-		// const response = await axios({
-		// 	method: 'POST',
-		// 	url: 'https://www.google.com/recaptcha/api/siteverify',
-		// 	headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-		// 	data: formUrlEncoded({
-		// 		secret: googleServiceConfig.recaptcha.clientSecret,
-		// 		response: recaptchaResponse
-		// 	})
-		//   })
+		console.log(recaptchaResponse);
+		console.log(googleServiceConfig.recaptcha);
 
-		// if (response.status !== 200 || response.data.success !== true) {
-		// 	throw new ErrorBuilder(400, req.t('error:invalidRecaptcha'))
-		// }
+		const response = await axios({
+			method: "POST",
+			url: "https://www.google.com/recaptcha/api/siteverify",
+			headers: { "Content-Type": "application/x-www-form-urlencoded" },
+			data: formUrlEncoded({
+				secret: googleServiceConfig.recaptcha.clientSecret,
+				response: recaptchaResponse,
+			}),
+		});
+
+		console.log(response);
+
+		if (response.status !== 200 || response.data.success !== true) {
+			throw new ErrorBuilder(400, req.t("error:invalidRecaptcha"));
+		}
 		return next();
 	} catch (err) {
 		return next(err);
