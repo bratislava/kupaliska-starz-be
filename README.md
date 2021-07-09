@@ -2,6 +2,10 @@
 
 This app is built on Node.js framework Express.
 
+## Documentation
+
+There is .pdf documentation in docs folder
+
 ## Install
 
 Before you start you need to have Postgres database running locally - you can configure the credentials and database name via `.env` file. Check `.env.example` to see the example setup. Check the [Confluence Postgres cheatsheet](https://inovaciebratislava.atlassian.net/wiki/spaces/DEV/overview?homepageId=98745) or internet resources for help with setup of local database.
