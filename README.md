@@ -21,10 +21,8 @@ You can also use docker and docker-compose.
 
 **Recaptcha**
 
-To make recaptcha work properly in local environment, you need to set `RECAPTCHA_CLIENT_SECRET` variable from
-[reCAPTCHA Enterprise](https://console.cloud.google.com/security/recaptcha). From there use the `kupaliska.bratislava.sk DEV` key
-
-For production there is or will be `kupaliska.bratislava.sk PROD` key
+To make recaptcha work properly, you need to set `RECAPTCHA_CLIENT_SECRET` variable from
+[reCAPTCHA Enterprise](https://console.cloud.google.com/security/recaptcha). From there use the `kupaliska.bratislava.sk` key
 
 ## Deployment
 
