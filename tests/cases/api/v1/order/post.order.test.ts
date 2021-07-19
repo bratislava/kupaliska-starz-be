@@ -476,30 +476,5 @@ describe('[POST] /api/v1/orders', () => {
 			expect(discountCodeInstance.usedAt).not.toBeNull()
 			expect(order.discountCodeId).toBe(discountCodeId)
 		})
-
-		it('Order cant have 0 price', async () => {
-
-			const response = await request.post(endpoint)
-				.set('Content-Type', 'application/json')
-				.send({
-					tickets: [
-						{
-							quantity: 1,
-							ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe02',
-							age: 18,
-							zip: '03251',
-							email: faker.internet.email(),
-							name: 'Jozef Mak'
-						}
-					],
-					discountCode: discountCode2,
-					agreement: true,
-					recaptcha: 'recaptcha123'
-				})
-			expect(response.status).toBe(200)
-			const order = await OrderModel.findByPk(response.body.data.id)
-			expect(order.price).toStrictEqual(0.01)
-			expect(order.discount).toStrictEqual(0.79)
-		})
 	})
 })
