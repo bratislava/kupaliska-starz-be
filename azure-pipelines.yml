@@ -155,7 +155,7 @@ stages:
     
 - stage: Development
   variables:
-  - group: Kupaliska-Common-Stage
+  - group: Kupaliska-Common-Dev
   - group: Kupaliska-GPWebPay-Stage
   - group: Kupaliska-Mailgun
   - group: Kupaliska-Postgres-Stage
@@ -179,11 +179,11 @@ stages:
 
 - stage: Staging
   variables:
-  - group: Kupaliska-Common-Prod
-  - group: Kupaliska-GPWebPay-Prod
+  - group: Kupaliska-Common-Stage
+  - group: Kupaliska-GPWebPay-Stage
   - group: Kupaliska-Mailgun
-  - group: Kupaliska-Postgres-Prod
-  - group: Kupaliska-Sentry-Prod
+  - group: Kupaliska-Postgres-Stage
+  - group: Kupaliska-Sentry-Stage
   jobs:
   - deployment: Staging
     environment:
@@ -192,9 +192,6 @@ stages:
       tags: docker
     variables:
       DEPLOY_PATH: "/home/gitlab-runner/deployments/kupaliska/stage"
-      APP_OUT_HOST: 18000
-      HOST: https://kupaliska-api-staging.bratislava.sk
-      CORS_ORIGINS: '["https://kupaliska-staging.bratislava.sk", "https://kupaliska-admin-staging.bratislava.sk"]'
     strategy:
       runOnce:
         deploy:
