@@ -16,6 +16,7 @@ import { createPayment } from "../../../services/webpayService";
 import { getDiscountCode } from "../../../services/discountCodeValidationService";
 import { DiscountCodeModel } from "../../../db/models/discountCode";
 import { createJwt } from "../../../utils/authorization";
+import { sendOrderEmail } from "../../../utils/emailSender";
 
 const { Order, Ticket, TicketType, File } = models;
 
@@ -259,6 +260,34 @@ export const workflow = async (
 
 			await transaction.commit();
 			transaction = null;
+
+			const orderResult = await Order.findOne({
+				where: {
+					orderNumber: {
+						[Op.eq]: order.orderNumber,
+					},
+				},
+				include: [
+					{
+						association: "paymentOrder",
+					},
+					{
+						association: "tickets",
+						order: [["isChildren", "asc"]],
+						separate: true,
+						include: [
+							{
+								association: "profile",
+							},
+							{
+								association: "ticketType",
+							},
+						],
+					},
+				],
+			});
+
+			await sendOrderEmail(req, orderResult);
 
 			return res.json({
 				data: {
