@@ -32,4 +32,7 @@ COPY locales /app/locales
 COPY --from=builder /app/dist/config /app/config
 COPY --from=builder /app/dist /app/dist
 
+RUN apk add --no-cache tzdata
+ENV TZ=Europe/Bratislava
+
 VOLUME ["/app/files", "/app/logs"]
