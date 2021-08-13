@@ -110,30 +110,6 @@ stages:
         Dockerfile: 'docker/Dockerfile.prod'
         buildContext: '$(Build.SourcesDirectory)'
         tags: '$(tag)-prod'
-    
-- stage: Development
-  variables:
-  - group: Kupaliska-Common-Dev
-  - group: Kupaliska-GPWebPay-Stage
-  - group: Kupaliska-Mailgun
-  - group: Kupaliska-Postgres-Stage
-  - group: Kupaliska-Sentry-Stage
-  jobs:
-  - deployment: Development
-    environment:
-      name: Staging
-      resourceType: VirtualMachine
-      tags: docker
-    variables:
-      DEPLOY_PATH: "~/deployments/kupaliska/stage"
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - template: release-template.yml
-            parameters:
-              ProjectNameSuffix: _stage
-              ImageTagSuffix: -dev
 
 - stage: Staging
   variables:
