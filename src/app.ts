@@ -15,9 +15,12 @@ import Sentry, { initSentry } from './services/sentryService'
 // middlewares
 import errorMiddleware from './middlewares/errorMiddleware'
 import sentryMiddleware from './middlewares/sentryMiddleware'
+import requestMiddleware from './middlewares/requestMiddleware'
 
 // passport
-import { jwtAdminVerify, jwtQrCodeVerify, jwtOrderResponseVerify, jwtResetPasswordVerify } from './passport/jwtVerify'
+import {
+	jwtAdminVerify, jwtQrCodeVerify, jwtOrderResponseVerify, jwtResetPasswordVerify
+} from './passport/jwtVerify'
 
 // utils
 import { ENV } from './utils/enums'
@@ -46,9 +49,8 @@ if (process.env.NODE_ENV !== ENV.test) {
 passport.use('jwt', new JwtStrategy({ ...passportConfig.jwt.user, secretOrKey: passportConfig.jwt.secretOrKey }, jwtAdminVerify))
 passport.use('jwt-reset-password', new JwtStrategy({ ...passportConfig.jwt.resetPassword, secretOrKey: passportConfig.jwt.secretOrKey }, jwtResetPasswordVerify))
 passport.use('jwt-qr-code', new JwtStrategy({ ...passportConfig.jwt.qrCode, secretOrKey: passportConfig.jwt.secretOrKey, passReqToCallback: true }, jwtQrCodeVerify))
-passport.use('jwt-order-response', 
-	new JwtStrategy({ ...passportConfig.jwt.orderResponse, secretOrKey: passportConfig.jwt.secretOrKey, passReqToCallback: true }, jwtOrderResponseVerify)
-)
+passport.use('jwt-order-response',
+	new JwtStrategy({ ...passportConfig.jwt.orderResponse, secretOrKey: passportConfig.jwt.secretOrKey, passReqToCallback: true }, jwtOrderResponseVerify))
 
 passport.serializeUser((user, done) => done(null, user))
 passport.deserializeUser((user, done) => done(null, user))
@@ -68,16 +70,16 @@ if (process.env.NODE_ENV !== ENV.test && process.env.SENTRY_DSN) {
 }
 
 app.use(helmet())
-app.use(cors({origin: appConfig.corsOrigins, credentials: true}))
-app.use(express.urlencoded({ extended: true, limit:'40mb' }))
-app.use(express.json({ limit: '40mb'}))
+app.use(cors({ origin: appConfig.corsOrigins, credentials: true }))
+app.use(express.urlencoded({ extended: true, limit: '40mb' }))
+app.use(express.json({ limit: '40mb' }))
 
 if (process.env.NODE_ENV !== ENV.production) {
 	app.use((req, res, next) => {
 		// used for correctly showing documentation in dev, dont use on production!
-		res.set("Content-Security-Policy",
+		res.set('Content-Security-Policy',
 			"default-src *; style-src 'self' http://* 'unsafe-inline'; script-src 'self' http://* 'unsafe-inline' 'unsafe-eval'")
-		next();
+		next()
 	})
 	app.use('/apidoc', express.static('apidoc'))
 }
@@ -91,6 +93,8 @@ app.use(i18nextMiddleware.handle(i18next))
 app.use('/api/v1', routerV1())
 app.use('/api/admin', routerAdmin())
 app.use('/files/public', express.static(path.join(process.cwd(), '/files/public')))
+
+app.use(requestMiddleware)
 
 if (process.env.NODE_ENV !== ENV.test && process.env.SENTRY_DSN) {
 	app.use(sentryMiddleware)
