@@ -1,11 +1,11 @@
 import { Request, NextFunction, Response } from 'express'
 import { isEmpty } from 'lodash'
+import util from 'util'
 
 // utils
 import ErrorBuilder from '../utils/ErrorBuilder'
 import { MESSAGE_TYPE } from '../utils/enums'
 import logger from '../utils/logger'
-import util from 'util'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default (err: ErrorBuilder, req: Request, res: Response, _next: NextFunction) => {
@@ -25,11 +25,6 @@ export default (err: ErrorBuilder, req: Request, res: Response, _next: NextFunct
 			messages = [err.message]
 		}
 	} else {
-		if (req.app.get('env') === 'test' || req.app.get('env') === 'production') {
-			// eslint-disable-next-line no-console
-			console.log(err)
-		}
-
 		logger.error(`${500} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`)
 		logger.error(`stack: ${JSON.stringify(util.inspect(err.stack))} \n`)
 
