@@ -1,61 +1,39 @@
 import * as winston from 'winston'
-import * as path from 'path'
-import WinstonDailyRotateFile from 'winston-daily-rotate-file'
-import config from 'config'
 
-import { IAppConfig } from '../types/interfaces'
+// Define levels
+const levels = {
+	error: 0,
+	warn: 1,
+	info: 2,
+	http: 3,
+	debug: 4,
+}
 
-const appConfig: IAppConfig = config.get('app')
-const errorFileName = path.join(appConfig.logsPath, 'error-%DATE%.log')
-const infoFileName = path.join(appConfig.logsPath, 'info-%DATE%.log')
-const webpayFileName = path.join(appConfig.logsPath, 'webpay-%DATE%.log')
+// limit info and http logging to dev mode
+const level = () => {
+	const env = process.env.NODE_ENV || 'development'
+	const isDevelopment = env === 'development'
+	return isDevelopment ? 'debug' : 'info'
+}
+
+// format logs
+const format = winston.format.json()
+
+// set where to send logs (console is good enough because of log aggregation on loki)
+const transports = [
+	new winston.transports.Console(),
+]
 
 // instantiate a new Winston Logger with the settings defined above
-export default winston.createLogger({
-	format: winston.format.combine(
-		winston.format.timestamp({
-			format: 'YYYY-MM-DD HH:mm:ss'
-		}),
-		winston.format.printf((info) => `${info.timestamp} ${info.level}: ${info.message}`)
-	),
-	transports: [
-		new WinstonDailyRotateFile({
-			filename: errorFileName,
-			datePattern: 'YYYY-MM-DD',
-			zippedArchive: false,
-			level: 'error',
-			maxSize: '500m',
-			maxFiles: '120d'
-		}),
-		new WinstonDailyRotateFile({
-			filename: infoFileName,
-			datePattern: 'YYYY-MM-DD',
-			zippedArchive: false,
-			level: 'info',
-			maxSize: '500m',
-			maxFiles: '120d'
-		})
-	],
+const logger = winston.createLogger({
+	level: level(),
+	levels,
+	format,
+	transports,
 	exitOnError: false // do not exit on handled exceptions
 })
 
+export default logger
 
-export const webpayLogger = winston.createLogger({
-	format: winston.format.combine(
-		winston.format.label({ label: 'webpay' }),
-		winston.format.timestamp({
-			format: 'YYYY-MM-DD HH:mm:ss'
-		}),
-		winston.format.json()
-	),
-	transports: [
-		new WinstonDailyRotateFile({
-			filename: webpayFileName,
-			datePattern: 'YYYY-MM-DD',
-			zippedArchive: false,
-			level: 'info',
-			eol: '\n\n'
-		})
-	],
-	exitOnError: false
-})
+// Different logger that adds webpay label to logs
+export const webpayLogger = logger.child({ label: 'webpay' })
