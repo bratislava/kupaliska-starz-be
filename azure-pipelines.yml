@@ -123,7 +123,7 @@ stages:
     environment:
       name: Production
       resourceType: VirtualMachine
-      tags: docker
+      tags: kupaliska
     variables:
       DEPLOY_PATH: "/home/gitlab-runner/deployments/kupaliska/stage"
     strategy:
@@ -147,7 +147,7 @@ stages:
     environment:
       name: Production
       resourceType: VirtualMachine
-      tags: docker
+      tags: kupaliska
     variables:
       DEPLOY_PATH: "/home/gitlab-runner/deployments/kupaliska/prod"
     strategy:
