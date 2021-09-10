@@ -4,7 +4,6 @@ import { NextFunction, Request, Response } from 'express'
 import { models } from '../../../db/models'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { EntryModel } from '../../../db/models/entry';
-import readAsBase64 from '../../../utils/reader';
 import { validateCheckin, validateCheckout } from '../../../services/ticketValidationService';
 import { last } from 'lodash'
 
@@ -82,7 +81,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				name: ticket.profile.name,
 				age: ticket.profile.age,
 				zip: ticket.profile.zip,
-				photo: ticket.profile.photo ? await readAsBase64(ticket.profile.photo) : null,
+				photo: null,
 				remainingEntries: ticket.remainingEntries
 			},
 			ticketType: {
