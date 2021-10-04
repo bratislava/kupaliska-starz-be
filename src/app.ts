@@ -93,6 +93,10 @@ app.use(i18nextMiddleware.handle(i18next))
 app.use('/api/v1', routerV1())
 app.use('/api/admin', routerAdmin())
 app.use('/files/public', express.static(path.join(process.cwd(), '/files/public')))
+app.use('/logtest', (req, res) => {
+	console.log(req.body)
+	res.send('ok')
+})
 
 app.use(requestMiddleware)
 
