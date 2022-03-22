@@ -86,7 +86,7 @@ stages:
 
 - stage: Build
   displayName: Build image
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  # condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   jobs:
   - job: Build
     pool:
@@ -111,49 +111,39 @@ stages:
         buildContext: '$(Build.SourcesDirectory)'
         tags: '$(tag)-prod'
 
-- stage: Staging
-  variables:
-  - group: Kupaliska-Common-Stage
-  - group: Kupaliska-GPWebPay-Stage
-  - group: Kupaliska-Mailgun
-  - group: Kupaliska-Postgres-Stage
-  - group: Kupaliska-Sentry-Stage
+- stage: Dev
+  dependsOn:
+    - Build
   jobs:
-  - deployment: Staging
-    environment:
-      name: Production
-      resourceType: VirtualMachine
-      tags: kupaliska
-    variables:
-      DEPLOY_PATH: "/home/gitlab-runner/deployments/kupaliska/stage"
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - template: release-template.yml
-            parameters:
-              ImageTagSuffix: -prod
-              ProjectNameSuffix: _stage
+    - template: ./kubernetes/release-template.yml
+      parameters:
+        environment: 'Dev.bratislava-monorepo'
+        hostname: kupaliska-be.dev.bratislava.sk
+      variables:
+        FE_HOSTNAME: kupaliska.dev.bratislava.sk
+        ADMIN_HOSTNAME: login.kupaliska.dev.bratislava.sk
+
+- stage: Staging
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  dependsOn:
+    - Dev
+  jobs:
+    - template: ./kubernetes/release-template.yml
+      parameters:
+        environment: 'Staging.bratislava-monorepo'
+        hostname: kupaliska-be.staging.bratislava.sk
+      variables:
+        FE_HOSTNAME: kupaliska.staging.bratislava.sk
+        ADMIN_HOSTNAME: login.kupaliska.staging.bratislava.sk
 
 - stage: Production
-  variables:
-  - group: Kupaliska-Common-Prod
-  - group: Kupaliska-GPWebPay-Prod
-  - group: Kupaliska-Mailgun
-  - group: Kupaliska-Postgres-Prod
-  - group: Kupaliska-Sentry-Prod
+  dependsOn:
+    - Staging
   jobs:
-  - deployment: Production
-    environment:
-      name: Production
-      resourceType: VirtualMachine
-      tags: kupaliska
-    variables:
-      DEPLOY_PATH: "/home/gitlab-runner/deployments/kupaliska/prod"
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - template: release-template.yml
-            parameters:
-              ImageTagSuffix: -prod
+    - template: ./kubernetes/release-template.yml
+      parameters:
+        environment: 'Prod.bratislava-monorepo'
+        hostname: kupaliska-be.bratislava.sk
+      variables:
+        FE_HOSTNAME: kupaliska.bratislava.sk
+        ADMIN_HOSTNAME: login.kupaliska.bratislava.sk
