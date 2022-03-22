@@ -19,7 +19,7 @@ steps:
     action: 'Run services'
     buildImages: false
   env:
-    IMAGE: docker.pkg.github.com/$(dockerRepository)
+    IMAGE: ghcr.io/$(dockerRepository)
     IMAGE_TAG: $(tag)${{ parameters.ImageTagSuffix }}
     # Expose Secret Variables to env
     JWT_SECRET: $(JWT_SECRET)
