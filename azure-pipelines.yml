@@ -93,23 +93,14 @@ stages:
       vmImage: ubuntu-latest
     steps:
     - task: Docker@2
-      displayName: Build and push Dev Image
-      inputs:
-        containerRegistry: 'Github Packages'
-        repository: '$(dockerRepository)'
-        command: 'buildAndPush'
-        Dockerfile: 'docker/Dockerfile.dev'
-        buildContext: '$(Build.SourcesDirectory)'
-        tags: '$(tag)-dev'
-    - task: Docker@2
       displayName: Build and push Prod Image
       inputs:
-        containerRegistry: 'Github Packages'
+        containerRegistry: 'ghcr'
         repository: '$(dockerRepository)'
         command: 'buildAndPush'
         Dockerfile: 'docker/Dockerfile.prod'
         buildContext: '$(Build.SourcesDirectory)'
-        tags: '$(tag)-prod'
+        tags: '$(tag)'
 
 - stage: Dev
   dependsOn:
