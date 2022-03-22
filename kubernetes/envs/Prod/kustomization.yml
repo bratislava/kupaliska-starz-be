@@ -1,0 +1,11 @@
+resources:
+  - ../../base
+
+patchesStrategicMerge:
+  - ../../base/secrets/prod.secret.yml
+
+configMapGenerator:
+- name: env
+  behavior: merge
+  envs:
+  - .env
