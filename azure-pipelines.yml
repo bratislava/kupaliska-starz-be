@@ -5,6 +5,9 @@
 trigger:
 - master
 
+pool:
+  vmImage: 'ubuntu-latest'
+
 variables:
   tag: '$(Build.SourceVersion)'
   dockerRepository: bratislava/kupaliska-starz-be/kupaliska-starz-be
@@ -52,8 +55,6 @@ stages:
       GP_WEBPAY_KEYS_PATH: resources/test-keys
       GP_WEBPAY_CLIENT_APP_URL: http://localhost:8000
       GP_WEBPAY_PROVIDER: 0902
-    pool:
-      vmImage: 'ubuntu-latest'
     services:
       postgres: postgres
     steps:
