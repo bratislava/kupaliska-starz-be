@@ -114,36 +114,36 @@ stages:
 - stage: Dev
   dependsOn:
     - Build
+  variables:
+    FE_HOSTNAME: kupaliska.dev.bratislava.sk
+    ADMIN_HOSTNAME: login.kupaliska.dev.bratislava.sk
   jobs:
     - template: ./kubernetes/release-template.yml
       parameters:
         environment: 'Dev.bratislava-monorepo'
         hostname: kupaliska-be.dev.bratislava.sk
-      variables:
-        FE_HOSTNAME: kupaliska.dev.bratislava.sk
-        ADMIN_HOSTNAME: login.kupaliska.dev.bratislava.sk
 
 - stage: Staging
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   dependsOn:
     - Dev
+  variables:
+    FE_HOSTNAME: kupaliska.staging.bratislava.sk
+    ADMIN_HOSTNAME: login.kupaliska.staging.bratislava.sk
   jobs:
     - template: ./kubernetes/release-template.yml
       parameters:
         environment: 'Staging.bratislava-monorepo'
         hostname: kupaliska-be.staging.bratislava.sk
-      variables:
-        FE_HOSTNAME: kupaliska.staging.bratislava.sk
-        ADMIN_HOSTNAME: login.kupaliska.staging.bratislava.sk
 
 - stage: Production
   dependsOn:
     - Staging
+  variables:
+    FE_HOSTNAME: kupaliska.bratislava.sk
+    ADMIN_HOSTNAME: login.kupaliska.bratislava.sk
   jobs:
     - template: ./kubernetes/release-template.yml
       parameters:
         environment: 'Prod.bratislava-monorepo'
         hostname: kupaliska-be.bratislava.sk
-      variables:
-        FE_HOSTNAME: kupaliska.bratislava.sk
-        ADMIN_HOSTNAME: login.kupaliska.bratislava.sk
