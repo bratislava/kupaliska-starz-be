@@ -25,8 +25,8 @@ spec:
               memory: 64Mi
           envFrom:
             - secretRef:
-                name: secret
+                name: app
             - secretRef:
-                name: db-secret
+                name: db
             - configMapRef:
                 name: env

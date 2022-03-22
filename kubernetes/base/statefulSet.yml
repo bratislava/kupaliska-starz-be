@@ -31,7 +31,7 @@ spec:
               subPath: postgresql
           envFrom:
             - secretRef:
-                name: db-secret
+                name: db
   # Volume Claim
   volumeClaimTemplates:
     - metadata:
