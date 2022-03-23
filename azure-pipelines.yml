@@ -113,7 +113,7 @@ stages:
     - template: ./kubernetes/release-template.yml
       parameters:
         environment: 'Dev.bratislava-monorepo'
-        hostname: kupaliska-be.dev.bratislava.sk
+        hostname: api.kupaliska.dev.bratislava.sk
 
 - stage: Staging
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
@@ -126,7 +126,7 @@ stages:
     - template: ./kubernetes/release-template.yml
       parameters:
         environment: 'Staging.bratislava-monorepo'
-        hostname: kupaliska-be.staging.bratislava.sk
+        hostname: api.kupaliska.staging.bratislava.sk
 
 - stage: Production
   dependsOn:
@@ -138,4 +138,4 @@ stages:
     - template: ./kubernetes/release-template.yml
       parameters:
         environment: 'Prod.bratislava-monorepo'
-        hostname: kupaliska-be.bratislava.sk
+        hostname: api.kupaliska.bratislava.sk
