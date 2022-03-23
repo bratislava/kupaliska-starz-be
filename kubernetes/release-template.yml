@@ -1,0 +1,55 @@
+parameters:
+  - name: environment
+    type: string
+  - name: hostname
+    type: string
+    
+jobs:
+  - deployment: Kubernetes
+    environment: ${{ parameters.environment }}
+    variables:
+      TAG: $(Build.SourceVersion)
+      manifest: $(Pipeline.Workspace)/manifest.yml
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - download: none
+            - checkout: self
+
+            - task: Docker@2
+              inputs:
+                containerRegistry: 'ghcr'
+                command: 'login'
+              displayName: Login to Docker Registry
+
+            - pwsh: >
+                kustomize build
+                --load-restrictor LoadRestrictionsNone
+                $(Build.SourcesDirectory)/kubernetes/envs/$(Environment.Name)
+                | envsubst > $(manifest)
+              env:
+                IMAGE: ghcr.io/$(dockerRepository)
+                TAG: $(tag)
+                HOSTNAME: ${{ parameters.hostname }}
+              displayName: Build Kustomize manifest
+
+            - script: cat $(manifest)
+              displayName: Print manifest
+
+            - task: KubernetesManifest@0
+              displayName: Create imagePullSecret
+              inputs:
+                action: createSecret
+                namespace: bratislava-monorepo
+                secretType: dockerRegistry
+                secretName: ghcr-secret
+                dockerRegistryEndpoint: ghcr
+
+            - task: KubernetesManifest@0
+              displayName: Deploy
+              inputs:
+                action: deploy
+                namespace: bratislava-monorepo
+                manifests: $(manifest)
+                imagePullSecrets: ghcr-secret

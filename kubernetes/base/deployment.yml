@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  labels:
+    service: app
+spec:
+  selector:
+    matchLabels:
+      service: app
+  template:
+    metadata:
+      labels:
+        service: app
+    spec:
+      containers:
+        - image: ${IMAGE}:${TAG}
+          name: app
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 50m
+              memory: 64Mi
+          envFrom:
+            - secretRef:
+                name: app
+            - secretRef:
+                name: db
+            - configMapRef:
+                name: env

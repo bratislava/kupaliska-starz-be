@@ -1,0 +1,20 @@
+resources:
+  - ../../base
+
+patchesStrategicMerge:
+  - ../../base/secrets/prod.secret.yml
+
+configMapGenerator:
+- name: env
+  behavior: merge
+  envs:
+  - .env
+
+patches:
+  - target:
+      name: app
+      kind: SealedSecret
+    patch: |-
+      - op: replace
+        path: /spec/encryptedData/GP_WEBPAY_PRIV_KEY_PASS
+        value: AgAz3yb86rppq5UtCg325EEV6mSEWzxcob50bhrdbx88soWh/vES5+sVmWHqIDjQKo7d7yc3mUtAZZGQvPp2bWVLuhjd7I7myuSU45ucTdEdemaaPJQrPN2tnBTR2lLKNdoLzoFWEdXhofw1rjUjzu946p04HDLTub/oCUH4BAqDwsYUjLwfR4Rb9639dOoF/6A2wyfPEF1ipYEVCM6uvHB0vdar/UNWtHH44yEr/ph5cu2ZJDEiV9GyHvTiANjIBGwwaIKFfu9BCLAqXyak6sUdKZSCQRquad+vxGGbsoc9e1gn1td7T8aEfXfO6doeBGWzxKnhx95xkxycvyuNGJGcp3WU4tkC/5jQl0XyID/dtHjOBdJqS93y6Cw9XYneBvXvb/7dpWDp+krljUAexhe9XSgYaYwbrwpDbBb6pxGKBQDl0kX4DXvlsR3Ge+9PX8k4iTEw3NJ6AMUIoFz8NRd9lpQBs1mKtDYYYEdzFxnzy0i7pSTrYSkx+0VUSZJuO3O4GLS9G6ZJko1lybxZN/I63A++v/jW0UX01yqRhfx6vQGqRzueWfCaszHH0G9I1nhbfA8fnGaEpE+E8YvKdDnprxtwUDzSA1PAjAiR1WukWUkE5zZHVVFPAfXJU7nGzqh/rmyqu6/AIRe0ARWLffBBwbE48ZKduQL9tJ78x7mW2dggdOx4RcLu6y+RVSrNk3hPyNkUP1WgKP+NRDT4aOMbcqC/VTwDLxow+kcorOt1y6FELOYPHHnMQbONnFgZCJEtFA==
