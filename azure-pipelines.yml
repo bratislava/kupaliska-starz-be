@@ -87,7 +87,7 @@ stages:
 
 - stage: Build
   displayName: Build image
-  # condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   jobs:
   - job: Build
     pool:
