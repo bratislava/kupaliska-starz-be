@@ -20,6 +20,7 @@ import defineProfile from './profile'
 import definePaymentOrder from './paymentOrder'
 import definePaymentResponse from './paymentResponse'
 import defineSwimmingPoolUser from './swimmingPoolUser'
+import defineSwimmingLoggedUser from './swimmingLoggedUser'
 import defineSwimmingPoolTicketType from './swimmingPoolTicketType'
 import defineEntryModel from './entry'
 import defineDiscountCodeModel from './discountCode'
@@ -56,6 +57,7 @@ const models = {
 	DiscountCode: defineDiscountCodeModel(sequelize),
 	TicketType: defineTicketType(sequelize),
 	SwimmingPoolUser: defineSwimmingPoolUser(sequelize),
+	SwimmingLoggedUser: defineSwimmingLoggedUser(sequelize),
 	User: defineUser(sequelize),
 	Profile: defineProfile(sequelize),
 	File: defineFile(sequelize),
