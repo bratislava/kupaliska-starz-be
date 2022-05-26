@@ -11,6 +11,7 @@ import { USER_ROLE } from './enums'
 import { TicketTypeModel } from '../db/models/ticketType'
 import { DiscountCodeModel } from '../db/models/discountCode'
 import i18next from 'i18next'
+import { AssociatedSwimmerModel } from '../db/models/associatedSwimmer'
 
 const appConfig: IAppConfig = config.get('app')
 
@@ -287,5 +288,25 @@ export const formatSwimmingLoggedUser = (
 		createdAt: swimmingLoggedUser.createdAt,
 		updatedAt: swimmingLoggedUser.updatedAt,
 		deletedAt: swimmingLoggedUser.deletedAt,
+	}
+}
+
+export const formatAssociatedSwimmer = (
+	associatedSwimmer: AssociatedSwimmerModel
+) => {
+	if (!associatedSwimmer) {
+		return null
+	}
+
+	return {
+		id: associatedSwimmer.id,
+		swimmingLoggedUserId: associatedSwimmer.swimmingLoggedUserId,
+		surname: associatedSwimmer.surname,
+		lastname: associatedSwimmer.lastname,
+		age: associatedSwimmer.age,
+		zip: associatedSwimmer.zip,
+		createdAt: associatedSwimmer.createdAt,
+		updatedAt: associatedSwimmer.updatedAt,
+		deletedAt: associatedSwimmer.deletedAt,
 	}
 }

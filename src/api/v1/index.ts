@@ -4,6 +4,7 @@ import OrderRouter from './orders'
 import UsersRouter from './users'
 import SwimmingPoolsRouter from './swimmingPools'
 import SwimmingLoggedUsersRouter from './swimmingLoggedUsers'
+import AssociatedSwimmersRouter from './associatedSwimmers'
 import TicketTypesRouter from './ticketTypes'
 import ContactRouter from './contact'
 
@@ -14,6 +15,7 @@ export default () => {
 	router.use('/users', UsersRouter())
 	router.use('/swimmingPools', SwimmingPoolsRouter())
 	router.use('/swimmingLoggedUsers', SwimmingLoggedUsersRouter())
+	router.use('/associatedSwimmers', AssociatedSwimmersRouter())
 	router.use('/ticketTypes', TicketTypesRouter())
 	router.use('/contact', ContactRouter())
 
