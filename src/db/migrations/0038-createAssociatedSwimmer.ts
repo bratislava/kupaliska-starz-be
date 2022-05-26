@@ -2,24 +2,35 @@ import { QueryInterface, DataTypes, UUIDV4, literal } from 'sequelize'
 
 export async function up(queryInterface: QueryInterface) {
 	try {
-		await queryInterface.createTable('swimmingLoggedUsers', {
+		await queryInterface.createTable('associatedSwimmers', {
 			id: {
 				type: DataTypes.UUID,
 				primaryKey: true,
 				allowNull: false,
 				defaultValue: UUIDV4,
 			},
-			externalId: {
+			swimmingLoggedUserId: {
 				type: DataTypes.UUID,
+				references: {
+					model: 'swimmingLoggedUsers',
+					key: 'id',
+				},
 				allowNull: false,
-				unique: true,
 			},
-			age: {
-				type: DataTypes.SMALLINT,
+			surname: {
+				type: DataTypes.STRING(255),
+				allowNull: true,
+			},
+			lastname: {
+				type: DataTypes.STRING(255),
 				allowNull: true,
 			},
 			zip: {
 				type: DataTypes.STRING(10),
+				allowNull: true,
+			},
+			age: {
+				type: DataTypes.SMALLINT,
 				allowNull: true,
 			},
 			createdAt: {
@@ -37,17 +48,11 @@ export async function up(queryInterface: QueryInterface) {
 				allowNull: true,
 			},
 		})
-
-		await queryInterface.addConstraint('swimmingLoggedUsers', {
-			fields: ['externalId'],
-			type: 'unique',
-			name: 'swimmingLoggedUser_unique_contraint',
-		})
 	} catch (err) {
 		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-	await queryInterface.dropTable('swimmingLoggedUsers')
+	await queryInterface.dropTable('associatedSwimmers')
 }

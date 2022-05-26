@@ -1,9 +1,7 @@
 import 'colors'
 import pg from 'pg'
 import highlight from 'cli-highlight'
-import {
-	forEach
-} from 'lodash'
+import { forEach } from 'lodash'
 import { Sequelize } from 'sequelize'
 
 import * as database from '../../../config/database'
@@ -21,6 +19,7 @@ import definePaymentOrder from './paymentOrder'
 import definePaymentResponse from './paymentResponse'
 import defineSwimmingPoolUser from './swimmingPoolUser'
 import defineSwimmingLoggedUser from './swimmingLoggedUser'
+import defineAssociatedSwimmer from './associatedSwimmer'
 import defineSwimmingPoolTicketType from './swimmingPoolTicketType'
 import defineEntryModel from './entry'
 import defineDiscountCodeModel from './discountCode'
@@ -29,22 +28,37 @@ import defineDiscountCodeTicketTypeModel from './discountCodeTicketType'
 // NOTE: set true because otherwise BIGINT return string instead of integer https://github.com/sequelize/sequelize/issues/1774
 pg.defaults.parseInt8 = true
 
-const env = process.env.NODE_ENV as ENV || ENV.development
+const env = (process.env.NODE_ENV as ENV) || ENV.development
 
 // eslint-disable-next-line import/namespace
 const { url, options: dbOptions } = database[env]
 
 if (dbOptions.logging) {
 	dbOptions.logging = (log: string) => {
-		console.log(highlight(log, { language: 'sql', ignoreIllegals: true, theme: 'code' }))
+		console.log(
+			highlight(log, {
+				language: 'sql',
+				ignoreIllegals: true,
+				theme: 'code',
+			})
+		)
 	}
 }
 
 const sequelize = new Sequelize(url, dbOptions)
 
-sequelize.authenticate()
-	.then(() => env !== ENV.test && console.log('Database Connection has been established successfully.'.green))
-	.catch((e: any) => console.error(`Unable to connect to the database${e}.`.red))
+sequelize
+	.authenticate()
+	.then(
+		() =>
+			env !== ENV.test &&
+			console.log(
+				'Database Connection has been established successfully.'.green
+			)
+	)
+	.catch((e: any) =>
+		console.error(`Unable to connect to the database${e}.`.red)
+	)
 
 const models = {
 	DiscountCodeTicketType: defineDiscountCodeTicketTypeModel(sequelize),
@@ -58,10 +72,11 @@ const models = {
 	TicketType: defineTicketType(sequelize),
 	SwimmingPoolUser: defineSwimmingPoolUser(sequelize),
 	SwimmingLoggedUser: defineSwimmingLoggedUser(sequelize),
+	AssociatedSwimmer: defineAssociatedSwimmer(sequelize),
 	User: defineUser(sequelize),
 	Profile: defineProfile(sequelize),
 	File: defineFile(sequelize),
-	SwimmingPool: defineSwimmingPool(sequelize)
+	SwimmingPool: defineSwimmingPool(sequelize),
 }
 
 forEach(models, (value) => {

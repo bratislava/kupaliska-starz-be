@@ -4,7 +4,7 @@ import { Op } from 'sequelize'
 import { map } from 'lodash'
 
 import { models } from '../../../db/models'
-import { formatSwimmingLoggedUser } from '../../../utils/formatters'
+import { formatAssociatedSwimmer } from '../../../utils/formatters'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -27,7 +27,7 @@ import { formatSwimmingLoggedUser } from '../../../utils/formatters'
 
 export const schema = Joi.object()
 
-const { SwimmingLoggedUser } = models
+const { AssociatedSwimmer } = models
 
 export const workflow = async (
 	req: Request,
@@ -48,10 +48,12 @@ export const workflow = async (
 			}
 		}
 
-		const swimmingLoggedUsers = await SwimmingLoggedUser.findAll({
+		const associatedSwimmer = await AssociatedSwimmer.findAll({
 			attributes: [
 				'id',
-				'externalId',
+				'swimmingLoggedUserId',
+				'surname',
+				'lastname',
 				'age',
 				'zip',
 				'createdAt',
@@ -70,8 +72,8 @@ export const workflow = async (
 		// })
 
 		return res.json({
-			swimmingLoggedUser: map(swimmingLoggedUsers, (swimmingLoggedUser) =>
-				formatSwimmingLoggedUser(swimmingLoggedUser)
+			associatedSwimmers: map(associatedSwimmer, (loggedUser) =>
+				formatAssociatedSwimmer(loggedUser)
 			),
 			// pagination: {
 			// 	page: query.page,
