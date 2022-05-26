@@ -32,22 +32,25 @@ interface JWTPayloadAzure extends JwtPayload {
 
 export const isAzureAutehnticated = async (req: any) => {
 	const authorization = req.headers.authorization
-	const tokenArray = authorization.split(' ')
-	const token = tokenArray[1]
+	if (authorization) {
+		const tokenArray = authorization.split(' ')
+		const token = tokenArray[1]
 
-	const header = jwtDecode<JwtHeaderAzure>(token, { header: true })
-	const payload = jwtDecode<JWTPayloadAzure>(token)
+		const header = jwtDecode<JwtHeaderAzure>(token, { header: true })
+		const payload = jwtDecode<JWTPayloadAzure>(token)
 
-	// https://bratislavab2c.b2clogin.com/bratislavab2c.onmicrosoft.com/B2C_1_user_module/v2.0/.well-known/openid-configuration
-	// jwks_uri -> https://bratislavab2c.b2clogin.com/bratislavab2c.onmicrosoft.com/b2c_1_user_module/discovery/v2.0/keys
+		// https://bratislavab2c.b2clogin.com/bratislavab2c.onmicrosoft.com/B2C_1_user_module/v2.0/.well-known/openid-configuration
+		// jwks_uri -> https://bratislavab2c.b2clogin.com/bratislavab2c.onmicrosoft.com/b2c_1_user_module/discovery/v2.0/keys
 
-	const response = await fetch(
-		`https://bratislavab2c.b2clogin.com/bratislavab2c.onmicrosoft.com/${payload.tfp}/discovery/v2.0/keys`
-	)
-	const data: keysResponse = await response.json()
-	const keysKid = data.keys.map((key) => key.kid)
+		const response = await fetch(
+			`https://bratislavab2c.b2clogin.com/bratislavab2c.onmicrosoft.com/${payload.tfp}/discovery/v2.0/keys`
+		)
+		const data: keysResponse = await response.json()
+		const keysKid = data.keys.map((key) => key.kid)
 
-	return keysKid.includes(header.kid)
+		return keysKid.includes(header.kid)
+	}
+	return false
 }
 
 export const azureGetAzureId = async (req: any) => {

@@ -8,6 +8,10 @@ import DB, { models } from '../../../db/models'
 
 import { formatAssociatedSwimmer } from '../../../utils/formatters'
 import { MESSAGE_TYPE } from '../../../utils/enums'
+import {
+	azureGetAzureId,
+	isAzureAutehnticated,
+} from '../../../utils/azureAuthentication'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -43,30 +47,37 @@ export const workflow = async (
 		const { body }: any = req
 
 		transaction = await DB.transaction()
+		if (isAzureAutehnticated(req)) {
+			const oid = await azureGetAzureId(req)
+			if (oid) {
+				const associatedSwimmer = await AssociatedSwimmer.create(
+					{
+						...body,
+						swimmingLoggedUserId:
+							'ed3122d0-f85f-4170-8401-5113049286be',
+					},
+					{ transaction }
+				)
+				await transaction.commit()
+				transaction = null
 
-		const associatedSwimmer = await AssociatedSwimmer.create(
-			{
-				...body,
-			},
-			{ transaction }
-		)
-		await transaction.commit()
-		transaction = null
-
-		return res.json({
-			data: {
-				id: associatedSwimmer.id,
-				associatedSwimmer: formatAssociatedSwimmer(associatedSwimmer),
-			},
-			messages: [
-				{
-					type: MESSAGE_TYPE.SUCCESS,
-					message: req.t(
-						'success:loggedSwimmer.associatedSwimmer.created'
-					),
-				},
-			],
-		})
+				return res.json({
+					data: {
+						id: associatedSwimmer.id,
+						associatedSwimmer:
+							formatAssociatedSwimmer(associatedSwimmer),
+					},
+					messages: [
+						{
+							type: MESSAGE_TYPE.SUCCESS,
+							message: req.t(
+								'success:loggedSwimmer.associatedSwimmer.created'
+							),
+						},
+					],
+				})
+			}
+		}
 	} catch (err) {
 		return next(err)
 	}

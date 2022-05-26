@@ -5,6 +5,10 @@ import { map } from 'lodash'
 
 import { models } from '../../../db/models'
 import { formatAssociatedSwimmer } from '../../../utils/formatters'
+import {
+	azureGetAzureId,
+	isAzureAutehnticated,
+} from '../../../utils/azureAuthentication'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -35,7 +39,7 @@ export const workflow = async (
 	next: NextFunction
 ) => {
 	try {
-		const { query }: any = req
+		const { query, params }: any = req
 
 		const { limit, page } = query
 		const offset = limit * page - limit
@@ -48,40 +52,47 @@ export const workflow = async (
 			}
 		}
 
-		const associatedSwimmer = await AssociatedSwimmer.findAll({
-			attributes: [
-				'id',
-				'swimmingLoggedUserId',
-				'surname',
-				'lastname',
-				'age',
-				'zip',
-				'createdAt',
-				'updatedAt',
-				'deletedAt',
-			],
-			// where,
-			// limit,
-			// offset,
-			// order: [[query.order, query.direction]],
-			// include: { association: 'image' },
-		})
+		if (isAzureAutehnticated(req)) {
+			const oid = await azureGetAzureId(req)
+			if (oid) {
+				const associatedSwimmer = await AssociatedSwimmer.findAll({
+					attributes: [
+						'id',
+						'swimmingLoggedUserId',
+						'surname',
+						'lastname',
+						'age',
+						'zip',
+						'createdAt',
+						'updatedAt',
+						'deletedAt',
+					],
+					where: {
+						swimmingLoggedUserId: { [Op.eq]: oid },
+					},
+					// limit,
+					// offset,
+					// order: [[query.order, query.direction]],
+					// include: { association: 'image' },
+				})
 
-		// const count = await SwimmingLoggedUser.count({
-		// 	where,
-		// })
+				// const count = await SwimmingLoggedUser.count({
+				// 	where,
+				// })
 
-		return res.json({
-			associatedSwimmers: map(associatedSwimmer, (loggedUser) =>
-				formatAssociatedSwimmer(loggedUser)
-			),
-			// pagination: {
-			// 	page: query.page,
-			// 	limit: query.limit,
-			// 	totalPages: Math.ceil(count / limit) || 0,
-			// 	totalCount: count,
-			// },
-		})
+				return res.json({
+					associatedSwimmers: map(associatedSwimmer, (loggedUser) =>
+						formatAssociatedSwimmer(loggedUser)
+					),
+					// pagination: {
+					// 	page: query.page,
+					// 	limit: query.limit,
+					// 	totalPages: Math.ceil(count / limit) || 0,
+					// 	totalCount: count,
+					// },
+				})
+			}
+		}
 	} catch (err) {
 		return next(err)
 	}
