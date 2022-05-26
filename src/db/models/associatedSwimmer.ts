@@ -27,11 +27,6 @@ export default (sequelize: Sequelize) => {
 				allowNull: false,
 				defaultValue: UUIDV4,
 			},
-			swimmingLoggedUserId: {
-				type: DataTypes.UUID,
-				allowNull: false,
-				defaultValue: UUIDV4,
-			},
 			surname: {
 				type: DataTypes.STRING(255),
 				allowNull: true,
@@ -72,26 +67,19 @@ export default (sequelize: Sequelize) => {
 			paranoid: true,
 			timestamps: true,
 			sequelize,
-			modelName: 'swimmingLoggedUser',
+			modelName: 'associatedSwimmer',
 		}
 	)
 
-	// SwimmingLoggedUserModel.associate = (models) => {
-	// 	SwimmingUserModel.belongsToMany(models.SwimmingPool, {
-	// 		through: {
-	// 			model: models.SwimmingPoolUser
-	// 		},
-	// 		foreignKey: {
-	// 			name: 'userId',
-	// 			allowNull: false
-	// 		},
-	// 		otherKey: {
-	// 			name: 'swimmingPoolId',
-	// 			allowNull: false
-	// 		},
-	// 		as: 'swimmingPools'
-	// 	});
-	// }
+	AssociatedSwimmerModel.associate = (models) => {
+		AssociatedSwimmerModel.belongsTo(models.SwimmingLoggedUser, {
+			foreignKey: {
+				name: 'swimmingLoggedUserId',
+				allowNull: false,
+			},
+			as: 'swimmingLoggedUser',
+		})
+	}
 
 	return AssociatedSwimmerModel
 }
