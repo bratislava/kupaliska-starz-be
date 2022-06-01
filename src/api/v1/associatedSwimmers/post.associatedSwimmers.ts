@@ -34,7 +34,7 @@ import {
 
 export const schema = Joi.object()
 
-const { AssociatedSwimmer } = models
+const { AssociatedSwimmer, SwimmingLoggedUser } = models
 
 export const workflow = async (
 	req: Request,
@@ -50,11 +50,27 @@ export const workflow = async (
 		if (isAzureAutehnticated(req)) {
 			const oid = await azureGetAzureId(req)
 			if (oid) {
+				const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
+					attributes: [
+						'id',
+						'externalId',
+						'age',
+						'zip',
+						'createdAt',
+						'updatedAt',
+						'deletedAt',
+					],
+					where: {
+						externalId: { [Op.eq]: oid },
+					},
+				})
+
+				console.log({ body })
+
 				const associatedSwimmer = await AssociatedSwimmer.create(
 					{
 						...body,
-						swimmingLoggedUserId:
-							'ed3122d0-f85f-4170-8401-5113049286be',
+						swimmingLoggedUserId: swimmingLoggedUser.id,
 					},
 					{ transaction }
 				)

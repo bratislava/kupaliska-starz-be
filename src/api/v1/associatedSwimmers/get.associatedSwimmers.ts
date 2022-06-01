@@ -1,14 +1,15 @@
 import Joi from 'joi'
 import { NextFunction, Request, Response } from 'express'
-import { Op } from 'sequelize'
+import { Op, QueryTypes } from 'sequelize'
 import { map } from 'lodash'
 
-import { models } from '../../../db/models'
+import sequelize, { models } from '../../../db/models'
 import { formatAssociatedSwimmer } from '../../../utils/formatters'
 import {
 	azureGetAzureId,
 	isAzureAutehnticated,
 } from '../../../utils/azureAuthentication'
+import { SwimmingLoggedUserModel } from '../../../db/models/swimmingLoggedUser'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -28,6 +29,8 @@ import {
 // 	}),
 // 	params: Joi.object(),
 // })
+
+const { SwimmingLoggedUser } = models
 
 export const schema = Joi.object()
 
@@ -55,6 +58,22 @@ export const workflow = async (
 		if (isAzureAutehnticated(req)) {
 			const oid = await azureGetAzureId(req)
 			if (oid) {
+				const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
+					attributes: [
+						'id',
+						'externalId',
+						'age',
+						'zip',
+						'createdAt',
+						'updatedAt',
+						'deletedAt',
+					],
+					where: {
+						externalId: { [Op.eq]: oid },
+					},
+				})
+				console.log('swimmingLoggedUser: ', swimmingLoggedUser)
+
 				const associatedSwimmer = await AssociatedSwimmer.findAll({
 					attributes: [
 						'id',
@@ -68,17 +87,12 @@ export const workflow = async (
 						'deletedAt',
 					],
 					where: {
-						swimmingLoggedUserId: { [Op.eq]: oid },
+						// TODO admin should see all associatedSwimmers
+						swimmingLoggedUserId: {
+							[Op.eq]: swimmingLoggedUser.id,
+						},
 					},
-					// limit,
-					// offset,
-					// order: [[query.order, query.direction]],
-					// include: { association: 'image' },
 				})
-
-				// const count = await SwimmingLoggedUser.count({
-				// 	where,
-				// })
 
 				return res.json({
 					associatedSwimmers: map(associatedSwimmer, (loggedUser) =>
