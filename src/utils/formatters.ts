@@ -1,15 +1,17 @@
-import { SwimmingPoolModel } from './../db/models/swimmingPool';
-import { TicketModel } from './../db/models/ticket';
-import { OrderModel } from './../db/models/order';
+import { SwimmingPoolModel } from './../db/models/swimmingPool'
+import { SwimmingLoggedUserModel } from './../db/models/swimmingLoggedUser'
+import { TicketModel } from './../db/models/ticket'
+import { OrderModel } from './../db/models/order'
 import config from 'config'
 import { IAppConfig } from '../types/interfaces'
 import { FileModel } from '../db/models/file'
-import { Dictionary, filter, map, reduce } from 'lodash';
-import { UserModel } from '../db/models/user';
-import { USER_ROLE } from './enums';
-import { TicketTypeModel } from '../db/models/ticketType';
-import { DiscountCodeModel } from '../db/models/discountCode';
-import i18next from 'i18next';
+import { Dictionary, filter, map, reduce } from 'lodash'
+import { UserModel } from '../db/models/user'
+import { USER_ROLE } from './enums'
+import { TicketTypeModel } from '../db/models/ticketType'
+import { DiscountCodeModel } from '../db/models/discountCode'
+import i18next from 'i18next'
+import { AssociatedSwimmerModel } from '../db/models/associatedSwimmer'
 
 const appConfig: IAppConfig = config.get('app')
 
@@ -26,11 +28,19 @@ export const formatImage = (file: FileModel) => {
 	}
 	return {
 		originalFile: `${appConfig.host}/${appConfig.filesPath}/${file.originalPath}`,
-		thumbnailSize: file.thumbnailSizePath ? `${appConfig.host}/${appConfig.filesPath}/${file.thumbnailSizePath}` : undefined,
-		smallSize: file.smallSizePath ? `${appConfig.host}/${appConfig.filesPath}/${file.smallSizePath}` : undefined,
-		mediumSize: file.mediumSizePath ? `${appConfig.host}/${appConfig.filesPath}/${file.mediumSizePath}` : undefined,
-		largeSize: file.largeSizePath ? `${appConfig.host}/${appConfig.filesPath}/${file.largeSizePath}` : undefined,
-		altText: file.altText
+		thumbnailSize: file.thumbnailSizePath
+			? `${appConfig.host}/${appConfig.filesPath}/${file.thumbnailSizePath}`
+			: undefined,
+		smallSize: file.smallSizePath
+			? `${appConfig.host}/${appConfig.filesPath}/${file.smallSizePath}`
+			: undefined,
+		mediumSize: file.mediumSizePath
+			? `${appConfig.host}/${appConfig.filesPath}/${file.mediumSizePath}`
+			: undefined,
+		largeSize: file.largeSizePath
+			? `${appConfig.host}/${appConfig.filesPath}/${file.largeSizePath}`
+			: undefined,
+		altText: file.altText,
 	}
 }
 
@@ -48,11 +58,14 @@ export const formatTicket = (ticket: TicketModel) => {
 		zip: ticket.profile.zip,
 		parentTicketId: ticket.parentTicketId,
 		ticketTypeId: ticket.ticketTypeId,
-		qrCode: ticket.qrCode
+		qrCode: ticket.qrCode,
 	}
 }
 
-export const formatSwimmingPool = (swimmingPool: SwimmingPoolModel, role?: USER_ROLE) => {
+export const formatSwimmingPool = (
+	swimmingPool: SwimmingPoolModel,
+	role?: USER_ROLE
+) => {
 	if (!swimmingPool) {
 		return null
 	}
@@ -70,7 +83,7 @@ export const formatSwimmingPool = (swimmingPool: SwimmingPoolModel, role?: USER_
 		createdAt: swimmingPool.createdAt,
 		updatedAt: swimmingPool.updatedAt,
 		image: formatImage(swimmingPool.image),
-		ordering: swimmingPool.ordering
+		ordering: swimmingPool.ordering,
 	}
 }
 
@@ -84,10 +97,12 @@ export const formatUser = (user: UserModel) => {
 		email: user.email,
 		isConfirmed: user.isConfirmed,
 		role: user.role,
-		swimmingPools: user.swimmingPools ? map(user.swimmingPools, (pool) => ({
-			id: pool.id,
-			name: pool.name
-		})) : undefined,
+		swimmingPools: user.swimmingPools
+			? map(user.swimmingPools, (pool) => ({
+					id: pool.id,
+					name: pool.name,
+			  }))
+			: undefined,
 		createdAt: user.createdAt,
 		updatedAt: user.updatedAt,
 		deletedAt: user.deletedAt,
@@ -121,12 +136,14 @@ export const formatTicketType = (ticketType: TicketTypeModel) => {
 		ticketDuration: ticketType.ticketDuration,
 		validFrom: ticketType.validFrom,
 		validTo: ticketType.validTo,
-		swimmingPools: ticketType.swimmingPools ? map(ticketType.swimmingPools, (pool) => ({
-			id: pool.id,
-			name: pool.name
-		})) : undefined,
+		swimmingPools: ticketType.swimmingPools
+			? map(ticketType.swimmingPools, (pool) => ({
+					id: pool.id,
+					name: pool.name,
+			  }))
+			: undefined,
 		createdAt: ticketType.createdAt,
-		deletedAt: ticketType.deletedAt
+		deletedAt: ticketType.deletedAt,
 	}
 }
 
@@ -140,13 +157,18 @@ export const formatDiscountCode = (discountCode: DiscountCodeModel) => {
 		amount: discountCode.amount,
 		validFrom: discountCode.validFrom,
 		validTo: discountCode.validTo,
-		ticketTypes: discountCode.ticketTypes ? map(discountCode.ticketTypes, (ticketType) => ({
-			id: ticketType.id,
-			name: ticketType.name
-		})) : undefined,
-		customerEmail: discountCode.order && discountCode.order.tickets[0] ? discountCode.order.tickets[0].profile.email : '',
+		ticketTypes: discountCode.ticketTypes
+			? map(discountCode.ticketTypes, (ticketType) => ({
+					id: ticketType.id,
+					name: ticketType.name,
+			  }))
+			: undefined,
+		customerEmail:
+			discountCode.order && discountCode.order.tickets[0]
+				? discountCode.order.tickets[0].profile.email
+				: '',
 		createdAt: discountCode.createdAt,
-		usedAt: discountCode.usedAt
+		usedAt: discountCode.usedAt,
 	}
 }
 
@@ -158,10 +180,15 @@ export const formatOrder = (order: OrderModel) => {
 	let adultTickets
 	let userName
 	if (order.tickets) {
-		adultTickets = filter(order.tickets, (ticket) => (ticket.isChildren === false))
-		userName = adultTickets.length > 0 ? adultTickets[0].profile.name : order.tickets[0].profile.name
+		adultTickets = filter(
+			order.tickets,
+			(ticket) => ticket.isChildren === false
+		)
+		userName =
+			adultTickets.length > 0
+				? adultTickets[0].profile.name
+				: order.tickets[0].profile.name
 	}
-
 
 	return {
 		id: order.id,
@@ -170,59 +197,116 @@ export const formatOrder = (order: OrderModel) => {
 		state: order.state,
 		orderNumber: order.orderNumber,
 		numberOfTickets: order.tickets ? order.tickets.length : undefined,
-		numberOfChildren: order.tickets ? reduce(order.tickets, (number, ticket) => (ticket.isChildren ? number + 1 : number), 0) : undefined,
+		numberOfChildren: order.tickets
+			? reduce(
+					order.tickets,
+					(number, ticket) =>
+						ticket.isChildren ? number + 1 : number,
+					0
+			  )
+			: undefined,
 		email: order.tickets ? order.tickets[0].profile.email : undefined,
 		userName: adultTickets ? userName : undefined,
-		ticketName: order.tickets ? order.tickets[0].ticketType.name : undefined,
+		ticketName: order.tickets
+			? order.tickets[0].ticketType.name
+			: undefined,
 		createdAt: order.createdAt,
-		updatedAt: order.updatedAt
+		updatedAt: order.updatedAt,
 	}
 }
 
 export const formatVisits = (
 	allSwimmingPools: SwimmingPoolModel[],
 	allAges: string[],
-	swimmingPoolsVisits: Dictionary<{
-		id: string;
-		range: {
-			age: string;
-			value: string;
-		};
-	}[]>,
+	swimmingPoolsVisits: Dictionary<
+		{
+			id: string
+			range: {
+				age: string
+				value: string
+			}
+		}[]
+	>,
 	swimmingPoolsAverageVisits: {
-		id: string;
-		total: string;
+		id: string
+		total: string
 	}[],
-	valueFormat = 'number',
+	valueFormat = 'number'
 ) => {
-
 	return map(allSwimmingPools, (swimmingPool) => {
-
 		const zero = valueFormat === 'number' ? 0 : '00:00:00'
-		const swimmingPoolAverageVisits = filter(swimmingPoolsAverageVisits, (obj) => obj.id === swimmingPool.id)
-		const average = swimmingPoolAverageVisits.length > 0 ? swimmingPoolAverageVisits[0].total : zero
+		const swimmingPoolAverageVisits = filter(
+			swimmingPoolsAverageVisits,
+			(obj) => obj.id === swimmingPool.id
+		)
+		const average =
+			swimmingPoolAverageVisits.length > 0
+				? swimmingPoolAverageVisits[0].total
+				: zero
 
 		return {
 			id: swimmingPool.id,
 			name: swimmingPool.name,
 			total: average,
-			ages: reduce(allAges, (allRanges, age) => {
+			ages: reduce(
+				allAges,
+				(allRanges, age) => {
+					const findAge = filter(
+						swimmingPoolsVisits[swimmingPool.id],
+						(obj) => obj.range.age === age
+					)
 
-				const findAge = filter(swimmingPoolsVisits[swimmingPool.id], (obj) => obj.range.age === age)
-
-				if (findAge.length > 0) {
-					let ageTitle = findAge[0].range.age
-					if (findAge[0].range.age === null) {
-						ageTitle = i18next.t('none')
+					if (findAge.length > 0) {
+						let ageTitle = findAge[0].range.age
+						if (findAge[0].range.age === null) {
+							ageTitle = i18next.t('none')
+						}
+						allRanges[ageTitle] = findAge[0].range.value
+					} else {
+						allRanges[age === null ? i18next.t('none') : age] = zero
 					}
-					allRanges[ageTitle] = findAge[0].range.value
-				} else {
-					allRanges[age === null ? i18next.t('none') : age] = zero
-				}
-				return allRanges
-
-			}, {} as any)
+					return allRanges
+				},
+				{} as any
+			),
 		}
 	})
+}
 
+export const formatSwimmingLoggedUser = (
+	swimmingLoggedUser: SwimmingLoggedUserModel
+) => {
+	if (!swimmingLoggedUser) {
+		return null
+	}
+
+	return {
+		id: swimmingLoggedUser.id,
+		externalId: swimmingLoggedUser.externalId,
+		age: swimmingLoggedUser.age,
+		zip: swimmingLoggedUser.zip,
+		createdAt: swimmingLoggedUser.createdAt,
+		updatedAt: swimmingLoggedUser.updatedAt,
+		deletedAt: swimmingLoggedUser.deletedAt,
+	}
+}
+
+export const formatAssociatedSwimmer = (
+	associatedSwimmer: AssociatedSwimmerModel
+) => {
+	if (!associatedSwimmer) {
+		return null
+	}
+
+	return {
+		id: associatedSwimmer.id,
+		swimmingLoggedUserId: associatedSwimmer.swimmingLoggedUserId,
+		surname: associatedSwimmer.surname,
+		lastname: associatedSwimmer.lastname,
+		age: associatedSwimmer.age,
+		zip: associatedSwimmer.zip,
+		createdAt: associatedSwimmer.createdAt,
+		updatedAt: associatedSwimmer.updatedAt,
+		deletedAt: associatedSwimmer.deletedAt,
+	}
 }
