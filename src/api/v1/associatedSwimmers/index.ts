@@ -4,6 +4,7 @@ import schemaMiddleware from '../../../middlewares/schemaMiddleware'
 
 import * as GetAssociatedSwimmers from './get.associatedSwimmers'
 import * as PostAssociatedSwimmers from './post.associatedSwimmers'
+import * as DeleteAssociatedSwimmer from './delete.associatedSwimmer'
 
 const router: Router = Router()
 
@@ -25,4 +26,10 @@ router.get(
 	'/:userId',
 	schemaMiddleware(GetAssociatedSwimmers.schema),
 	GetAssociatedSwimmers.workflow
+)
+
+router.delete(
+	'/:associatedSwimmerId',
+	schemaMiddleware(DeleteAssociatedSwimmer.schema),
+	DeleteAssociatedSwimmer.workflow
 )
