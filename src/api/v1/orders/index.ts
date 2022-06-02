@@ -16,9 +16,14 @@ export default () => {
 		GetDiscountCode.workflow)
 
 	router.post('/',
-		recaptchaMiddleware,
+		// recaptchaMiddleware,
 		schemaMiddleware(PostOrder.schema),
 		PostOrder.workflow)
+	
+	router.post('/getPrice',
+		schemaMiddleware(PostOrder.schema),
+		PostOrder.workflowDryRun)
+
 
 	router.get('/:orderId/successful',
 		passport.authenticate('jwt-order-response'),

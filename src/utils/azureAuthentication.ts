@@ -59,8 +59,21 @@ export const azureGetAzureId = async (req: any) => {
 	const token = tokenArray[1]
 
 	const payload = jwtDecode<JWTPayloadAzure>(token)
-
 	const { oid } = payload
 
 	return oid
+}
+
+
+export const azureGetAzureData = async (req: any) => {
+	const authorization = req.headers.authorization
+	if (authorization === undefined) {
+		return undefined
+	}
+	const tokenArray = authorization.split(' ')
+	const token = tokenArray[1]
+
+	const payload = jwtDecode<JWTPayloadAzure>(token)
+
+	return payload
 }
