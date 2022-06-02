@@ -17,7 +17,9 @@
 	"orderNotFound": "Objednávka sa nenašla",
 	"orderMustBeInPaidState": "Objednávka musí byť v stave zaplatená",
 	"swimmingPoolNotFound": "Kúpalisko sa nenašlo",
+	"associatedSwimmerNotExists": "Pouzivateľ neexistuje",
 	"ticket": {
+		"minmumIsOneAdult": "Minimálne jeden dospelácky",
 		"checkoutAfterAllowedTime": "Výstup vykonaný po čase povoleného pobytu",
 		"checkoutTicketDurationExpired": "Výstup vykonaný po uplynutí času pobytu",
 		"childrenAreNotAllowed": "Pre zvolený typ lístka nie je možné pridať dieťa",
