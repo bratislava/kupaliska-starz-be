@@ -314,6 +314,7 @@ const priceDryRun = async(
 		orderPrice: orderPrice,
 		discount: discount,
 		discountCode: discountCode,
+		numberOfChildren: numberOfChildren,
 	}
 }
 
