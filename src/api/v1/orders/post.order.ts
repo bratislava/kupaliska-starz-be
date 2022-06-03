@@ -19,7 +19,7 @@ import { createJwt } from "../../../utils/authorization";
 import { sendOrderEmail } from "../../../utils/emailSender";
 import { azureGetAzureData, azureGetAzureId, isAzureAutehnticated } from "../../../utils/azureAuthentication";
 
-const { AssociatedSwimmer, Order, Ticket, TicketType, File } = models;
+const { SwimmingLoggedUser, AssociatedSwimmer, Order, Ticket, TicketType, File } = models;
 
 interface TicketTypesHashMap {
 	[key: string]: TicketTypeModel;
@@ -45,6 +45,7 @@ export const schema = Joi.object({
 		ticketTypeId: Joi.string().guid({ version: ["uuidv4"] }).required(),
 		agreement: Joi.boolean().required().valid(true),
 		discountCode: Joi.string().min(5).max(20),
+		discountPercent: Joi.number(),
 		recaptcha: Joi.string().required(),
 	}),
 	query: Joi.object(),
@@ -91,8 +92,7 @@ export const workflow = async (
 	let transaction: any = null;
 	try {
 		
-		const loggedUser = await azureGetAzureData(req)
-		console.log(loggedUser)
+		const loggedUser = await azureGetAzureData(req);
 		// await isAzureAutehnticated(req) //authentikacia
 		const { body } = req;
 
@@ -105,6 +105,8 @@ export const workflow = async (
 			},
 			{ transaction }
 		);
+		await transaction.commit();
+		transaction = null;
 
 		const ticketType = await TicketType.findOne({where: {id: body.ticketTypeId}})
 		
@@ -235,6 +237,10 @@ const priceDryRun = async(
 	let orderPrice = 0;
 	let discount = 0;
 	let discountCode;
+	// check if there is discount voucher, if yes, throw error
+	if (body.discountCode && dryRun) {
+		throw new ErrorBuilder(404, req.t("error:checkDiscoundCodeNotAllowed"));
+	}
 	// validate number of children
 	let numberOfChildren = 0;
 	for (const ticket of body.tickets) {
@@ -263,18 +269,22 @@ const priceDryRun = async(
 	//price computation
 	for (const ticket of body.tickets) {
 		const user = await getUser(req, ticket, loggedUser);
-		
+		let isChildren = false;
+		if (user.age && user.age >= ticketType.childrenAgeFrom && ticketType.childrenAgeTo){
+			isChildren = true;
+		}
+
 		if (!ticketType) {
 			throw new ErrorBuilder(404, req.t("error:ticketTypeNotFound"));
 		}
 
 		let applyDiscount = false;
 		if (body.discountCode && !discountCode) {
+
 			discountCode = await getDiscountCode(
 				body.discountCode,
 				ticketType.id
 			);
-
 			if (!discountCode) {
 				throw new ErrorBuilder(
 					404,
@@ -292,21 +302,29 @@ const priceDryRun = async(
 			"ticketHasExpired"
 		);		
 		const ticketsPrice = await saveTickets(
-			ticket,
+			user,
 			ticketType,
 			orderId,
-			numberOfChildren,
 			transaction,
-			dryRun
+			dryRun,
+			isChildren,
 		);
-		const totals = await getDiscount(
-			ticketsPrice,
-			applyDiscount,
-			discount,
-			discountCode,
-			transaction,
-			dryRun
-		);
+		let totals = {newTicketsPrice: ticketsPrice, discount: discount}
+		if (!dryRun){
+			totals = await getDiscount(
+				ticketsPrice,
+				applyDiscount,
+				discount,
+				discountCode,
+				transaction,
+			);
+		} else {
+			const priceWithDiscount = 
+			Math.floor(ticketsPrice * (100 - body.discountPercent) ) /
+			100;
+			totals.newTicketsPrice = priceWithDiscount;
+			totals.discount = ticketsPrice - priceWithDiscount;
+		}
 		orderPrice += totals.newTicketsPrice;
 		discount = totals.discount;
 	}
@@ -324,19 +342,22 @@ const saveTickets = async (
 	ticket: any,
 	ticketType: TicketTypeModel,
 	orderId: string,
-	numberOfChildren: number,
 	transaction: any,
 	dryRun: boolean,
+	isChildren: boolean,
 ) => {
-	let ticketsPrice = 0;
-	for (const _ of Array(ticket.quantity).keys()) {
-		ticketsPrice +=
-			ticketType.price +
-			(ticketType.childrenPrice || 0) * numberOfChildren;
-		if (!dryRun) {
-			await createTicket(ticket, ticketType, orderId, transaction);
-		}	
+	let ticketsPrice = ticketType.price;
+	if (isChildren && ticketType.childrenPrice && ticketType.childrenPrice != null) {
+		ticketsPrice = ticketType.childrenPrice
 	}
+	// for (const _ of Array(ticket.quantity).keys()) {
+	// 	ticketsPrice +=
+	// 		ticketType.price +
+	// 		(ticketType.childrenPrice || 0) * numberOfChildren;
+	if (!dryRun) {
+		await createTicket(ticket, ticketType, orderId, transaction, isChildren, ticketsPrice, null);
+	}	
+
 	return ticketsPrice;
 };
 
@@ -346,17 +367,34 @@ const saveTickets = async (
 const getUser = async(
 	req: Request,
 	ticket: any,
-	loggedUser: any,
+	loggedUser: any
 ) => {
-	console.log(ticket)
+	const { body } = req;
 	if (ticket.personId === undefined) {
-		return ticket
+		if (body.email) {
+			return {
+				associatedSwimmerId: '',
+				loggedUserId: '',
+				email: body.email,
+				name: '',
+				age: ticket.age,
+				zip: ticket.zip,
+			}
+		} else {
+			throw new ErrorBuilder(
+				404,
+				req.t("error:emailIsEmpty")
+			);
+		}
 	} else if (ticket.personId === null) {
+		const swimmingLoggedUser = await SwimmingLoggedUser.findOne({where: {externalId: loggedUser.oid}})
 		return {
-			id: loggedUser.oid,
-			firstname: loggedUser.given_name,
-			lastname: loggedUser.given_name,
-			email: loggedUser.emails[0]
+			associatedSwimmerId: null,
+			loggedUserId: loggedUser.oid,
+			email: loggedUser.emails[0],
+			name: loggedUser.given_name + ' ' + loggedUser.family_name,
+			age: swimmingLoggedUser.age,
+			zip: swimmingLoggedUser.zip,
 		}
 	} else {
 		const user = await AssociatedSwimmer.findByPk(ticket.personalId)
@@ -366,7 +404,14 @@ const getUser = async(
 				req.t("error:associatedSwimmerNotExists")
 			);
 		} else {
-			return user
+			return {
+				associatedSwimmerId: user.id,
+				loggedUserId: loggedUser.oid,
+				email: loggedUser.emails[0],
+				name: user.firstname + ' ' + user.lastname,
+				age: user.age,
+				zip: user.zip,
+			}
 		}
 	}
 };
@@ -379,7 +424,6 @@ const getDiscount = async (
 	discount: number,
 	discountCode: DiscountCodeModel,
 	transaction: any,
-	dryrun: boolean
 ) => {
 	let newTicketsPrice = ticketsPrice;
 	if (applyDiscount) {
@@ -388,13 +432,10 @@ const getDiscount = async (
 			100;
 		newTicketsPrice = priceWithDiscount;
 		discount = ticketsPrice - priceWithDiscount;
-		if (!dryrun) {
-			await discountCode.update(
-				{ usedAt: Sequelize.literal("CURRENT_TIMESTAMP") },
-				{ transaction }
-			);
-		}
-		
+		await discountCode.update(
+			{ usedAt: Sequelize.literal("CURRENT_TIMESTAMP") },
+			{ transaction }
+		);
 	}
 	return { newTicketsPrice, discount };
 };
@@ -406,16 +447,21 @@ const createTicket = async (
 	ticket: any,
 	ticketType: TicketTypeModel,
 	orderId: string,
-	transaction: any
+	transaction: any,
+	isChildren: boolean,
+	ticketPrice: number,
+	parentTicketId: null | string,
 ) => {
 	const profileId = uuidv4();
 	(ticket.modelIds || (ticket.modelIds = [])).push(profileId);
+	console.log(orderId);
 	return await Ticket.create(
 		{
-			isChildren: false,
+			isChildren: isChildren,
 			ticketTypeId: ticketType.id,
 			orderId,
-			price: ticketType.price,
+			price: ticketPrice,
+			parentTicketId: parentTicketId,
 			remainingEntries: ticketType.entriesNumber,
 			profile: {
 				id: profileId,
@@ -424,39 +470,12 @@ const createTicket = async (
 				age: ticket.age,
 				zip: ticket.zip,
 			},
-			children: map(ticket.children, (children) => {
-				const childrenProfileId = uuidv4();
-				(children.modelIds || (children.modelIds = [])).push(
-					childrenProfileId
-				);
-				return {
-					isChildren: true,
-					ticketTypeId: ticketType.id,
-					remainingEntries: ticketType.entriesNumber,
-					orderId,
-					price: ticketType.childrenPrice,
-					profile: {
-						id: childrenProfileId,
-						email: ticket.email,
-						name: children.name,
-						age: children.age,
-					},
-				};
-			}),
 		},
 		{
 			transaction,
 			include: [
 				{
 					association: "profile",
-				},
-				{
-					association: "children",
-					include: [
-						{
-							association: "profile",
-						},
-					],
 				},
 			],
 		}
