@@ -9,6 +9,7 @@
 	"incorrectSwimmingPools": "Niektoré z kúpalísk, ktoré ste zadali, sa nenašli",
 	"incorrectTicketTypes": "Niektoré z typov lístkov, ktoré ste zadali, sa nenašli",
 	"incorrectUsernameOrPassword": "Zadali ste nesprávne meno alebo heslo",
+	"incorrectToken": "Token not authenticated",
 	"invalidBase64": "Nesprávny base64 formát",
 	"invalidBase64FileMimeType": "Nepovolený formát obrázka",
 	"invalidOrderToken": "Nebolo možné overiť autorizačný token objednávky",

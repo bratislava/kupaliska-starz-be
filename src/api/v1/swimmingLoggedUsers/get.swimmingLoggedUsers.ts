@@ -62,7 +62,20 @@ export const workflow = async (
 			// limit,
 			// offset,
 			// order: [[query.order, query.direction]],
-			// include: { association: 'image' },
+			include: [
+				{
+					association: 'image',
+					attributes: [
+						'id',
+						'name',
+						'originalPath',
+						'mimeType',
+						'size',
+						'relatedId',
+						'relatedType',
+					],
+				},
+			],
 		})
 
 		// const count = await SwimmingLoggedUser.count({

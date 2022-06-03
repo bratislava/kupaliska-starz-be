@@ -3,6 +3,7 @@
 import { Sequelize, DataTypes, literal, UUIDV4 } from 'sequelize'
 
 import { DatabaseModel } from '../../types/models'
+import { FileModel } from './file'
 
 export class SwimmingLoggedUserModel extends DatabaseModel {
 	id: string
@@ -12,6 +13,7 @@ export class SwimmingLoggedUserModel extends DatabaseModel {
 	deletedAt: Date
 	age: number
 	zip: string
+	image: FileModel
 	// lastLoginAt: Date
 	// functions
 }
@@ -65,6 +67,17 @@ export default (sequelize: Sequelize) => {
 			modelName: 'swimmingLoggedUser',
 		}
 	)
+
+	SwimmingLoggedUserModel.associate = (models) => {
+		SwimmingLoggedUserModel.hasOne(models.File, {
+			foreignKey: 'relatedId',
+			constraints: false,
+			scope: {
+				relatedType: 'swimmingLoggedUser',
+			},
+			as: 'image',
+		})
+	}
 
 	// SwimmingLoggedUserModel.associate = (models) => {
 	// 	SwimmingUserModel.belongsToMany(models.SwimmingPool, {
