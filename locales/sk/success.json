@@ -33,7 +33,8 @@
 	"sucessfulLogout": "Používateľ úspešne odhláseny zo všetkých zariadení",
 	"loggedSwimmer": {
 		"associatedSwimmer": {
-			"created": "Pridružená osoba úspešne vytvorená"
+			"created": "Pridružená osoba úspešne vytvorená",
+			"updated": "Pridružená osoba úspešne upravená"
 		}
 	}
 }

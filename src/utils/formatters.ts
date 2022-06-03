@@ -285,6 +285,7 @@ export const formatSwimmingLoggedUser = (
 		externalId: swimmingLoggedUser.externalId,
 		age: swimmingLoggedUser.age,
 		zip: swimmingLoggedUser.zip,
+		image: swimmingLoggedUser.image,
 		createdAt: swimmingLoggedUser.createdAt,
 		updatedAt: swimmingLoggedUser.updatedAt,
 		deletedAt: swimmingLoggedUser.deletedAt,
