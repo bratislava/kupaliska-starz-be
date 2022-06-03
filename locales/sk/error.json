@@ -18,6 +18,8 @@
 	"orderMustBeInPaidState": "Objednávka musí byť v stave zaplatená",
 	"swimmingPoolNotFound": "Kúpalisko sa nenašlo",
 	"associatedSwimmerNotExists": "Pouzivateľ neexistuje",
+	"checkDiscoundCodeNotAllowed": "Dry run nemôže kontrolovať zľavový kód",
+	"emailIsEmpty": "Nonregisterd user need to have email",
 	"ticket": {
 		"minmumIsOneAdult": "Minimálne jeden dospelácky",
 		"checkoutAfterAllowedTime": "Výstup vykonaný po čase povoleného pobytu",
