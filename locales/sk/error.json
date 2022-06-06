@@ -19,7 +19,7 @@
 	"swimmingPoolNotFound": "Kúpalisko sa nenašlo",
 	"associatedSwimmerNotExists": "Pouzivateľ neexistuje",
 	"checkDiscoundCodeNotAllowed": "Dry run nemôže kontrolovať zľavový kód",
-	"emailIsEmpty": "Nonregisterd user need to have email",
+	"emailIsEmpty": "Nonregistered user need to have email",
 	"ticket": {
 		"agreementMissing": "Agreement missing",
 		"minmumIsOneAdult": "Minimálne jeden dospelácky",
