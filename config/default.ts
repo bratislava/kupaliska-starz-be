@@ -9,7 +9,12 @@ export = {
 		port: process.env.PORT || 8000,
 		host: process.env.HOST,
 		corsOrigins: JSON.parse(process.env.CORS_ORIGINS || "[]"),
-		subdirs: [['private', 'profile-photos'], ['public', 'swimming-pools']],
+		subdirs: [
+			['private', 'profile-photos'],
+			['private', 'swimming-logged-user'],
+			['private', 'associated-swimmer'],
+			['public', 'swimming-pools']
+		],
 		feResetPasswordUrl: process.env.FE_RESET_PASSWORD_URL,
 		maxTicketPurchaseLimit: process.env.MAX_TICKET_PURCHASE_LIMIT || 10,
 		contactEmail: process.env.CONTACT_EMAIL,
