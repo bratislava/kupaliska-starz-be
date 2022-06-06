@@ -3,6 +3,7 @@
 import { Sequelize, DataTypes, literal, UUIDV4 } from 'sequelize'
 
 import { DatabaseModel } from '../../types/models'
+import { FileModel } from './file'
 
 export class AssociatedSwimmerModel extends DatabaseModel {
 	id: string
@@ -11,6 +12,7 @@ export class AssociatedSwimmerModel extends DatabaseModel {
 	lastname: string
 	age: number
 	zip: string
+	image: FileModel
 	createdAt: Date
 	updatedAt: Date
 	deletedAt: Date
@@ -78,6 +80,14 @@ export default (sequelize: Sequelize) => {
 				allowNull: false,
 			},
 			as: 'swimmingLoggedUser',
+		})
+		AssociatedSwimmerModel.hasOne(models.File, {
+			foreignKey: 'relatedId',
+			constraints: false,
+			scope: {
+				relatedType: 'associatedSwimmer',
+			},
+			as: 'image',
 		})
 	}
 

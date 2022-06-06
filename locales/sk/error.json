@@ -57,5 +57,6 @@
 	"exceededOrderingNumber": "Prekročené maximálne poradie",
 	"register": {
 		"userExists": "Používateľ už existuje"
-	}
+	},
+	"associatedSwimmerNotFound": "Pridružený plavec nenájdený"
 }

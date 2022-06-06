@@ -7,9 +7,10 @@ import {
 	azureGetAzureId,
 	isAzureAutehnticated,
 } from '../../../utils/azureAuthentication'
-import uploadFileFromBase64 from '../../../utils/uploader'
 import { formatSwimmingLoggedUser } from '../../../utils/formatters'
 import { MESSAGE_TYPE } from '../../../utils/enums'
+import { uploadImage } from '../../../utils/imageUpload'
+import { SwimmingLoggedUserModel } from '../../../db/models/swimmingLoggedUser'
 
 export const swimmingLoggedUserUploadFolder = 'private/swimming-logged-user'
 export const schema = Joi.object()
@@ -44,6 +45,8 @@ export const workflow = async (
 					req,
 					body.image,
 					swimmingLoggedUser.id,
+					SwimmingLoggedUserModel.name,
+					swimmingLoggedUserUploadFolder,
 					transaction
 				)
 				swimmingLoggedUser.image = image
@@ -80,28 +83,4 @@ export const workflow = async (
 	} catch (err) {
 		return next(err)
 	}
-}
-
-const uploadImage = async (
-	req: Request,
-	image: string,
-	swimmingLoggedUserId: string,
-	transaction: any
-) => {
-	const file = await uploadFileFromBase64(
-		req,
-		image,
-		swimmingLoggedUserUploadFolder
-	)
-	return await File.create(
-		{
-			name: file.fileName,
-			originalPath: file.filePath,
-			mimeType: file.mimeType,
-			size: file.size,
-			relatedId: swimmingLoggedUserId,
-			relatedType: 'swimmingLoggedUser',
-		},
-		{ transaction }
-	)
 }

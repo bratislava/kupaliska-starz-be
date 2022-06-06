@@ -306,6 +306,7 @@ export const formatAssociatedSwimmer = (
 		lastname: associatedSwimmer.lastname,
 		age: associatedSwimmer.age,
 		zip: associatedSwimmer.zip,
+		image: associatedSwimmer.image,
 		createdAt: associatedSwimmer.createdAt,
 		updatedAt: associatedSwimmer.updatedAt,
 		deletedAt: associatedSwimmer.deletedAt,
