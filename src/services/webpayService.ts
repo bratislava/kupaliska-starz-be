@@ -108,7 +108,7 @@ const verifyPayment = (paymentResponse: IGPWebpayHttpResponse) =>
 	// AK PRCODE && SRCODE === 0 => PLATBA PREBEHLA V PORIADKU
 	(parseInt(paymentResponse.PRCODE, 10) === 0 && parseInt(paymentResponse.SRCODE, 10) === 0)
 
-export const createPayment = async (order: OrderModel, transaction: Transaction) => {
+export const createPayment = async (order: OrderModel) => {
 	const {
 		PaymentOrder
 	} = models
@@ -116,7 +116,7 @@ export const createPayment = async (order: OrderModel, transaction: Transaction)
 	const paymentOrder = await PaymentOrder.create({
 		paymentAmount: order.price,
 		orderId: order.id,
-	}, { transaction })
+	})
 
 
 	const paymentObject: IGPWebpayHttpRequest = {
