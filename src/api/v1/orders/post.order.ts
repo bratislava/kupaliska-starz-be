@@ -38,8 +38,8 @@ export const schema = Joi.object({
 			.required()
 			.items({
 				personId: Joi.string().guid({ version: ["uuidv4"] }),
-				age: Joi.number().min(0).max(150),
-				zip: Joi.string().max(10),
+				age: Joi.number().min(0).max(150).allow(null),
+				zip: Joi.string().max(10).allow(null),
 			}),
 		email: Joi.string().email().max(255),
 		ticketTypeId: Joi.string().guid({ version: ["uuidv4"] }).required(),
@@ -269,8 +269,8 @@ const priceDryRun = async(
 	// validate number of children
 	let numberOfChildren = 0;
 	for (const ticket of body.tickets) {
-		const user = await getUser(req, ticket, loggedUser);
-		if (user.age && user.age >= ticketType.childrenAgeFrom && ticketType.childrenAgeTo){
+		const user = await getUser(req, ticket, loggedUser, dryRun);
+		if (ticketType.childrenAllowed && user.age && user.age >= ticketType.childrenAgeFrom && ticketType.childrenAgeTo){
 			numberOfChildren += 1;
 		}
 	}
@@ -293,7 +293,7 @@ const priceDryRun = async(
 	}
 	//price computation
 	for (const ticket of body.tickets) {
-		const user = await getUser(req, ticket, loggedUser);
+		const user = await getUser(req, ticket, loggedUser, dryRun);
 		let isChildren = false;
 		if (user.age && user.age >= ticketType.childrenAgeFrom && ticketType.childrenAgeTo){
 			isChildren = true;
@@ -392,11 +392,21 @@ const saveTickets = async (
 const getUser = async(
 	req: Request,
 	ticket: any,
-	loggedUser: any
+	loggedUser: any,
+	dryRun: boolean,
 ) => {
 	const { body } = req;
 	if (ticket.personId === undefined) {
-		if (body.email) {
+		if (dryRun) { 
+			return {
+				associatedSwimmerId: '',
+				loggedUserId: '',
+				email: body.email,
+				name: '',
+				age: ticket.age,
+				zip: ticket.zip,
+			}
+		} else if (body.email) {
 			return {
 				associatedSwimmerId: '',
 				loggedUserId: '',
