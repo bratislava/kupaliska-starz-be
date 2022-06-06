@@ -35,6 +35,8 @@ export class TicketModel extends DatabaseModel {
 	entries: EntryModel[]
 	todaysEntries: EntryModel[]
 	numberOfVisits: number
+	loggedUserId: string
+	associatedSwimmerId: string
 	// meta
 	createdAt: Date
 	updatedAt: Date

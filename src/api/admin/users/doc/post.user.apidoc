@@ -7,7 +7,7 @@
 
     @apiDescription Add User. Also sends email to user`s email to request password change.
 
-	@apiParam (Body) {String} name User firstname and surname
+	@apiParam (Body) {String} name User firstname and lastname
 	@apiParam (Body) {String} email Email
 	@apiParam (Body) {Boolean} isConfirmed Confirmed
 	@apiParam (Body) {String[]} swimmingPools Array of swimming pool IDS. Required when role is `SWIMMING_POOL_OPERATOR` or `SWIMMING_POOL_EMPLOYEE`, otherwise forbidden.
