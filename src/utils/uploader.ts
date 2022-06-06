@@ -72,7 +72,7 @@ export default async function uploadFileFromBase64(req: Request, fileBase64: str
 
 	const base64 = matches[2]
 
-	// await checkDestinationAccess(req, directory)
+	await checkDestinationAccess(req, directory)
 	const fileName = getFileName('file', type)
 	const fullFilePath = getFilePath(fileName, directory)
 	const relativeFilePath = getRelativeFilePath(fileName, directory)
