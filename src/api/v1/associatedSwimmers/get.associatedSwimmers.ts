@@ -78,7 +78,7 @@ export const workflow = async (
 					attributes: [
 						'id',
 						'swimmingLoggedUserId',
-						'surname',
+						'firstname',
 						'lastname',
 						'age',
 						'zip',
