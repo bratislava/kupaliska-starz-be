@@ -22,7 +22,12 @@ fs.existsSync(filesPath) || fs.mkdirSync(filesPath)
 // eslint-disable-next-line no-unused-expressions
 fs.existsSync(logsPath) || fs.mkdirSync(logsPath)
 
-forEach([['private', 'profile-photos'], ['public', 'swimming-pools']], (subdir) => {
+forEach([
+	['private', 'profile-photos'],
+	['private', 'swimming-logged-user'],
+	['private', 'associated-swimmer'],
+	['public', 'swimming-pools']
+], (subdir) => {
 	let absolutePath
 	if (isArray(subdir)) {
 		absolutePath = path.join(filesPath, ...subdir)
