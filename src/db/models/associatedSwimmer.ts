@@ -7,7 +7,7 @@ import { DatabaseModel } from '../../types/models'
 export class AssociatedSwimmerModel extends DatabaseModel {
 	id: string
 	swimmingLoggedUserId: string
-	surname: string
+	firstname: string
 	lastname: string
 	age: number
 	zip: string
@@ -27,7 +27,7 @@ export default (sequelize: Sequelize) => {
 				allowNull: false,
 				defaultValue: UUIDV4,
 			},
-			surname: {
+			firstname: {
 				type: DataTypes.STRING(255),
 				allowNull: true,
 			},

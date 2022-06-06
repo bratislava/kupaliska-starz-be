@@ -302,7 +302,7 @@ export const formatAssociatedSwimmer = (
 	return {
 		id: associatedSwimmer.id,
 		swimmingLoggedUserId: associatedSwimmer.swimmingLoggedUserId,
-		surname: associatedSwimmer.surname,
+		firstname: associatedSwimmer.firstname,
 		lastname: associatedSwimmer.lastname,
 		age: associatedSwimmer.age,
 		zip: associatedSwimmer.zip,

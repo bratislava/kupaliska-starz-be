@@ -17,8 +17,9 @@ import { getDiscountCode } from "../../../services/discountCodeValidationService
 import { DiscountCodeModel } from "../../../db/models/discountCode";
 import { createJwt } from "../../../utils/authorization";
 import { sendOrderEmail } from "../../../utils/emailSender";
+import { azureGetAzureData, azureGetAzureId, isAzureAutehnticated } from "../../../utils/azureAuthentication";
 
-const { Order, Ticket, TicketType, File } = models;
+const { SwimmingLoggedUser, AssociatedSwimmer, Order, Ticket, TicketType, File } = models;
 
 interface TicketTypesHashMap {
 	[key: string]: TicketTypeModel;
@@ -34,40 +35,54 @@ const validExtensions = ["png", "jpg", "jpeg"];
 export const schema = Joi.object({
 	body: Joi.object().keys({
 		tickets: Joi.array()
-			.length(1)
 			.required()
 			.items({
-				email: Joi.string().email().max(255).required(),
-				quantity: Joi.number()
-					.min(1)
-					.max(Number(appConfig.maxTicketPurchaseLimit))
-					.required(),
-				ticketTypeId: Joi.string()
-					.guid({ version: ["uuidv4"] })
-					.required(),
-				name: Joi.string().max(255),
+				personId: Joi.string().guid({ version: ["uuidv4"] }),
 				age: Joi.number().min(0).max(150),
 				zip: Joi.string().max(10),
-				photo: Joi.string().custom(
-					validBase64(maxFileSize, validExtensions)
-				),
-				children: Joi.array()
-					.min(1)
-					.items({
-						name: Joi.string().required().max(255),
-						age: Joi.number().required(),
-						photo: Joi.string().custom(
-							validBase64(maxFileSize, validExtensions)
-						),
-					}),
 			}),
+		email: Joi.string().email().max(255),
+		ticketTypeId: Joi.string().guid({ version: ["uuidv4"] }).required(),
 		agreement: Joi.boolean().required().valid(true),
 		discountCode: Joi.string().min(5).max(20),
+		discountPercent: Joi.number(),
 		recaptcha: Joi.string().required(),
 	}),
 	query: Joi.object(),
 	params: Joi.object(),
 });
+
+export const workflowDryRun = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => { 
+	try {
+		const { body } = req;
+		const ticketType = await TicketType.findOne({where: {id: body.ticketTypeId}})
+		const loggedUser = await azureGetAzureData(req)
+		const pricing = await priceDryRun(
+			req,
+			ticketType,
+			loggedUser,
+			true,
+			'',
+		);
+		return res.json({
+			data: {
+				pricing
+			},
+			messages: [
+				{
+					type: MESSAGE_TYPE.SUCCESS,
+					message: req.t("success:dryRun"),
+				},
+			],
+		});
+	} catch (err) {
+		return next(err);
+	}
+}
 
 export const workflow = async (
 	req: Request,
@@ -75,8 +90,10 @@ export const workflow = async (
 	next: NextFunction
 ) => {
 	let transaction: any = null;
-
 	try {
+		
+		const loggedUser = await azureGetAzureData(req);
+		// await isAzureAutehnticated(req) //authentikacia
 		const { body } = req;
 
 		transaction = await sequelize.transaction();
@@ -88,146 +105,21 @@ export const workflow = async (
 			},
 			{ transaction }
 		);
+		await transaction.commit();
+		transaction = null;
 
-		const ticketTypes: TicketTypesHashMap = reduce(
-			await TicketType.findAll({
-				where: {
-					id: {
-						[Op.in]: body.tickets.map(
-							(ticket: any) => ticket.ticketTypeId
-						),
-					},
-				},
-			}),
-			(
-				ticketTypesMap: TicketTypesHashMap,
-				ticketType: TicketTypeModel
-			) => ({ ...ticketTypesMap, [ticketType.id]: ticketType }),
-			{} as TicketTypesHashMap
+		const ticketType = await TicketType.findOne({where: {id: body.ticketTypeId}})
+		
+		const pricing = await priceDryRun(
+			req,
+			ticketType,
+			loggedUser,
+			false,
+			order.id,
 		);
-
-		let orderPrice = 0;
-		let discount = 0;
-		let discountCode;
-		for (const ticket of body.tickets) {
-			const ticketType = ticketTypes[ticket.ticketTypeId];
-			if (!ticketType) {
-				throw new ErrorBuilder(404, req.t("error:ticketTypeNotFound"));
-			}
-
-			let applyDiscount = false;
-			if (body.discountCode && !discountCode) {
-				discountCode = await getDiscountCode(
-					body.discountCode,
-					ticketType.id
-				);
-
-				if (!discountCode) {
-					throw new ErrorBuilder(
-						404,
-						req.t("error:discountCodeNotValid")
-					);
-				}
-				applyDiscount = true;
-			}
-
-			// user cannot buy a ticket after its expiration
-			validate(
-				true,
-				ticketType.validTo,
-				Joi.date().min("now"),
-				req.t("error:ticket.ticketHasExpired"),
-				"ticketHasExpired"
-			);
-			// name check
-			validate(
-				ticketType.nameRequired,
-				ticket.name,
-				Joi.required(),
-				req.t("error:ticket.nameRequired"),
-				"nameRequired"
-			);
-			// photo check
-			validate(
-				ticketType.photoRequired,
-				ticket.photo,
-				Joi.required(),
-				req.t("error:ticket.photoRequired"),
-				"photoRequired"
-			);
-			// seasonal ticket must have 1 quantity
-			validate(
-				ticketType.isSeasonal,
-				ticket.quantity,
-				Joi.number().equal(1),
-				req.t("error:ticket.seasonTicketMustHaveOneQuantity"),
-				"seasonTicketMustHaveOneQuantity"
-			);
-
-			const numberOfChildren = ticket.children
-				? ticket.children.length
-				: 0;
-			if (ticketType.childrenAllowed) {
-				validate(
-					true,
-					numberOfChildren,
-					Joi.number().max(ticketType.childrenMaxNumber),
-					req.t("error:ticket.numberOfChildrenExceeded"),
-					"numberOfChildrenExceeded"
-				);
-				validate(
-					true,
-					ticket.children,
-					Joi.array().items({
-						age: Joi.number()
-							.min(ticketType.childrenAgeFrom)
-							.max(ticketType.childrenAgeTo),
-						name: Joi.any(),
-						photo: Joi.any(),
-					}),
-					req.t("error:ticket.childrenHasInvalidAge"),
-					"childrenHasInvalidAge"
-				);
-				validate(
-					true,
-					ticket.children,
-					Joi.array().items({
-						photo: ticketType.childrenPhotoRequired
-							? Joi.required()
-							: Joi.optional(),
-						name: Joi.any(),
-						age: Joi.any(),
-					}),
-					req.t("error:ticket.childrenPhotoRequired"),
-					"childrenPhotoRequired"
-				);
-			} else {
-				validate(
-					true,
-					ticket.children,
-					Joi.forbidden(),
-					req.t("error:ticket.childrenAreNotAllowed"),
-					"childrenAreNotAllowed"
-				);
-			}
-
-			const ticketsPrice = await saveTickets(
-				ticket,
-				ticketType,
-				order.id,
-				numberOfChildren,
-				transaction
-			);
-			const totals = await getDiscount(
-				ticketsPrice,
-				applyDiscount,
-				discount,
-				discountCode,
-				transaction
-			);
-			orderPrice += totals.newTicketsPrice;
-			discount = totals.discount;
-		}
+		const orderPrice = pricing.orderPrice;
+		const discount = pricing.discount;
+		const discountCode = pricing.discountCode;
 
 		await order.update(
 			{
@@ -237,8 +129,6 @@ export const workflow = async (
 			},
 			{ transaction }
 		);
-
-		await uploadProfilePhotos(req, body.tickets, transaction);
 
 		if (discountCode && discountCode.amount === 100) {
 			await order.update(
@@ -333,24 +223,198 @@ export const workflow = async (
 	}
 };
 
+// Compute price
+const priceDryRun = async(
+	req: Request,
+	ticketType: TicketTypeModel,
+	loggedUser: any,
+	dryRun: boolean,
+	orderId: string,
+) => {
+	let transaction: any = null;
+	transaction = await sequelize.transaction();
+	const { body } = req;
+	let orderPrice = 0;
+	let discount = 0;
+	let discountCode;
+	// check if there is discount voucher, if yes, throw error
+	if (body.discountCode && dryRun) {
+		throw new ErrorBuilder(404, req.t("error:checkDiscoundCodeNotAllowed"));
+	}
+	// validate number of children
+	let numberOfChildren = 0;
+	for (const ticket of body.tickets) {
+		const user = await getUser(req, ticket, loggedUser);
+		if (user.age && user.age >= ticketType.childrenAgeFrom && ticketType.childrenAgeTo){
+			numberOfChildren += 1;
+		}
+	}
+	if (ticketType.childrenAllowed) {
+		validate(
+			true,
+			numberOfChildren,
+			Joi.number().max(ticketType.childrenMaxNumber),
+			req.t("error:ticket.numberOfChildrenExceeded"),
+			"numberOfChildrenExceeded"
+		);
+		// minimum is one adult
+		validate(
+			true,
+			body.tickets.length,
+			Joi.number().min(numberOfChildren + 1),
+			req.t("error:ticket.minimumIsOneAdult"),
+			"minimumIsOneAdult"
+		)
+	}
+	//price computation
+	for (const ticket of body.tickets) {
+		const user = await getUser(req, ticket, loggedUser);
+		let isChildren = false;
+		if (user.age && user.age >= ticketType.childrenAgeFrom && ticketType.childrenAgeTo){
+			isChildren = true;
+		}
+
+		if (!ticketType) {
+			throw new ErrorBuilder(404, req.t("error:ticketTypeNotFound"));
+		}
+
+		let applyDiscount = false;
+		if (body.discountCode && !discountCode) {
+
+			discountCode = await getDiscountCode(
+				body.discountCode,
+				ticketType.id
+			);
+			if (!discountCode) {
+				throw new ErrorBuilder(
+					404,
+					req.t("error:discountCodeNotValid")
+				);
+			}
+			applyDiscount = true;
+		}
+		// user cannot buy a ticket after its expiration
+		validate(
+			true,
+			ticketType.validTo,
+			Joi.date().min("now"),
+			req.t("error:ticket.ticketHasExpired"),
+			"ticketHasExpired"
+		);		
+		const ticketsPrice = await saveTickets(
+			user,
+			ticketType,
+			orderId,
+			transaction,
+			dryRun,
+			isChildren,
+		);
+		let totals = {newTicketsPrice: ticketsPrice, discount: discount}
+		if (!dryRun){
+			totals = await getDiscount(
+				ticketsPrice,
+				applyDiscount,
+				discount,
+				discountCode,
+				transaction,
+			);
+		} else {
+			const priceWithDiscount = 
+			Math.floor(ticketsPrice * (100 - body.discountPercent) ) /
+			100;
+			totals.newTicketsPrice = priceWithDiscount;
+			totals.discount = ticketsPrice - priceWithDiscount;
+		}
+		orderPrice += totals.newTicketsPrice;
+		discount = totals.discount;
+	}
+	return {
+		orderPrice: orderPrice,
+		discount: discount,
+		discountCode: discountCode,
+		numberOfChildren: numberOfChildren,
+	}
+}
+
+
 // for each instance add unique ticket
 const saveTickets = async (
 	ticket: any,
 	ticketType: TicketTypeModel,
 	orderId: string,
-	numberOfChildren: number,
-	transaction: any
+	transaction: any,
+	dryRun: boolean,
+	isChildren: boolean,
 ) => {
-	let ticketsPrice = 0;
-	for (const _ of Array(ticket.quantity).keys()) {
-		ticketsPrice +=
-			ticketType.price +
-			(ticketType.childrenPrice || 0) * numberOfChildren;
-		await createTicket(ticket, ticketType, orderId, transaction);
+	let ticketsPrice = ticketType.price;
+	if (isChildren && ticketType.childrenPrice && ticketType.childrenPrice != null) {
+		ticketsPrice = ticketType.childrenPrice
 	}
+	// for (const _ of Array(ticket.quantity).keys()) {
+	// 	ticketsPrice +=
+	// 		ticketType.price +
+	// 		(ticketType.childrenPrice || 0) * numberOfChildren;
+	if (!dryRun) {
+		await createTicket(ticket, ticketType, orderId, transaction, isChildren, ticketsPrice, null);
+	}	
+
 	return ticketsPrice;
 };
 
+/**
+ * Get user data from asociate swimmers or users
+ */
+const getUser = async(
+	req: Request,
+	ticket: any,
+	loggedUser: any
+) => {
+	const { body } = req;
+	if (ticket.personId === undefined) {
+		if (body.email) {
+			return {
+				associatedSwimmerId: '',
+				loggedUserId: '',
+				email: body.email,
+				name: '',
+				age: ticket.age,
+				zip: ticket.zip,
+			}
+		} else {
+			throw new ErrorBuilder(
+				404,
+				req.t("error:emailIsEmpty")
+			);
+		}
+	} else if (ticket.personId === null) {
+		const swimmingLoggedUser = await SwimmingLoggedUser.findOne({where: {externalId: loggedUser.oid}})
+		return {
+			associatedSwimmerId: null,
+			loggedUserId: loggedUser.oid,
+			email: loggedUser.emails[0],
+			name: loggedUser.given_name + ' ' + loggedUser.family_name,
+			age: swimmingLoggedUser.age,
+			zip: swimmingLoggedUser.zip,
+		}
+	} else {
+		const user = await AssociatedSwimmer.findByPk(ticket.personalId)
+		if (!user) {
+			throw new ErrorBuilder(
+				404,
+				req.t("error:associatedSwimmerNotExists")
+			);
+		} else {
+			return {
+				associatedSwimmerId: user.id,
+				loggedUserId: loggedUser.oid,
+				email: loggedUser.emails[0],
+				name: user.firstname + ' ' + user.lastname,
+				age: user.age,
+				zip: user.zip,
+			}
+		}
+	}
+};
 /**
  * Get price after discount if discount can be applied. Otherwise return the original price.
  */
@@ -359,7 +423,7 @@ const getDiscount = async (
 	applyDiscount: boolean,
 	discount: number,
 	discountCode: DiscountCodeModel,
-	transaction: any
+	transaction: any,
 ) => {
 	let newTicketsPrice = ticketsPrice;
 	if (applyDiscount) {
@@ -368,7 +432,6 @@ const getDiscount = async (
 			100;
 		newTicketsPrice = priceWithDiscount;
 		discount = ticketsPrice - priceWithDiscount;
-
 		await discountCode.update(
 			{ usedAt: Sequelize.literal("CURRENT_TIMESTAMP") },
 			{ transaction }
@@ -384,16 +447,21 @@ const createTicket = async (
 	ticket: any,
 	ticketType: TicketTypeModel,
 	orderId: string,
-	transaction: any
+	transaction: any,
+	isChildren: boolean,
+	ticketPrice: number,
+	parentTicketId: null | string,
 ) => {
 	const profileId = uuidv4();
 	(ticket.modelIds || (ticket.modelIds = [])).push(profileId);
+	console.log(orderId);
 	return await Ticket.create(
 		{
-			isChildren: false,
+			isChildren: isChildren,
 			ticketTypeId: ticketType.id,
 			orderId,
-			price: ticketType.price,
+			price: ticketPrice,
+			parentTicketId: parentTicketId,
 			remainingEntries: ticketType.entriesNumber,
 			profile: {
 				id: profileId,
@@ -402,39 +470,12 @@ const createTicket = async (
 				age: ticket.age,
 				zip: ticket.zip,
 			},
-			children: map(ticket.children, (children) => {
-				const childrenProfileId = uuidv4();
-				(children.modelIds || (children.modelIds = [])).push(
-					childrenProfileId
-				);
-				return {
-					isChildren: true,
-					ticketTypeId: ticketType.id,
-					remainingEntries: ticketType.entriesNumber,
-					orderId,
-					price: ticketType.childrenPrice,
-					profile: {
-						id: childrenProfileId,
-						email: ticket.email,
-						name: children.name,
-						age: children.age,
-					},
-				};
-			}),
 		},
 		{
 			transaction,
 			include: [
 				{
 					association: "profile",
-				},
-				{
-					association: "children",
-					include: [
-						{
-							association: "profile",
-						},
-					],
 				},
 			],
 		}

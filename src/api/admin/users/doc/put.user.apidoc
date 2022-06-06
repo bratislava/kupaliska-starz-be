@@ -9,7 +9,7 @@
 
 	@apiParam (Query) {String} userId User ID
 
-	@apiParam (Body) {String} name User firstname and surname
+	@apiParam (Body) {String} name User firstname and lastname
 	@apiParam (Body) {String} email Email
 	@apiParam (Body) {Boolean} isConfirmed Confirmed
 	@apiParam (Body) {String} role lastName
