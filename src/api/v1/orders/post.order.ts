@@ -43,10 +43,10 @@ export const schema = Joi.object({
 			}),
 		email: Joi.string().email().max(255),
 		ticketTypeId: Joi.string().guid({ version: ["uuidv4"] }).required(),
-		agreement: Joi.boolean().required().valid(true),
+		agreement: Joi.boolean().valid(true),
 		discountCode: Joi.string().min(5).max(20),
 		discountPercent: Joi.number(),
-		recaptcha: Joi.string().required(),
+		recaptcha: Joi.string(),
 	}),
 	query: Joi.object(),
 	params: Joi.object(),
@@ -91,10 +91,30 @@ export const workflow = async (
 ) => {
 	let transaction: any = null;
 	try {
+		let authTest = false
+		try {
+			authTest = await isAzureAutehnticated(req)
+		} catch(err) {
+			console.log('bad token')
+		}
+
+		let loggedUser = null;
+		if (authTest) {
+			const loggedUser = await azureGetAzureData(req);
+		}
 		
-		const loggedUser = await azureGetAzureData(req);
-		// await isAzureAutehnticated(req) //authentikacia
 		const { body } = req;
+
+
+		// check agreement
+		if (body.agreement === undefined || body.agreement !== true) {
+			throw new ErrorBuilder(400, req.t("error:ticket.agreementMissing"));
+		}
+
+		// check maximum tickets
+		if (body.tickets.length > 10 ) {
+			throw new ErrorBuilder(400, req.t("error:ticket.maxtTicketsPerOrder"));
+		}
 
 		transaction = await sequelize.transaction();
 
@@ -110,6 +130,11 @@ export const workflow = async (
 
 		const ticketType = await TicketType.findOne({where: {id: body.ticketTypeId}})
 		
+		// check ticket type and logged user
+		if (ticketType.nameRequired === true && !authTest) {
+			throw new ErrorBuilder(400, req.t("error:ticket.notLoggedUserForTicket"));
+		}
+
 		const pricing = await priceDryRun(
 			req,
 			ticketType,
@@ -454,7 +479,6 @@ const createTicket = async (
 ) => {
 	const profileId = uuidv4();
 	(ticket.modelIds || (ticket.modelIds = [])).push(profileId);
-	console.log(orderId);
 	return await Ticket.create(
 		{
 			isChildren: isChildren,
