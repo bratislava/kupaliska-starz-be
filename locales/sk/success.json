@@ -33,6 +33,10 @@
 	"passwordResetEmailSent": "Email na resetovanie hesla úspešne odoslaný.",
 	"sucessfulLogout": "Používateľ úspešne odhláseny zo všetkých zariadení",
 	"loggedSwimmer": {
+		"swimmingLoggedUsers": {
+			"created": "Profil úspešne vytvorený",
+			"updated": "Profil úspešne upravený"
+		},
 		"associatedSwimmer": {
 			"created": "Pridružená osoba úspešne vytvorená",
 			"updated": "Pridružená osoba úspešne upravená"
