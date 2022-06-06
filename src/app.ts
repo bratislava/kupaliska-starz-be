@@ -33,6 +33,8 @@ import { IAppConfig, IPassportConfig } from './types/interfaces'
 import { checkPaymentKeys } from './services/webpayService'
 
 import routerAdmin from './api/admin'
+import { minioClient, downloadFileFromBucket } from './utils/minio'
+import { readFile } from 'fs/promises'
 
 const passportConfig: IPassportConfig = config.get('passport')
 const i18NextConfig: InitOptions = config.get('i18next')
@@ -92,7 +94,30 @@ app.use(i18nextMiddleware.handle(i18next))
 
 app.use('/api/v1', routerV1())
 app.use('/api/admin', routerAdmin())
-app.use('/files/public', express.static(path.join(process.cwd(), '/files/public')))
+
+// 'staticly-serves' the entire 'files/public' portion of the kupaliska-starz bucket
+app.use('/files/public', async (req, res) => {
+	await new Promise((resolve, reject) => minioClient.getObject('kupaliska-starz', `files/public${req.url}`, (err, stream) => {
+		if (err) {
+			console.error(err)
+			return reject(err)
+		}
+		stream.on('data', (chunk: any) => res.write(chunk))
+		stream.on('end', () => {
+			res.end()
+			resolve(null)
+		})
+	}))
+})//express.static(path.join(process.cwd(), '/files/public')))
+
+// TODO only for testing, remove
+app.use('/api/test-download-base64', async (_req, res) => {
+	const fullFilePath = 'files/private/swimming-logged-user/file-1654531467171.jpeg'
+	await downloadFileFromBucket(fullFilePath)
+	const base64File = await readFile(fullFilePath, { encoding: 'base64' });
+	res.json({base64: base64File})
+})
+
 app.use('/logtest', (req, res) => {
 	console.log(req.body)
 	res.send('ok')
