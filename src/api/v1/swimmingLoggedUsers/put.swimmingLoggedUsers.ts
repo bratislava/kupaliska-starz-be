@@ -29,9 +29,11 @@ export const workflow = async (
 			const oid = await azureGetAzureId(req)
 			if (oid) {
 				const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
+					attributes: ['id', 'externalId', 'age', 'zip'],
 					where: {
 						externalId: { [Op.eq]: oid },
 					},
+					include: [{ association: 'image' }],
 				})
 
 				if (!swimmingLoggedUser) {
@@ -40,17 +42,6 @@ export const workflow = async (
 
 				let transaction: any = null
 				transaction = await sequelize.transaction()
-
-				const image = await uploadImage(
-					req,
-					body.image,
-					swimmingLoggedUser.id,
-					SwimmingLoggedUserModel.name,
-					swimmingLoggedUserUploadFolder,
-					transaction
-				)
-				swimmingLoggedUser.image = image
-
 				await swimmingLoggedUser.update(
 					{
 						age: body.age,
@@ -59,7 +50,22 @@ export const workflow = async (
 					{ transaction }
 				)
 
+				await uploadImage(
+					req,
+					body.image,
+					swimmingLoggedUser.id,
+					SwimmingLoggedUserModel.name,
+					swimmingLoggedUserUploadFolder,
+					transaction,
+					swimmingLoggedUser.image
+						? swimmingLoggedUser.image.id
+						: undefined
+				)
+
 				await transaction.commit()
+				await swimmingLoggedUser.reload({
+					include: [{ association: 'image' }],
+				})
 				transaction = null
 				return res.json({
 					data: {
@@ -71,7 +77,7 @@ export const workflow = async (
 						{
 							type: MESSAGE_TYPE.SUCCESS,
 							message: req.t(
-								'success:loggedSwimmer.associatedSwimmer.updated'
+								'success:loggedSwimmer.swimmingLoggedUsers.updated'
 							),
 						},
 					],
