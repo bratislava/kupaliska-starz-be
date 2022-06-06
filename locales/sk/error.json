@@ -21,6 +21,7 @@
 	"checkDiscoundCodeNotAllowed": "Dry run nemôže kontrolovať zľavový kód",
 	"emailIsEmpty": "Nonregisterd user need to have email",
 	"ticket": {
+		"agreementMissing": "Agreement missing",
 		"minmumIsOneAdult": "Minimálne jeden dospelácky",
 		"checkoutAfterAllowedTime": "Výstup vykonaný po čase povoleného pobytu",
 		"checkoutTicketDurationExpired": "Výstup vykonaný po uplynutí času pobytu",
@@ -39,7 +40,9 @@
 		"photoRequired": "Fotka je povinná",
 		"seasonTicketMustHaveOneQuantity": "Pre zvolený typ lístka nie je možné kúpiť viac kusov",
 		"ticketDurationExpired": "Vyčerpaný čas pobytu na dnešný deň",
-		"ticketHasExpired": "Lístok nie je možné kúpiť po jeho expirácii"
+		"ticketHasExpired": "Lístok nie je možné kúpiť po jeho expirácii",
+		"maxtTicketsPerOrder": "Maximálny počet lístkov na objednávke je 10",
+		"notLoggedUserForTicket": "Pre kúpu tohoto lístku musíte byť prihlásený"
 	},
 	"ticketNotFound": "Lístok sa nenašiel",
 	"ticketTypeNotFound": "Typ lístka sa nenašiel",
