@@ -42,7 +42,8 @@
 		"ticketDurationExpired": "Vyčerpaný čas pobytu na dnešný deň",
 		"ticketHasExpired": "Lístok nie je možné kúpiť po jeho expirácii",
 		"maxtTicketsPerOrder": "Maximálny počet lístkov na objednávke je 10",
-		"notLoggedUserForTicket": "Pre kúpu tohoto lístku musíte byť prihlásený"
+		"notLoggedUserForTicket": "Pre kúpu tohoto lístku musíte byť prihlásený",
+		"notFoundTicketType": "Typ lístka nenájdený"
 	},
 	"ticketNotFound": "Lístok sa nenašiel",
 	"ticketTypeNotFound": "Typ lístka sa nenašiel",

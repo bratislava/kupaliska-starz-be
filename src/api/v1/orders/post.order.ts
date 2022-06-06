@@ -128,13 +128,18 @@ export const workflow = async (
 		await transaction.commit();
 		transaction = null;
 
-		const ticketType = await TicketType.findOne({where: {id: body.ticketTypeId}})
-		
-		// check ticket type and logged user
-		if (ticketType.nameRequired === true && !authTest) {
-			throw new ErrorBuilder(400, req.t("error:ticket.notLoggedUserForTicket"));
+		const ticketType = await TicketType.findByPk(body.ticketTypeId)
+
+		if (!ticketType) {
+			throw new ErrorBuilder(404, req.t("error:ticket.notFoundTicketType"));
 		}
 
+		// check ticket type and logged user
+		if (ticketType.nameRequired && !authTest) {
+			throw new ErrorBuilder(400, req.t("error:ticket.notLoggedUserForTicket"));
+		}
+		
+		
 		const pricing = await priceDryRun(
 			req,
 			ticketType,
@@ -145,14 +150,13 @@ export const workflow = async (
 		const orderPrice = pricing.orderPrice;
 		const discount = pricing.discount;
 		const discountCode = pricing.discountCode;
-
+		
 		await order.update(
 			{
 				price: orderPrice,
 				discount: discountCode ? discount : 0,
 				discountCodeId: discountCode ? discountCode.id : undefined,
-			},
-			{ transaction }
+			}
 		);
 
 		if (discountCode && discountCode.amount === 100) {
@@ -175,7 +179,7 @@ export const workflow = async (
 
 			await transaction.commit();
 			transaction = null;
-
+			
 			const orderResult = await Order.findOne({
 				where: {
 					orderNumber: {
@@ -201,7 +205,7 @@ export const workflow = async (
 					},
 				],
 			});
-
+			
 			await sendOrderEmail(req, orderResult);
 
 			return res.json({
@@ -222,12 +226,9 @@ export const workflow = async (
 				],
 			});
 		}
-
+		
 		const paymentData = await createPayment(order, transaction);
-
-		await transaction.commit();
-		transaction = null;
-
+		
 		return res.json({
 			data: {
 				id: order.id,
