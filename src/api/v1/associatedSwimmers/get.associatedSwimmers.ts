@@ -92,6 +92,20 @@ export const workflow = async (
 							[Op.eq]: swimmingLoggedUser.id,
 						},
 					},
+					include: [
+						{
+							association: 'image',
+							attributes: [
+								'id',
+								'name',
+								'originalPath',
+								'mimeType',
+								'size',
+								'relatedId',
+								'relatedType',
+							],
+						},
+					],
 				})
 
 				return res.json({

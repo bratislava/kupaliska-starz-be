@@ -114,5 +114,12 @@ export default (sequelize: Sequelize) => {
 		})
 	}
 
+	FileModel.associate = (models) => {
+		FileModel.belongsTo(models.AssociatedSwimmer, {
+			foreignKey: 'relatedId',
+			constraints: false,
+		})
+	}
+
 	return FileModel
 }
