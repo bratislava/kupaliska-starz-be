@@ -86,14 +86,12 @@ describe('[POST] /api/v1/orders', () => {
 				.send({
 					tickets: [
 						{
-							quantity: 1,
-							ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe02',
-							name: 'Jozef Mak',
 							age: 150,
 							zip: '03251',
-							email: faker.internet.email(),
 						}
 					],
+					email: faker.internet.email(),
+					ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe02',
 					agreement: true,
 					recaptcha: 'recaptcha123'
 				})
@@ -122,107 +120,18 @@ describe('[POST] /api/v1/orders', () => {
 				.send({
 					tickets: [
 						{
-							quantity: 1,
-							ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe03',
-							age: 18,
+							age: 150,
 							zip: '03251',
-							email: faker.internet.email(),
 						}
 					],
+					email: faker.internet.email(),
+					ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe02',
 					agreement: true,
 					recaptcha: 'recaptcha123'
 				})
 			expect(response.status).toBe(200)
 		})
 
-		it('Max number of the tickets exceeded', async () => {
-			const response = await request.post(endpoint)
-				.set('Content-Type', 'application/json')
-				.send({
-					tickets: [
-						{
-							quantity: Number(appConfig.maxTicketPurchaseLimit) + 1,
-							ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe03',
-							age: 18,
-							zip: '03251',
-							email: faker.internet.email(),
-						}
-					]
-				})
-			expect(response.status).toBe(400)
-			expect(response.body.messages[0].path).toBe('body.tickets.0.quantity')
-		})
-
-		it('Seasonal ticket`s quantity should be 1', async () => {
-			const response = await request.post(endpoint)
-				.set('Content-Type', 'application/json')
-				.send({
-					tickets: [
-						{
-							quantity: 2,
-							ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe03',
-							age: 18,
-							name: 'Jozko Mak',
-							zip: '03251',
-							email: faker.internet.email(),
-						}
-					],
-					agreement: true,
-					recaptcha: 'recaptcha123'
-				})
-			expect(response.status).toBe(400)
-			expect(schema.validate(response.body).error).toBeUndefined()
-			expect(response.body.messages[0].path).toBe('seasonTicketMustHaveOneQuantity')
-		})
-
-		it('Children are not allowed (dependent on the ticket type)', async () => {
-			const response = await request.post(endpoint)
-				.set('Content-Type', 'application/json')
-				.send({
-					tickets: [
-						{
-							quantity: 1,
-							ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe03',
-							age: 18,
-							zip: '03251',
-							email: faker.internet.email(),
-							children: [{ name: 'Majka', age: 15 }]
-						}
-					],
-					agreement: true,
-					recaptcha: 'recaptcha123'
-				})
-			expect(response.status).toBe(400)
-			expect(schema.validate(response.body).error).toBeUndefined()
-			expect(response.body.messages[0].path).toBe('childrenAreNotAllowed')
-
-		})
-
-		it('Max number of the children exceeded (dependent on the ticket type)', async () => {
-			const response = await request.post(endpoint)
-				.set('Content-Type', 'application/json')
-				.send({
-					tickets: [
-						{
-							quantity: 1,
-							ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe04',
-							age: 18,
-							zip: '03251',
-							email: faker.internet.email(),
-							children: [
-								{ name: 'Majka', age: 15 },
-								{ name: 'Jozko', age: 15 },
-								{ name: 'Mirka', age: 15 },
-							]
-						}
-					],
-					agreement: true,
-					recaptcha: 'recaptcha123'
-				})
-			expect(response.status).toBe(400)
-			expect(schema.validate(response.body).error).toBeUndefined()
-			expect(response.body.messages[0].path).toBe('numberOfChildrenExceeded')
-		})
 
 		it('Agreement must be true', async () => {
 			const response = await request.post(endpoint)
@@ -230,51 +139,17 @@ describe('[POST] /api/v1/orders', () => {
 				.send({
 					tickets: [
 						{
-							quantity: 1,
-							ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe03',
-							age: 18,
+							age: 150,
 							zip: '03251',
-							email: faker.internet.email(),
 						}
 					],
-					agreement: false,
+					email: faker.internet.email(),
+					ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe02',
+					agreement: true,
 					recaptcha: 'recaptcha123'
 				})
 			expect(response.status).toBe(400)
 			expect(response.body.messages[0].path).toBe('body.agreement')
-		})
-
-		each([ // age, valid(true/false)
-			[2, false],
-			[18, false],
-			[100, false],
-			[3, true],
-			[17, true],
-			[10, true],
-		]).it("Children`s age must be in the range when the input is '%s' (dependent on the ticket type)", async (age, expected) => {
-			let response = await request.post(endpoint)
-				.set('Content-Type', 'application/json')
-				.send({
-					tickets: [
-						{
-							quantity: 1,
-							ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe04',
-							age: 18,
-							zip: '03251',
-							email: faker.internet.email(),
-							children: [
-								{ name: 'Majka', age: age },
-							]
-						}
-					],
-					agreement: true,
-					recaptcha: 'recaptcha123'
-				})
-
-			expect(response.status).toBe(expected === true ? 200 : 400)
-			if (expected === false) {
-				expect(response.body.messages[0].path).toBe('childrenHasInvalidAge')
-			}
 		})
 
 		it('User cannot buy a ticket after its expiration (dependent on the ticket type)', async () => {
@@ -283,13 +158,12 @@ describe('[POST] /api/v1/orders', () => {
 				.send({
 					tickets: [
 						{
-							quantity: 1,
-							ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe05',
-							age: 18,
+							age: 150,
 							zip: '03251',
-							email: faker.internet.email(),
 						}
 					],
+					email: faker.internet.email(),
+					ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe05',
 					agreement: true,
 					recaptcha: 'recaptcha123'
 				})
@@ -300,98 +174,9 @@ describe('[POST] /api/v1/orders', () => {
 		})
 	})
 
-	describe('files validation tests', () => {
-
-		beforeEach(async () => {
-			await clearAllFiles()
-		})
-		it('Files shoud be successfully uploaded to the private/profile-photos', async () => {
-
-			const files = await readdir(path.join(appConfig.filesPath, 'private/profile-photos'))
-
-			const response = await request.post(endpoint)
-				.set('Content-Type', 'application/json')
-				.send({
-					tickets: [
-						{
-							quantity: 1,
-							ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe07',
-							age: 18,
-							zip: '03251',
-							email: faker.internet.email(),
-							photo: "data:image/jpeg;base64,asda"
-						}
-					],
-					agreement: true,
-					recaptcha: 'recaptcha123'
-				})
-			expect(response.status).toBe(200)
-			const newFiles = await readdir(path.join(appConfig.filesPath, 'private/profile-photos'))
-			expect(newFiles.length).toBe(files.length + 1)
-
-		})
-	})
+	
 
 	describe('business logic tests', () => {
-
-		it('Should have correct price (Ticket with children)', async () => {
-
-			const response = await request.post(endpoint)
-				.set('Content-Type', 'application/json')
-				.send({
-					tickets: [
-						{
-							quantity: 1,
-							ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe04',
-							age: 18,
-							zip: '03251',
-							email: faker.internet.email(),
-							children: [
-								{ name: 'Majka', age: 10 },
-								{ name: 'Michal', age: 10 },
-							]
-						}
-					],
-					agreement: true,
-					recaptcha: 'recaptcha123'
-				})
-			expect(response.status).toBe(200)
-			const order = await OrderModel.findByPk(response.body.data.id, { include: { association: 'tickets' } })
-			expect(order.price).toStrictEqual(22)
-			expect(order.tickets[0].price).toStrictEqual(20)
-		})
-
-		it('Should have correct price (Ticket with quantity)', async () => {
-
-			const response = await request.post(endpoint)
-				.set('Content-Type', 'application/json')
-				.send({
-					tickets: [
-						{
-							quantity: 4,
-							ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe06',
-							age: 18,
-							zip: '03251',
-							email: faker.internet.email(),
-						}
-					],
-					agreement: true,
-					recaptcha: 'recaptcha123'
-				})
-			expect(response.status).toBe(200)
-			const order = await OrderModel.findByPk(response.body.data.id, {
-				include: [
-					{ association: 'tickets' },
-					{ association: 'paymentOrder' },
-				]
-			})
-			expect(order.price).toStrictEqual(159.96)
-			order.tickets.forEach((ticket: any) => {
-				expect(ticket.price).toStrictEqual(39.99)
-			})
-			expect(order.paymentOrder.paymentAmount).toBe(159.96)
-			expect(response.body.data.data.AMOUNT).toStrictEqual(15996)
-		})
 
 		it('Order should have correct state', async () => {
 
@@ -400,13 +185,12 @@ describe('[POST] /api/v1/orders', () => {
 				.send({
 					tickets: [
 						{
-							quantity: 1,
-							ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe06',
-							age: 18,
+							age: 150,
 							zip: '03251',
-							email: faker.internet.email(),
 						}
 					],
+					email: faker.internet.email(),
+					ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe05',
 					agreement: true,
 					recaptcha: 'recaptcha123'
 				})
@@ -455,13 +239,12 @@ describe('[POST] /api/v1/orders', () => {
 				.send({
 					tickets: [
 						{
-							quantity: 4,
-							ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe06',
-							age: 18,
+							age: 150,
 							zip: '03251',
-							email: faker.internet.email()
 						}
 					],
+					email: faker.internet.email(),
+					ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe06',
 					discountCode: discountCode,
 					agreement: true,
 					recaptcha: 'recaptcha123'
