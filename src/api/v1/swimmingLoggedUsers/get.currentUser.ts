@@ -70,6 +70,20 @@ export const workflow = async (
 					where: {
 						externalId: { [Op.eq]: oid },
 					},
+					include: [
+						{
+							association: 'image',
+							attributes: [
+								'id',
+								'name',
+								'originalPath',
+								'mimeType',
+								'size',
+								'relatedId',
+								'relatedType',
+							],
+						},
+					],
 				})
 
 				return res.json({
