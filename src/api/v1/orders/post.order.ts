@@ -39,7 +39,7 @@ export const schema = Joi.object({
 			.items({
 				personId: Joi.string().guid({ version: ["uuidv4"] }).allow(null),
 				age: Joi.number().min(0).max(150).allow(null),
-				zip: Joi.string().max(10).allow(null),
+				zip: Joi.string().min(0).max(10).allow(null, ''),
 			}),
 		email: Joi.string().email().max(255),
 		ticketTypeId: Joi.string().guid({ version: ["uuidv4"] }).required(),
@@ -121,11 +121,11 @@ export const workflow = async (
 			throw new ErrorBuilder(400, req.t("error:ticket.maxtTicketsPerOrder"));
 		}
 
-
 		const order = await Order.create(
 			{
 				price: 0,
 				state: ORDER_STATE.CREATED,
+				orderNumber: (new Date("July 21, 1983 01:15:00:526")).getTime()
 			}
 		);
 
@@ -336,7 +336,7 @@ const priceDryRun = async(
 			);
 		} else {
 			const priceWithDiscount = 
-			Math.floor(ticketsPrice * (100 - body.discountPercent) ) /
+			Math.floor(ticketsPrice * (100 - (body.discountPercent| 0)) ) /
 			100;
 			totals.newTicketsPrice = priceWithDiscount;
 			totals.discount = ticketsPrice - priceWithDiscount;
