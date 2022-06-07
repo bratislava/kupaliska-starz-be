@@ -24,7 +24,7 @@ export const test = {
 		minifyAliases: false,
 		logging: false,
 		pool: {
-			max: 4
+			max: 10
 		},
 		dialect: 'postgres'
 	}
@@ -36,7 +36,7 @@ export const production = {
 		minifyAliases: false,
 		logging: false,
 		pool: {
-			max: 4
+			max: 20
 		},
 		dialect: 'postgres'
 	},

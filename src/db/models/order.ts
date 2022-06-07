@@ -87,7 +87,6 @@ export default (sequelize: Sequelize) => {
 		},
 		orderNumber: {
 			type: DataTypes.BIGINT,
-			autoIncrement: true,
 			allowNull: false,
 			unique: true
 		},
