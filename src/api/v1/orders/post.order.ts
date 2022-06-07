@@ -37,9 +37,9 @@ export const schema = Joi.object({
 		tickets: Joi.array()
 			.required()
 			.items({
-				personId: Joi.string().guid({ version: ["uuidv4"] }),
+				personId: Joi.string().guid({ version: ["uuidv4"] }).allow(null),
 				age: Joi.number().min(0).max(150).allow(null),
-				zip: Joi.string().max(10).allow(null),
+				zip: Joi.string().min(0).max(10).allow(null, ''),
 			}),
 		email: Joi.string().email().max(255),
 		ticketTypeId: Joi.string().guid({ version: ["uuidv4"] }).required(),
@@ -59,8 +59,15 @@ export const workflowDryRun = async (
 ) => { 
 	try {
 		const { body } = req;
-		const ticketType = await TicketType.findOne({where: {id: body.ticketTypeId}})
+		
+		const ticketType = await TicketType.findByPk(body.ticketTypeId)
+
+		if (!ticketType) {
+			throw new ErrorBuilder(404, req.t("error:ticket.notFoundTicketType"));
+		}
+
 		const loggedUser = await azureGetAzureData(req)
+
 		const pricing = await priceDryRun(
 			req,
 			ticketType,
@@ -89,7 +96,6 @@ export const workflow = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	let transaction: any = null;
 	try {
 		let authTest = false
 		try {
@@ -115,18 +121,14 @@ export const workflow = async (
 		if (body.tickets.length > 10 ) {
 			throw new ErrorBuilder(400, req.t("error:ticket.maxtTicketsPerOrder"));
 		}
-
-		transaction = await sequelize.transaction();
-
+		
 		const order = await Order.create(
 			{
 				price: 0,
 				state: ORDER_STATE.CREATED,
-			},
-			{ transaction }
+				orderNumber: (new Date()).getTime()
+			}
 		);
-		await transaction.commit();
-		transaction = null;
 
 		const ticketType = await TicketType.findByPk(body.ticketTypeId)
 
@@ -163,8 +165,7 @@ export const workflow = async (
 			await order.update(
 				{
 					state: ORDER_STATE.PAID,
-				},
-				{ transaction }
+				}
 			);
 
 			const orderAccessToken = await createJwt(
@@ -176,9 +177,6 @@ export const workflow = async (
 					expiresIn: passportConfig.jwt.orderResponse.exp,
 				}
 			);
-
-			await transaction.commit();
-			transaction = null;
 			
 			const orderResult = await Order.findOne({
 				where: {
@@ -227,7 +225,7 @@ export const workflow = async (
 			});
 		}
 		
-		const paymentData = await createPayment(order, transaction);
+		const paymentData = await createPayment(order);
 		
 		return res.json({
 			data: {
@@ -242,9 +240,6 @@ export const workflow = async (
 			],
 		});
 	} catch (err) {
-		if (transaction) {
-			await transaction.rollback();
-		}
 		return next(err);
 	}
 };
@@ -257,8 +252,6 @@ const priceDryRun = async(
 	dryRun: boolean,
 	orderId: string,
 ) => {
-	let transaction: any = null;
-	transaction = await sequelize.transaction();
 	const { body } = req;
 	let orderPrice = 0;
 	let discount = 0;
@@ -271,7 +264,7 @@ const priceDryRun = async(
 	let numberOfChildren = 0;
 	for (const ticket of body.tickets) {
 		const user = await getUser(req, ticket, loggedUser, dryRun);
-		if (ticketType.childrenAllowed && user.age && user.age >= ticketType.childrenAgeFrom && ticketType.childrenAgeTo){
+		if (ticketType.childrenAllowed && user.age && user.age >= ticketType.childrenAgeFrom && user.age <= ticketType.childrenAgeTo){
 			numberOfChildren += 1;
 		}
 	}
@@ -284,13 +277,9 @@ const priceDryRun = async(
 			"numberOfChildrenExceeded"
 		);
 		// minimum is one adult
-		validate(
-			true,
-			body.tickets.length,
-			Joi.number().min(numberOfChildren + 1),
-			req.t("error:ticket.minimumIsOneAdult"),
-			"minimumIsOneAdult"
-		)
+		if (! (numberOfChildren < body.tickets.length)){
+			throw new ErrorBuilder(404, req.t("error:minimumIsOneAdult"));
+		} 
 	}
 	//price computation
 	for (const ticket of body.tickets) {
@@ -331,7 +320,6 @@ const priceDryRun = async(
 			user,
 			ticketType,
 			orderId,
-			transaction,
 			dryRun,
 			isChildren,
 		);
@@ -342,17 +330,17 @@ const priceDryRun = async(
 				applyDiscount,
 				discount,
 				discountCode,
-				transaction,
 			);
 		} else {
 			const priceWithDiscount = 
-			Math.floor(ticketsPrice * (100 - body.discountPercent) ) /
+			Math.floor(ticketsPrice * (100 - (body.discountPercent| 0)) ) /
 			100;
 			totals.newTicketsPrice = priceWithDiscount;
 			totals.discount = ticketsPrice - priceWithDiscount;
 		}
 		orderPrice += totals.newTicketsPrice;
 		discount = totals.discount;
+
 	}
 	return {
 		orderPrice: orderPrice,
@@ -368,7 +356,6 @@ const saveTickets = async (
 	ticket: any,
 	ticketType: TicketTypeModel,
 	orderId: string,
-	transaction: any,
 	dryRun: boolean,
 	isChildren: boolean,
 ) => {
@@ -381,7 +368,7 @@ const saveTickets = async (
 	// 		ticketType.price +
 	// 		(ticketType.childrenPrice || 0) * numberOfChildren;
 	if (!dryRun) {
-		await createTicket(ticket, ticketType, orderId, transaction, isChildren, ticketsPrice, null);
+		await createTicket(ticket, ticketType, orderId, isChildren, ticketsPrice, null);
 	}	
 
 	return ticketsPrice;
@@ -433,7 +420,7 @@ const getUser = async(
 			zip: swimmingLoggedUser.zip,
 		}
 	} else {
-		const user = await AssociatedSwimmer.findByPk(ticket.personalId)
+		const user = await AssociatedSwimmer.findByPk(ticket.personId)
 		if (!user) {
 			throw new ErrorBuilder(
 				404,
@@ -459,7 +446,6 @@ const getDiscount = async (
 	applyDiscount: boolean,
 	discount: number,
 	discountCode: DiscountCodeModel,
-	transaction: any,
 ) => {
 	let newTicketsPrice = ticketsPrice;
 	if (applyDiscount) {
@@ -469,8 +455,7 @@ const getDiscount = async (
 		newTicketsPrice = priceWithDiscount;
 		discount = ticketsPrice - priceWithDiscount;
 		await discountCode.update(
-			{ usedAt: Sequelize.literal("CURRENT_TIMESTAMP") },
-			{ transaction }
+			{ usedAt: Sequelize.literal("CURRENT_TIMESTAMP") }
 		);
 	}
 	return { newTicketsPrice, discount };
@@ -483,7 +468,6 @@ const createTicket = async (
 	ticket: any,
 	ticketType: TicketTypeModel,
 	orderId: string,
-	transaction: any,
 	isChildren: boolean,
 	ticketPrice: number,
 	parentTicketId: null | string,
@@ -507,7 +491,6 @@ const createTicket = async (
 			},
 		},
 		{
-			transaction,
 			include: [
 				{
 					association: "profile",
@@ -523,15 +506,13 @@ const createTicket = async (
 const uploadProfilePhotos = async (
 	req: Request,
 	tickets: any,
-	transaction: any
 ) => {
 	for (const ticket of tickets) {
 		if (ticket.photo) {
 			await uploadAndCreate(
 				req,
 				ticket.photo,
-				ticket.modelIds,
-				transaction
+				ticket.modelIds
 			);
 		}
 
@@ -541,7 +522,6 @@ const uploadProfilePhotos = async (
 					req,
 					oneChildren.photo,
 					oneChildren.modelIds,
-					transaction
 				);
 			}
 		}
@@ -555,7 +535,6 @@ const uploadAndCreate = async (
 	req: Request,
 	photo: string,
 	modelIds: Array<string>,
-	transaction: any
 ) => {
 	for (const modelId of modelIds) {
 		const file = await uploadFileFromBase64(req, photo, uploadFolder);
@@ -568,8 +547,7 @@ const uploadAndCreate = async (
 				size: file.size,
 				relatedId: modelId,
 				relatedType: "profile",
-			},
-			{ transaction }
+			}
 		);
 	}
 };

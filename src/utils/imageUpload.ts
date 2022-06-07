@@ -8,13 +8,15 @@ export const uploadImage = async (
 	relatedId: string,
 	relatedType: string,
 	directory: string,
-	transaction: any
+	transaction: any,
+	id?: string
 ) => {
 	const { File } = models
 
 	const file = await uploadFileFromBase64(req, image, directory)
-	return await File.create(
+	return await File.upsert(
 		{
+			id: id ? id : undefined,
 			name: file.fileName,
 			originalPath: file.filePath,
 			mimeType: file.mimeType,

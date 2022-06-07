@@ -53,12 +53,10 @@ export const workflow = async (
 					},
 				})
 
-				const associatedSwimmer = await AssociatedSwimmer.findOne({
-					attributes: ['id', 'swimmingLoggedUserId', 'age', 'zip'],
-					where: {
-						id: { [Op.eq]: params.associatedSwimmerId },
-					},
-				})
+				const associatedSwimmer = await AssociatedSwimmer.findByPk(
+					params.associatedSwimmerId,
+					{ include: { association: 'image' } }
+				)
 				if (!associatedSwimmer) {
 					throw new ErrorBuilder(
 						404,
@@ -69,19 +67,9 @@ export const workflow = async (
 					associatedSwimmer.swimmingLoggedUserId ===
 					swimmingLoggedUser.id
 				) {
-					const image = await uploadImage(
-						req,
-						body.image,
-						associatedSwimmer.id,
-						AssociatedSwimmerModel.name,
-						associatedSwimmerUploadFolder,
-						transaction
-					)
-
-					associatedSwimmer.image = image
 					await associatedSwimmer.update(
 						{
-							surname: body.surname,
+							firstname: body.firstname,
 							lastname: body.lastname,
 							age: body.age,
 							zip: body.zip,
@@ -91,7 +79,22 @@ export const workflow = async (
 						},
 						{ transaction }
 					)
+					await uploadImage(
+						req,
+						body.image,
+						associatedSwimmer.id,
+						AssociatedSwimmerModel.name,
+						associatedSwimmerUploadFolder,
+						transaction,
+						associatedSwimmer.image
+							? associatedSwimmer.image.id
+							: undefined
+					)
+
 					await transaction.commit()
+					await associatedSwimmer.reload({
+						include: [{ association: 'image' }],
+					})
 					transaction = null
 
 					return res.json({

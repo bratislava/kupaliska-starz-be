@@ -12,6 +12,9 @@ import {
 	azureGetAzureId,
 	isAzureAutehnticated,
 } from '../../../utils/azureAuthentication'
+import { uploadImage } from '../../../utils/imageUpload'
+import { AssociatedSwimmerModel } from '../../../db/models/associatedSwimmer'
+import { associatedSwimmerUploadFolder } from './put.associatedSwimmer'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -65,14 +68,28 @@ export const workflow = async (
 					},
 				})
 
-				console.log({ body })
-
 				const associatedSwimmer = await AssociatedSwimmer.create(
 					{
-						...body,
+						firstname: body.firstname,
+						lastname: body.lastname,
+						age: body.age,
+						zip: body.zip,
 						swimmingLoggedUserId: swimmingLoggedUser.id,
 					},
 					{ transaction }
+				)
+				await transaction.commit()
+				transaction = await DB.transaction()
+				await uploadImage(
+					req,
+					body.image,
+					associatedSwimmer.id,
+					AssociatedSwimmerModel.name,
+					associatedSwimmerUploadFolder,
+					transaction,
+					associatedSwimmer.image
+						? associatedSwimmer.image.id
+						: undefined
 				)
 				await transaction.commit()
 				transaction = null
