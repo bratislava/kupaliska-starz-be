@@ -264,7 +264,7 @@ const priceDryRun = async(
 	let numberOfChildren = 0;
 	for (const ticket of body.tickets) {
 		const user = await getUser(req, ticket, loggedUser, dryRun);
-		if (ticketType.childrenAllowed && user.age && user.age >= ticketType.childrenAgeFrom && ticketType.childrenAgeTo){
+		if (ticketType.childrenAllowed && user.age && user.age >= ticketType.childrenAgeFrom && user.age <= ticketType.childrenAgeTo){
 			numberOfChildren += 1;
 		}
 	}
@@ -277,13 +277,9 @@ const priceDryRun = async(
 			"numberOfChildrenExceeded"
 		);
 		// minimum is one adult
-		validate(
-			true,
-			body.tickets.length,
-			Joi.number().min(numberOfChildren + 1),
-			req.t("error:ticket.minimumIsOneAdult"),
-			"minimumIsOneAdult"
-		)
+		if (! (numberOfChildren < body.tickets.length)){
+			throw new ErrorBuilder(404, req.t("error:minimumIsOneAdult"));
+		} 
 	}
 	//price computation
 	for (const ticket of body.tickets) {
