@@ -10,12 +10,13 @@ export async function up(queryInterface: QueryInterface) {
 
 		const table: any = await queryInterface.describeTable('orders')
 
-		if (table.orderNmuber) {
+		if (table.orderNumber) {
 			await queryInterface.changeColumn(
 				'orders',
-				'orderNmuber',
+				'orderNumber',
 				{
 					type: DataTypes.BIGINT,
+					autoIncrement: false,
 					allowNull: false,
 					unique: true
 				}
@@ -32,10 +33,11 @@ export async function up(queryInterface: QueryInterface) {
 export async function down(queryInterface: QueryInterface) {
 	const table: any = await queryInterface.describeTable('orders')
 
-	if (table.orderNmuber) {
+
+	if (table.orderNumber) {
 		await queryInterface.changeColumn(
 			'orders',
-			'orderNmuber',
+			'orderNumber',
 			{
 				type: DataTypes.BIGINT,
 				autoIncrement: true,
