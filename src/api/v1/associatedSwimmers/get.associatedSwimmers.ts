@@ -9,8 +9,8 @@ import {
 	azureGetAzureId,
 	isAzureAutehnticated,
 } from '../../../utils/azureAuthentication'
-import { SwimmingLoggedUserModel } from '../../../db/models/swimmingLoggedUser'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
+import { getDataAboutCurrentUser } from '../../../utils/getDataCurrentUser'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -30,8 +30,6 @@ import ErrorBuilder from '../../../utils/ErrorBuilder'
 // 	}),
 // 	params: Joi.object(),
 // })
-
-const { SwimmingLoggedUser } = models
 
 export const schema = Joi.object()
 
@@ -59,20 +57,7 @@ export const workflow = async (
 		if (isAzureAutehnticated(req)) {
 			const oid = await azureGetAzureId(req)
 			if (oid) {
-				const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
-					attributes: [
-						'id',
-						'externalId',
-						'age',
-						'zip',
-						'createdAt',
-						'updatedAt',
-						'deletedAt',
-					],
-					where: {
-						externalId: { [Op.eq]: oid },
-					},
-				})
+				const swimmingLoggedUser = await getDataAboutCurrentUser(req)
 
 				const associatedSwimmer = await AssociatedSwimmer.findAll({
 					attributes: [

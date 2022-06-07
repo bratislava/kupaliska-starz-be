@@ -1,13 +1,9 @@
 import Joi from 'joi'
 import { Request, Response, NextFunction } from 'express'
-import { Transaction } from 'sequelize'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import DB, { models } from '../../../db/models'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
-import {
-	azureGetAzureData,
-	isAzureAutehnticated,
-} from '../../../utils/azureAuthentication'
+import { isAzureAutehnticated } from '../../../utils/azureAuthentication'
 import { getDataAboutCurrentUser } from '../../../utils/getDataCurrentUser'
 
 const { AssociatedSwimmer } = models

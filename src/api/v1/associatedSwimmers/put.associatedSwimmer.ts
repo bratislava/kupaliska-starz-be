@@ -15,6 +15,7 @@ import {
 import { uploadImage } from '../../../utils/imageUpload'
 import { AssociatedSwimmerModel } from '../../../db/models/associatedSwimmer'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
+import { getDataAboutCurrentUser } from '../../../utils/getDataCurrentUser'
 
 export const associatedSwimmerUploadFolder = 'private/associated-swimmer'
 
@@ -22,7 +23,7 @@ export const associatedSwimmerUploadFolder = 'private/associated-swimmer'
 
 export const schema = Joi.object()
 
-const { AssociatedSwimmer, SwimmingLoggedUser } = models
+const { AssociatedSwimmer } = models
 
 export const workflow = async (
 	req: Request,
@@ -38,20 +39,7 @@ export const workflow = async (
 		if (isAzureAutehnticated(req)) {
 			const oid = await azureGetAzureId(req)
 			if (oid) {
-				const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
-					attributes: [
-						'id',
-						'externalId',
-						'age',
-						'zip',
-						'createdAt',
-						'updatedAt',
-						'deletedAt',
-					],
-					where: {
-						externalId: { [Op.eq]: oid },
-					},
-				})
+				const swimmingLoggedUser = await getDataAboutCurrentUser(req)
 
 				const associatedSwimmer = await AssociatedSwimmer.findByPk(
 					params.associatedSwimmerId,
