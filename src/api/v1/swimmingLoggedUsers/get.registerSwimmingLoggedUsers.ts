@@ -47,17 +47,16 @@ export const workflow = async (
 					console.log(
 						`SwimmingLoggedUser with externalId: ${oid} created`
 					)
+					return res.json(
+						`SwimmingLoggedUser with externalId: ${oid} created`
+					)
 				} else {
 					console.log('SwimmingLoggedUser already exists!')
-					throw new ErrorBuilder(
-						409,
-						req.t('error:register.userExists')
-					)
+					return res.json(req.t('error:register.userExists'))
 				}
 			}
 		}
-
-		return res.json(null)
+		throw new ErrorBuilder(401, req.t('error:register.userExists'))
 	} catch (err) {
 		return next(err)
 	}
