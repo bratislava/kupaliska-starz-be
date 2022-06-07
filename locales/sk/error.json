@@ -49,6 +49,7 @@
 	},
 	"ticketNotFound": "Lístok sa nenašiel",
 	"ticketTypeNotFound": "Typ lístka sa nenašiel",
+	"notAuthenticated": "Použivateľ nie je autentifikovaný",
 	"tokenExpired": "Authorizačný token expiroval",
 	"uploadFileTooLarge": "Súbor je príliš veľký. Môžete nahrať max. 20 MB.",
 	"uploadIncorrectSubdir": "Nie je možné nahrať súbor, cieľový adresár neexistuje",

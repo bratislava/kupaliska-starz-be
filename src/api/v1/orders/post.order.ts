@@ -154,7 +154,6 @@ export const workflow = async (
 			throw new ErrorBuilder(400, req.t("error:ticket.notLoggedUserForTicket"));
 		}
 		
-		
 		const pricing = await priceDryRun(
 			req,
 			ticketType,
@@ -348,10 +347,12 @@ const priceDryRun = async(
 			const priceWithDiscount = 
 			Math.floor(ticketsPrice * (100 - (body.discountPercent| 0)) ) /
 			100;
+			console.log(priceWithDiscount)
 			totals.newTicketsPrice = priceWithDiscount;
-			totals.discount = ticketsPrice - priceWithDiscount;
+			totals.discount += ticketsPrice - priceWithDiscount;
 		}
 		orderPrice += totals.newTicketsPrice;
+		console.log(orderPrice)
 		discount = totals.discount;
 
 	}
@@ -495,6 +496,8 @@ const createTicket = async (
 			price: ticketPrice,
 			parentTicketId: parentTicketId,
 			remainingEntries: ticketType.entriesNumber,
+			loggedUserId: ticket.loggedUserId,
+			associatedSwimmerId: ticket.associatedSwimmerId,
 			profile: {
 				id: profileId,
 				email: ticket.email,
