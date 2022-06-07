@@ -3,6 +3,8 @@ import { Client } from 'minio'
 
 export const minioClient = new Client({
 	endPoint: 'cdn-api.bratislava.sk',
+	port: 443,
+	useSSL: true,
 	// TODO these are mine (@mpinter), freshly generated credentials - ok to use, but should ultimately be removed from code & disabled in admin console
 	// this should be replaced by MINIO_ACCESS_KEY and MINIO_SECRET_KEY, which both exist as secrets in all of our kbs envs
 	accessKey: 'kyUXBuyU4fV2zEoQ',
