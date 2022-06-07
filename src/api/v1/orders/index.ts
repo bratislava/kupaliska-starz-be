@@ -3,6 +3,7 @@ import * as PostOrder from './post.order'
 import * as GetDiscountCode from './get.discountCode'
 import * as GetSuccessfulOrder from './get.successfulOrder'
 import * as GetPostPaymentResponse from './get.post.paymentResponse'
+import * as GetLoggedUserTickets from './get.loggedUserTickets'
 import passport from 'passport'
 import schemaMiddleware from '../../../middlewares/schemaMiddleware'
 import recaptchaMiddleware from '../../../middlewares/recaptchaMiddleware'
@@ -19,6 +20,8 @@ export default () => {
 		// recaptchaMiddleware,
 		schemaMiddleware(PostOrder.schema),
 		PostOrder.workflow)
+
+	router.get('/tickets', GetLoggedUserTickets.workflow)
 	
 	router.post('/getPrice',
 		schemaMiddleware(PostOrder.schema),

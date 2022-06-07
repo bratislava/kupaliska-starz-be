@@ -129,6 +129,16 @@ export default (sequelize: Sequelize) => {
 			allowNull: false,
 			defaultValue: false
 		},
+		loggedUserId: {
+			type: DataTypes.UUID,
+			allowNull: true,
+			defaultValue: null
+		},
+		associatedSwimmerId: {
+			type: DataTypes.UUID,
+			allowNull: true,
+			defaultValue: null
+		},
 		remainingEntries: {
 			type: DataTypes.SMALLINT,
 			allowNull: true
