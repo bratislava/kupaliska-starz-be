@@ -67,6 +67,7 @@ export const workflowDryRun = async (
 		}
 
 		const loggedUser = await azureGetAzureData(req)
+
 		const pricing = await priceDryRun(
 			req,
 			ticketType,
@@ -120,12 +121,12 @@ export const workflow = async (
 		if (body.tickets.length > 10 ) {
 			throw new ErrorBuilder(400, req.t("error:ticket.maxtTicketsPerOrder"));
 		}
-
+		
 		const order = await Order.create(
 			{
 				price: 0,
 				state: ORDER_STATE.CREATED,
-				orderNumber: (new Date("July 21, 1983 01:15:00:526")).getTime()
+				orderNumber: (new Date()).getTime()
 			}
 		);
 
@@ -423,7 +424,7 @@ const getUser = async(
 			zip: swimmingLoggedUser.zip,
 		}
 	} else {
-		const user = await AssociatedSwimmer.findByPk(ticket.personalId)
+		const user = await AssociatedSwimmer.findByPk(ticket.personId)
 		if (!user) {
 			throw new ErrorBuilder(
 				404,
