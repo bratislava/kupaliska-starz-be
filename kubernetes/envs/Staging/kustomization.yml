@@ -1,6 +1,9 @@
 resources:
   - ../../base
 
+patchesStrategicMerge:
+  - ../../base/secrets/app.staging.secret.yml
+
 configMapGenerator:
 - name: env
   behavior: merge
