@@ -43,7 +43,8 @@
 		"ticketHasExpired": "Lístok nie je možné kúpiť po jeho expirácii",
 		"maxtTicketsPerOrder": "Maximálny počet lístkov na objednávke je 10",
 		"notLoggedUserForTicket": "Pre kúpu tohoto lístku musíte byť prihlásený",
-		"notFoundTicketType": "Typ lístka nenájdený"
+		"notFoundTicketType": "Typ lístka nenájdený",
+		"minimumIsOneAdult": "Musí byť aspoň 1 dospelácky"
 	},
 	"ticketNotFound": "Lístok sa nenašiel",
 	"ticketTypeNotFound": "Typ lístka sa nenašiel",
