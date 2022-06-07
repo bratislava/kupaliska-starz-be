@@ -37,7 +37,7 @@ export const schema = Joi.object({
 		tickets: Joi.array()
 			.required()
 			.items({
-				personId: Joi.string().guid({ version: ["uuidv4"] }).allow(null),
+				personId: Joi.string().allow(null),
 				age: Joi.number().min(0).max(150).allow(null),
 				zip: Joi.string().min(0).max(10).allow(null, ''),
 			}),
@@ -66,7 +66,19 @@ export const workflowDryRun = async (
 			throw new ErrorBuilder(404, req.t("error:ticket.notFoundTicketType"));
 		}
 
-		const loggedUser = await azureGetAzureData(req)
+		let authTest = false
+		try {
+			authTest = await isAzureAutehnticated(req)
+		} catch(err) {
+			console.log('bad token')
+		}
+
+		let loggedUser = null;
+
+		if (authTest) {
+			loggedUser = await azureGetAzureData(req);
+		}
+		
 
 		const pricing = await priceDryRun(
 			req,
@@ -105,8 +117,9 @@ export const workflow = async (
 		}
 
 		let loggedUser = null;
+
 		if (authTest) {
-			const loggedUser = await azureGetAzureData(req);
+			loggedUser = await azureGetAzureData(req);
 		}
 		
 		const { body } = req;
@@ -285,7 +298,7 @@ const priceDryRun = async(
 	for (const ticket of body.tickets) {
 		const user = await getUser(req, ticket, loggedUser, dryRun);
 		let isChildren = false;
-		if (user.age && user.age >= ticketType.childrenAgeFrom && ticketType.childrenAgeTo){
+		if (user.age && user.age >= ticketType.childrenAgeFrom && user.age <= ticketType.childrenAgeTo){
 			isChildren = true;
 		}
 
@@ -343,8 +356,8 @@ const priceDryRun = async(
 
 	}
 	return {
-		orderPrice: orderPrice,
-		discount: discount,
+		orderPrice: Math.floor(orderPrice * 100) / 100,
+		discount: Math.floor(discount * 100) / 100,
 		discountCode: discountCode,
 		numberOfChildren: numberOfChildren,
 	}
