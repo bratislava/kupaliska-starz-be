@@ -2,6 +2,7 @@
 
 import { models } from '../db/models'
 import { azureGetAzureId } from './azureAuthentication'
+import { Op } from 'sequelize'
 
 const { SwimmingLoggedUser } = models
 
