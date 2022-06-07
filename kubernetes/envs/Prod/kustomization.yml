@@ -1,8 +1,7 @@
 resources:
   - ../../base
-
-patchesStrategicMerge:
   - ../../base/secrets/app.prod.secret.yml
+
 
 configMapGenerator:
 - name: env

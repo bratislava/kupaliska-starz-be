@@ -1,7 +1,5 @@
 resources:
   - ../../base
-
-patchesStrategicMerge:
   - ../../base/secrets/app.staging.secret.yml
 
 configMapGenerator:
