@@ -10,6 +10,7 @@ import {
 	azureGetAzureId,
 	isAzureAutehnticated,
 } from '../../../utils/azureAuthentication'
+import ErrorBuilder from '../../../utils/ErrorBuilder'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -97,6 +98,8 @@ export const workflow = async (
 					// },
 				})
 			}
+		} else {
+			throw new ErrorBuilder(401, req.t('error:userNotAuthenticated'))
 		}
 	} catch (err) {
 		return next(err)

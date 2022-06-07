@@ -10,6 +10,7 @@ import {
 	isAzureAutehnticated,
 } from '../../../utils/azureAuthentication'
 import { SwimmingLoggedUserModel } from '../../../db/models/swimmingLoggedUser'
+import ErrorBuilder from '../../../utils/ErrorBuilder'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -72,7 +73,6 @@ export const workflow = async (
 						externalId: { [Op.eq]: oid },
 					},
 				})
-				console.log('swimmingLoggedUser: ', swimmingLoggedUser)
 
 				const associatedSwimmer = await AssociatedSwimmer.findAll({
 					attributes: [
@@ -120,6 +120,8 @@ export const workflow = async (
 					// },
 				})
 			}
+		} else {
+			throw new ErrorBuilder(401, req.t('error:userNotAuthenticated'))
 		}
 	} catch (err) {
 		return next(err)

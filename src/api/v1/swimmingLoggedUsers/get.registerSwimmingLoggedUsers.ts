@@ -55,8 +55,9 @@ export const workflow = async (
 					return res.json(req.t('error:register.userExists'))
 				}
 			}
+		} else {
+			throw new ErrorBuilder(401, req.t('error:userNotAuthenticated'))
 		}
-		throw new ErrorBuilder(401, req.t('error:register.userExists'))
 	} catch (err) {
 		return next(err)
 	}

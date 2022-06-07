@@ -5,6 +5,8 @@ import { map } from 'lodash'
 
 import { models } from '../../../db/models'
 import { formatSwimmingLoggedUser } from '../../../utils/formatters'
+import { isAzureAutehnticated } from '../../../utils/azureAuthentication'
+import ErrorBuilder from '../../../utils/ErrorBuilder'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -47,52 +49,58 @@ export const workflow = async (
 				[Op.iLike]: `%${query.search}%`,
 			}
 		}
+		// TODO admin should get all if authenticated user get only myself
+		if (isAzureAutehnticated(req)) {
+			const swimmingLoggedUsers = await SwimmingLoggedUser.findAll({
+				attributes: [
+					'id',
+					'externalId',
+					'age',
+					'zip',
+					'createdAt',
+					'updatedAt',
+					'deletedAt',
+				],
+				// where,
+				// limit,
+				// offset,
+				// order: [[query.order, query.direction]],
+				include: [
+					{
+						association: 'image',
+						attributes: [
+							'id',
+							'name',
+							'originalPath',
+							'mimeType',
+							'size',
+							'relatedId',
+							'relatedType',
+						],
+					},
+				],
+			})
 
-		const swimmingLoggedUsers = await SwimmingLoggedUser.findAll({
-			attributes: [
-				'id',
-				'externalId',
-				'age',
-				'zip',
-				'createdAt',
-				'updatedAt',
-				'deletedAt',
-			],
-			// where,
-			// limit,
-			// offset,
-			// order: [[query.order, query.direction]],
-			include: [
-				{
-					association: 'image',
-					attributes: [
-						'id',
-						'name',
-						'originalPath',
-						'mimeType',
-						'size',
-						'relatedId',
-						'relatedType',
-					],
-				},
-			],
-		})
+			// const count = await SwimmingLoggedUser.count({
+			// 	where,
+			// })
 
-		// const count = await SwimmingLoggedUser.count({
-		// 	where,
-		// })
-
-		return res.json({
-			swimmingLoggedUser: map(swimmingLoggedUsers, (swimmingLoggedUser) =>
-				formatSwimmingLoggedUser(swimmingLoggedUser)
-			),
-			// pagination: {
-			// 	page: query.page,
-			// 	limit: query.limit,
-			// 	totalPages: Math.ceil(count / limit) || 0,
-			// 	totalCount: count,
-			// },
-		})
+			return res.json({
+				swimmingLoggedUser: map(
+					swimmingLoggedUsers,
+					(swimmingLoggedUser) =>
+						formatSwimmingLoggedUser(swimmingLoggedUser)
+				),
+				// pagination: {
+				// 	page: query.page,
+				// 	limit: query.limit,
+				// 	totalPages: Math.ceil(count / limit) || 0,
+				// 	totalCount: count,
+				// },
+			})
+		} else {
+			throw new ErrorBuilder(401, req.t('error:userNotAuthenticated'))
+		}
 	} catch (err) {
 		return next(err)
 	}
