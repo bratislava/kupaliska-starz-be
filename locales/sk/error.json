@@ -61,5 +61,6 @@
 	"register": {
 		"userExists": "Používateľ už existuje"
 	},
-	"associatedSwimmerNotFound": "Pridružený plavec nenájdený"
+	"associatedSwimmerNotFound": "Pridružený plavec nenájdený",
+	"userNotAuthenticated": "Používateľ nieje autentifikovaný"
 }
