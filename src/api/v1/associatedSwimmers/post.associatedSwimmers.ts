@@ -16,6 +16,7 @@ import { uploadImage } from '../../../utils/imageUpload'
 import { AssociatedSwimmerModel } from '../../../db/models/associatedSwimmer'
 import { associatedSwimmerUploadFolder } from './put.associatedSwimmer'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
+import { getDataAboutCurrentUser } from '../../../utils/getDataCurrentUser'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -38,7 +39,7 @@ import ErrorBuilder from '../../../utils/ErrorBuilder'
 
 export const schema = Joi.object()
 
-const { AssociatedSwimmer, SwimmingLoggedUser } = models
+const { AssociatedSwimmer } = models
 
 export const workflow = async (
 	req: Request,
@@ -54,20 +55,7 @@ export const workflow = async (
 		if (isAzureAutehnticated(req)) {
 			const oid = await azureGetAzureId(req)
 			if (oid) {
-				const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
-					attributes: [
-						'id',
-						'externalId',
-						'age',
-						'zip',
-						'createdAt',
-						'updatedAt',
-						'deletedAt',
-					],
-					where: {
-						externalId: { [Op.eq]: oid },
-					},
-				})
+				const swimmingLoggedUser = await getDataAboutCurrentUser(req)
 
 				const associatedSwimmer = await AssociatedSwimmer.create(
 					{
