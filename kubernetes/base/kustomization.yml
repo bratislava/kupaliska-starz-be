@@ -7,7 +7,6 @@ resources:
   - 'service-db.yml'
   # Add any secrets here
   - ./secrets/db.secret.yml
-  - ./secrets/app.secret.yml
 configurations:
   - configuration.yml
 
