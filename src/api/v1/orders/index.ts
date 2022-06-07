@@ -17,7 +17,7 @@ export default () => {
 		GetDiscountCode.workflow)
 
 	router.post('/',
-		// recaptchaMiddleware,
+		recaptchaMiddleware,
 		schemaMiddleware(PostOrder.schema),
 		PostOrder.workflow)
 

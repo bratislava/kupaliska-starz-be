@@ -2,7 +2,7 @@ import 'dotenv/config'
 import { Options } from 'sequelize'
 
 
-const postgresqlUrl = `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:5433/${process.env.POSTGRES_DB}`
+const postgresqlUrl = `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}/${process.env.POSTGRES_DB}`
 
 export const development = {
 	url: postgresqlUrl,
