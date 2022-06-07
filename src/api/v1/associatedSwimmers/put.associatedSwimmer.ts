@@ -79,17 +79,19 @@ export const workflow = async (
 						},
 						{ transaction }
 					)
-					await uploadImage(
-						req,
-						body.image,
-						associatedSwimmer.id,
-						AssociatedSwimmerModel.name,
-						associatedSwimmerUploadFolder,
-						transaction,
-						associatedSwimmer.image
-							? associatedSwimmer.image.id
-							: undefined
-					)
+					if (body.image) {
+						await uploadImage(
+							req,
+							body.image,
+							associatedSwimmer.id,
+							AssociatedSwimmerModel.name,
+							associatedSwimmerUploadFolder,
+							transaction,
+							associatedSwimmer.image
+								? associatedSwimmer.image.id
+								: undefined
+						)
+					}
 
 					await transaction.commit()
 					await associatedSwimmer.reload({
