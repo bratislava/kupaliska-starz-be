@@ -67,6 +67,7 @@ export const workflowDryRun = async (
 		}
 
 		const loggedUser = await azureGetAzureData(req)
+
 		const pricing = await priceDryRun(
 			req,
 			ticketType,
@@ -423,7 +424,7 @@ const getUser = async(
 			zip: swimmingLoggedUser.zip,
 		}
 	} else {
-		const user = await AssociatedSwimmer.findByPk(ticket.personalId)
+		const user = await AssociatedSwimmer.findByPk(ticket.personId)
 		if (!user) {
 			throw new ErrorBuilder(
 				404,
