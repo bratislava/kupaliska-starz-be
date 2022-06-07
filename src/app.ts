@@ -33,7 +33,7 @@ import { IAppConfig, IPassportConfig } from './types/interfaces'
 import { checkPaymentKeys } from './services/webpayService'
 
 import routerAdmin from './api/admin'
-import { minioClient, downloadFileFromBucket } from './utils/minio'
+import { downloadFileFromBucket, minioStaticServeMiddleware } from './utils/minio'
 import { readFile } from 'fs/promises'
 
 const passportConfig: IPassportConfig = config.get('passport')
@@ -96,19 +96,7 @@ app.use('/api/v1', routerV1())
 app.use('/api/admin', routerAdmin())
 
 // 'staticly-serves' the entire 'files/public' portion of the kupaliska-starz bucket
-app.use('/files/public', async (req, res) => {
-	await new Promise((resolve, reject) => minioClient.getObject('kupaliska-starz', `files/public${req.url}`, (err, stream) => {
-		if (err) {
-			console.error(err)
-			return reject(err)
-		}
-		stream.on('data', (chunk: any) => res.write(chunk))
-		stream.on('end', () => {
-			res.end()
-			resolve(null)
-		})
-	}))
-})//express.static(path.join(process.cwd(), '/files/public')))
+app.use('/files/public', minioStaticServeMiddleware('/files/public'))
 
 // TODO only for testing, remove
 app.use('/api/test-download-base64', async (_req, res) => {
