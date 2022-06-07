@@ -81,6 +81,7 @@ describe(`[PATCH] ${endpoint})`, () => {
 			.send({
 				state: ORDER_STATE.CANCELED,
 				email: email,
+				orderNumber:101
 			})
 		expect(response.status).toBe(200)
 		expect(response.type).toBe('application/json')
@@ -88,5 +89,6 @@ describe(`[PATCH] ${endpoint})`, () => {
 
 		expect(response.body.data.order.state).toBe(ORDER_STATE.CANCELED)
 		expect(response.body.data.order.email).toBe(email)
+		expect(response.body.data.order.orderNumber).toBe(101)
 	})
 })
