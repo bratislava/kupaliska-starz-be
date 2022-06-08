@@ -11,6 +11,7 @@ import {
 } from '../../../utils/azureAuthentication'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { getDataAboutCurrentUser } from '../../../utils/getDataCurrentUser'
+import readAsBase64 from '../../../utils/reader'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -59,7 +60,7 @@ export const workflow = async (
 			if (oid) {
 				const swimmingLoggedUser = await getDataAboutCurrentUser(req)
 
-				const associatedSwimmer = await AssociatedSwimmer.findAll({
+				const associatedSwimmers = await AssociatedSwimmer.findAll({
 					attributes: [
 						'id',
 						'swimmingLoggedUserId',
@@ -93,10 +94,19 @@ export const workflow = async (
 					],
 				})
 
+				let associatedSwimmersWithImageBase64 = await Promise.all(
+					map(associatedSwimmers, async (associatedSwimmer) => {
+						return {
+							...formatAssociatedSwimmer(associatedSwimmer),
+							image: associatedSwimmer.image
+								? await readAsBase64(associatedSwimmer.image)
+								: null,
+						}
+					})
+				)
+
 				return res.json({
-					associatedSwimmers: map(associatedSwimmer, (loggedUser) =>
-						formatAssociatedSwimmer(loggedUser)
-					),
+					associatedSwimmers: associatedSwimmersWithImageBase64,
 					// pagination: {
 					// 	page: query.page,
 					// 	limit: query.limit,

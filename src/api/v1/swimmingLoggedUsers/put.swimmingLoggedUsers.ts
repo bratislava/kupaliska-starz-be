@@ -11,6 +11,7 @@ import { formatSwimmingLoggedUser } from '../../../utils/formatters'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import { uploadImage } from '../../../utils/imageUpload'
 import { SwimmingLoggedUserModel } from '../../../db/models/swimmingLoggedUser'
+import readAsBase64 from '../../../utils/reader'
 
 export const swimmingLoggedUserUploadFolder = 'private/swimming-logged-user'
 export const schema = Joi.object()
@@ -67,11 +68,18 @@ export const workflow = async (
 					include: [{ association: 'image' }],
 				})
 				transaction = null
+
+				let swimmingLoggedUserWithImageBase64 = {
+					...formatSwimmingLoggedUser(swimmingLoggedUser),
+					image: swimmingLoggedUser.image
+						? await readAsBase64(swimmingLoggedUser.image)
+						: null,
+				}
+
 				return res.json({
 					data: {
 						id: swimmingLoggedUser.id,
-						swimmingLoggedUser:
-							formatSwimmingLoggedUser(swimmingLoggedUser),
+						swimmingLoggedUser: swimmingLoggedUserWithImageBase64,
 					},
 					messages: [
 						{
