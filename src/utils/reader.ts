@@ -1,12 +1,12 @@
-import { FileModel } from './../db/models/file';
+import { FileModel } from './../db/models/file'
 import path from 'path'
 import config from 'config'
-import { readFile} from 'fs/promises';
+import { readFile } from 'fs/promises'
 
 import ErrorBuilder from './ErrorBuilder'
 import { IAppConfig } from '../types/interfaces'
-import i18next from 'i18next';
-import { downloadFileFromBucket } from './minio';
+import i18next from 'i18next'
+import { downloadFileFromBucket } from './minio'
 
 const appConfig: IAppConfig = config.get('app')
 
@@ -20,9 +20,10 @@ export default async function readAsBase64(file: FileModel) {
 	let base64File
 	try {
 		await downloadFileFromBucket(fullFilePath)
-		base64File = await readFile(fullFilePath, { encoding: 'base64' });
+		base64File = await readFile(fullFilePath, { encoding: 'base64' })
 	} catch (err) {
-		throw new ErrorBuilder(409, i18next.t('error:failedRead'))
+		return null
+		// throw new ErrorBuilder(409, i18next.t('error:failedRead'))
 	}
 	return `data:${file.mimeType};base64,${base64File}`
 }
