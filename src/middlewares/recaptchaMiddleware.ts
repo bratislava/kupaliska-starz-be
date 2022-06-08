@@ -28,23 +28,18 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 			return error.response
 		 })
 
-		// console.log(response);
 		if (response.status !== 200) {
 			console.log(response.status)
 			console.log(response.data)
 			throw new ErrorBuilder(400, req.t('error:Recaptcha request error'))
 		} else if (response.data.score < 0.5) {
-			// console.log(response.data);
 			console.log(response.data.tokenProperties.invalidReason)
 			console.log(response.data.reasons)
 			throw new ErrorBuilder(400, req.t('error:invalidRecaptcha'))
 		} else if (response.data.score >= 0.5){
-			// console.log(response.data);
-			console.log('Presla recaptcha')
 			return next()
 		}
 		else {
-			// console.log(response.data);
 			throw new ErrorBuilder(400, req.t('error:invalidRecaptcha'))
 		}
 		
