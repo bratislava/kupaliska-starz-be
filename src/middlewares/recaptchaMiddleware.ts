@@ -8,8 +8,8 @@ const googleServiceConfig: IGoogleServiceConfig = config.get('googleService')
 
 export default async (req: Request, _res: Response, next: NextFunction) => {
 	try {
+		console.log('BODY: ', req.body);
 		const recaptchaResponse = req.body.recaptcha
-
 		const response = await axios({
 			method: 'POST',
 			url: 'https://recaptchaenterprise.googleapis.com/v1beta1/projects/kupaliska/assessments?key=AIzaSyBylFCQ0PBYSTjdwxOjtIvA6K7Cv7xBZjg',
@@ -21,23 +21,34 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 					expectedAction: 'order',
 				},
 			},
-		})
-		console.log(response);
-		if (response.status !== 200 || response.data.score < 0.5) {
-			console.log(response.data);
+		}).then(response => {
+			return response
+		 })
+		 .catch(error => {
+			return error.response
+		 })
+		 console.log(response)
+		// console.log(response);
+		if (response.status !== 200) {
+			console.log(response.status)
+			console.log(response.data)
+			throw new ErrorBuilder(400, req.t('error:Recaptcha request error'))
+		} else if (response.data.score < 0.5) {
+			// console.log(response.data);
 			console.log(response.data.tokenProperties.invalidReason)
 			console.log(response.data.reasons)
 			throw new ErrorBuilder(400, req.t('error:invalidRecaptcha'))
-		} else if (response.status === 200 || response.data.score >= 0.5){
-			console.log(response.data);
+		} else if (response.data.score >= 0.5){
+			// console.log(response.data);
 			return next()
 		}
 		else {
-			console.log(response.data);
+			// console.log(response.data);
 			throw new ErrorBuilder(400, req.t('error:invalidRecaptcha'))
 		}
 		
 	} catch (err) {
+		console.log(err)
 		return next(err)
 	}
 }
