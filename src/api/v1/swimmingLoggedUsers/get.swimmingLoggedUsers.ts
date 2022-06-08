@@ -7,6 +7,7 @@ import { models } from '../../../db/models'
 import { formatSwimmingLoggedUser } from '../../../utils/formatters'
 import { isAzureAutehnticated } from '../../../utils/azureAuthentication'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
+import readAsBase64 from '../../../utils/reader'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -85,12 +86,19 @@ export const workflow = async (
 			// 	where,
 			// })
 
+			let associatedSwimmersWithImageBase64 = await Promise.all(
+				map(swimmingLoggedUsers, async (swimmingLoggedUser) => {
+					return {
+						...formatSwimmingLoggedUser(swimmingLoggedUser),
+						image: swimmingLoggedUser.image
+							? await readAsBase64(swimmingLoggedUser.image)
+							: null,
+					}
+				})
+			)
+
 			return res.json({
-				swimmingLoggedUser: map(
-					swimmingLoggedUsers,
-					(swimmingLoggedUser) =>
-						formatSwimmingLoggedUser(swimmingLoggedUser)
-				),
+				swimmingLoggedUser: associatedSwimmersWithImageBase64,
 				// pagination: {
 				// 	page: query.page,
 				// 	limit: query.limit,

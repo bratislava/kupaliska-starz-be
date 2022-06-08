@@ -11,6 +11,7 @@ import {
 	isAzureAutehnticated,
 } from '../../../utils/azureAuthentication'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
+import readAsBase64 from '../../../utils/reader'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -87,8 +88,15 @@ export const workflow = async (
 					],
 				})
 
-				return res.json({
+				let swimmingLoggedUserWithImageBase64 = {
 					...formatSwimmingLoggedUser(swimmingLoggedUser),
+					image: swimmingLoggedUser.image
+						? await readAsBase64(swimmingLoggedUser.image)
+						: null,
+				}
+
+				return res.json({
+					...swimmingLoggedUserWithImageBase64,
 					...loggedUser,
 					// pagination: {
 					// 	page: query.page,

@@ -16,6 +16,7 @@ import { uploadImage } from '../../../utils/imageUpload'
 import { AssociatedSwimmerModel } from '../../../db/models/associatedSwimmer'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { getDataAboutCurrentUser } from '../../../utils/getDataCurrentUser'
+import readAsBase64 from '../../../utils/reader'
 
 export const associatedSwimmerUploadFolder = 'private/associated-swimmer'
 
@@ -87,11 +88,18 @@ export const workflow = async (
 					})
 					transaction = null
 
+					let associatedSwimmersWithImageBase64 = {
+						...formatAssociatedSwimmer(associatedSwimmer),
+						image: associatedSwimmer.image
+							? await readAsBase64(associatedSwimmer.image)
+							: null,
+					}
+
 					return res.json({
 						data: {
 							id: associatedSwimmer.id,
 							associatedSwimmer:
-								formatAssociatedSwimmer(associatedSwimmer),
+								associatedSwimmersWithImageBase64,
 						},
 						messages: [
 							{
