@@ -22,7 +22,8 @@ interface GetTicket {
     ownerId: string,
     usedDate: string,
     entries: GetEntry[],
-    qrCode: string | Buffer
+    qrCode: string | Buffer,
+    price: number,
 }
 
 export const workflow = async (
@@ -56,12 +57,14 @@ try {
             ownerId: "",
             usedDate: "",
             entries: [],
-            qrCode:""
+            qrCode:"",
+            price: 0,
         };
 
         const order = await Order.findByPk(ticket.orderId)
         if (order.state === ORDER_STATE.PAID){
             ticketResult.id = ticket.id;
+            ticketResult.price = ticket.price;
             
             const ticketType = await TicketType.findByPk(ticket.ticketTypeId)
             ticketResult.type = ticketType.name;
