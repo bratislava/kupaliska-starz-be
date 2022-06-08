@@ -268,10 +268,17 @@ const priceDryRun = async(
 	let orderPrice = 0;
 	let discount = 0;
 	let discountCode;
+
+	// check if ticket type exists
+	if (!ticketType) {
+		throw new ErrorBuilder(404, req.t("error:ticketTypeNotFound"));
+	}
+
 	// check if there is discount voucher, if yes, throw error
 	if (body.discountCode && dryRun) {
 		throw new ErrorBuilder(404, req.t("error:checkDiscoundCodeNotAllowed"));
 	}
+
 	// validate number of children
 	let numberOfChildren = 0;
 	for (const ticket of body.tickets) {
@@ -280,6 +287,27 @@ const priceDryRun = async(
 			numberOfChildren += 1;
 		}
 	}
+
+	// discount code check
+	let applyDiscount = false;
+	if (body.discountCode && !dryRun) {
+
+		discountCode = await getDiscountCode(
+			body.discountCode,
+			ticketType.id
+		);
+		if (!discountCode) {
+			throw new ErrorBuilder(
+				404,
+				req.t("error:discountCodeNotValid")
+			);
+		}
+		applyDiscount = true;
+	} else if (body.discountPercent > 0 && dryRun) {
+		applyDiscount = true;
+	}
+
+	// children allowed rules
 	if (ticketType.childrenAllowed) {
 		validate(
 			true,
@@ -290,9 +318,14 @@ const priceDryRun = async(
 		);
 		// minimum is one adult
 		if (! (numberOfChildren < body.tickets.length)){
-			throw new ErrorBuilder(404, req.t("error:minimumIsOneAdult"));
+			throw new ErrorBuilder(400, req.t("error:minimumIsOneAdult"));
+		} 
+		// if discount in seasonpass, only for one user
+		if ((numberOfChildren + 1 < body.tickets.length) && applyDiscount){
+			throw new ErrorBuilder(400, req.t("error:ticket.discountOnlyForOneUser"));
 		} 
 	}
+
 	//price computation
 	for (const ticket of body.tickets) {
 		const user = await getUser(req, ticket, loggedUser, dryRun);
@@ -301,25 +334,6 @@ const priceDryRun = async(
 			isChildren = true;
 		}
 
-		if (!ticketType) {
-			throw new ErrorBuilder(404, req.t("error:ticketTypeNotFound"));
-		}
-
-		let applyDiscount = false;
-		if (body.discountCode && !discountCode) {
-
-			discountCode = await getDiscountCode(
-				body.discountCode,
-				ticketType.id
-			);
-			if (!discountCode) {
-				throw new ErrorBuilder(
-					404,
-					req.t("error:discountCodeNotValid")
-				);
-			}
-			applyDiscount = true;
-		}
 		// user cannot buy a ticket after its expiration
 		validate(
 			true,
@@ -347,12 +361,10 @@ const priceDryRun = async(
 			const priceWithDiscount = 
 			Math.floor(ticketsPrice * (100 - (body.discountPercent| 0)) ) /
 			100;
-			console.log(priceWithDiscount)
 			totals.newTicketsPrice = priceWithDiscount;
 			totals.discount += ticketsPrice - priceWithDiscount;
 		}
 		orderPrice += totals.newTicketsPrice;
-		console.log(orderPrice)
 		discount = totals.discount;
 
 	}
