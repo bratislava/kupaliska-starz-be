@@ -109,6 +109,7 @@ export const workflow = async (
 	next: NextFunction
 ) => {
 	try {
+		console.log('zaciname nakup')
 		let authTest = false
 		try {
 			authTest = await isAzureAutehnticated(req)
@@ -121,7 +122,7 @@ export const workflow = async (
 		if (authTest) {
 			loggedUser = await azureGetAzureData(req);
 		}
-		
+		console.log('presla autorizacia')
 		const { body } = req;
 
 
@@ -129,12 +130,12 @@ export const workflow = async (
 		if (body.agreement === undefined || body.agreement !== true) {
 			throw new ErrorBuilder(400, req.t("error:ticket.agreementMissing"));
 		}
-
+		console.log('presiel agreement')
 		// check maximum tickets
 		if (body.tickets.length > 10 ) {
 			throw new ErrorBuilder(400, req.t("error:ticket.maxtTicketsPerOrder"));
 		}
-		
+		console.log('presiel max tickets')
 		const order = await Order.create(
 			{
 				price: 0,
@@ -142,9 +143,9 @@ export const workflow = async (
 				orderNumber: (new Date()).getTime()
 			}
 		);
-
+		console.log('vytvorilo objednavku')
 		const ticketType = await TicketType.findByPk(body.ticketTypeId)
-
+		console.log('naslo ticket type')
 		if (!ticketType) {
 			throw new ErrorBuilder(404, req.t("error:ticket.notFoundTicketType"));
 		}
@@ -153,7 +154,7 @@ export const workflow = async (
 		if (ticketType.nameRequired && !authTest) {
 			throw new ErrorBuilder(400, req.t("error:ticket.notLoggedUserForTicket"));
 		}
-		
+		console.log('skontrolovalo ticket type a logged usera')
 		const pricing = await priceDryRun(
 			req,
 			ticketType,
@@ -164,7 +165,7 @@ export const workflow = async (
 		const orderPrice = pricing.orderPrice;
 		const discount = pricing.discount;
 		const discountCode = pricing.discountCode;
-		
+		console.log('zbehlo dry run')
 		await order.update(
 			{
 				price: orderPrice,
@@ -172,7 +173,7 @@ export const workflow = async (
 				discountCodeId: discountCode ? discountCode.id : undefined,
 			}
 		);
-
+		console.log('updatol sa order')
 		if (discountCode && discountCode.amount === 100) {
 			await order.update(
 				{
@@ -236,9 +237,9 @@ export const workflow = async (
 				],
 			});
 		}
-		
+		console.log('discount 100%')
 		const paymentData = await createPayment(order);
-		
+		console.log('payment data vygenerovane')
 		return res.json({
 			data: {
 				id: order.id,
