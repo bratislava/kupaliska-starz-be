@@ -6,6 +6,7 @@ import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { EntryModel } from '../../../db/models/entry';
 import { validateCheckin, validateCheckout } from '../../../services/ticketValidationService';
 import { last } from 'lodash'
+import readAsBase64 from '../../../utils/reader'
 
 const {
 	Ticket,
@@ -81,7 +82,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				name: ticket.profile.name,
 				age: ticket.profile.age,
 				zip: ticket.profile.zip,
-				photo: null,
+				photo: ticket.profile.photo ? await readAsBase64(ticket.profile.photo) : null,
 				remainingEntries: ticket.remainingEntries
 			},
 			ticketType: {
