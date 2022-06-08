@@ -27,7 +27,7 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 		 .catch(error => {
 			return error.response
 		 })
-		 console.log(response)
+
 		// console.log(response);
 		if (response.status !== 200) {
 			console.log(response.status)
@@ -40,6 +40,7 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 			throw new ErrorBuilder(400, req.t('error:invalidRecaptcha'))
 		} else if (response.data.score >= 0.5){
 			// console.log(response.data);
+			console.log('Presla recaptcha')
 			return next()
 		}
 		else {
