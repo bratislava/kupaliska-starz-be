@@ -10,6 +10,7 @@ import ErrorBuilder from './ErrorBuilder'
 import logger from './logger'
 import { IAppConfig } from '../types/interfaces'
 import { captureError } from '../services/sentryService';
+import { uploadFileToBucket } from './minio';
 
 const appConfig: IAppConfig = config.get('app')
 
@@ -79,6 +80,7 @@ export default async function uploadFileFromBase64(req: Request, fileBase64: str
 
 	try {
 		await writeFile(fullFilePath, base64, { encoding: 'base64' });
+		await uploadFileToBucket(fullFilePath)
 	} catch (err) {
 		captureError(err, req.ip, 'uploadInfo', { path: fullFilePath})
 		throw new ErrorBuilder(409, req.t('error:failedUpload'))
@@ -93,7 +95,7 @@ export default async function uploadFileFromBase64(req: Request, fileBase64: str
 }
 
 export async function removeFile(fileName: string, directory: string) {
-
-	const fullFilePath = getFilePath(fileName, directory)
-	await unlink(fullFilePath);
+	// no-op - TODO check if we want or need this
+	// const fullFilePath = getFilePath(fileName, directory)
+	// await unlink(fullFilePath);
 }
