@@ -265,6 +265,7 @@ const priceDryRun = async(
 	dryRun: boolean,
 	orderId: string,
 ) => {
+	console.log('zacalo dry run')
 	const { body } = req;
 	let orderPrice = 0;
 	let discount = 0;
@@ -274,12 +275,12 @@ const priceDryRun = async(
 	if (!ticketType) {
 		throw new ErrorBuilder(404, req.t("error:ticketTypeNotFound"));
 	}
-
+	console.log('skontrolovalo existenciu ticket type')
 	// check if there is discount voucher, if yes, throw error
 	if (body.discountCode && dryRun) {
 		throw new ErrorBuilder(404, req.t("error:checkDiscoundCodeNotAllowed"));
 	}
-
+	console.log('skontrolovalo voucher ak existuje a je dry run')
 	// validate number of children
 	let numberOfChildren = 0;
 	for (const ticket of body.tickets) {
@@ -288,6 +289,7 @@ const priceDryRun = async(
 			numberOfChildren += 1;
 		}
 	}
+	console.log('zvalidovalo pocet deti')
 
 	// discount code check
 	let applyDiscount = false;
@@ -307,7 +309,7 @@ const priceDryRun = async(
 	} else if (body.discountPercent > 0 && dryRun) {
 		applyDiscount = true;
 	}
-
+	console.log('vytiahlo discounty', applyDiscount)
 	// children allowed rules
 	if (ticketType.childrenAllowed) {
 		validate(
@@ -326,7 +328,7 @@ const priceDryRun = async(
 			throw new ErrorBuilder(400, req.t("error:ticket.discountOnlyForOneUser"));
 		} 
 	}
-
+	console.log('zvalidovalo children rules')
 	//price computation
 	for (const ticket of body.tickets) {
 		const user = await getUser(req, ticket, loggedUser, dryRun);
@@ -334,7 +336,7 @@ const priceDryRun = async(
 		if (user.age && user.age >= ticketType.childrenAgeFrom && user.age <= ticketType.childrenAgeTo){
 			isChildren = true;
 		}
-
+		console.log('zistilo ci je dieta')
 		// user cannot buy a ticket after its expiration
 		validate(
 			true,
@@ -342,7 +344,8 @@ const priceDryRun = async(
 			Joi.date().min("now"),
 			req.t("error:ticket.ticketHasExpired"),
 			"ticketHasExpired"
-		);		
+		);
+		console.log('zvalidovalo validitu listku')
 		const ticketsPrice = await saveTickets(
 			user,
 			ticketType,
@@ -350,6 +353,7 @@ const priceDryRun = async(
 			dryRun,
 			isChildren,
 		);
+		console.log('ulozilo listky')
 		let totals = {newTicketsPrice: ticketsPrice, discount: discount}
 		if (!dryRun){
 			totals = await getDiscount(
@@ -367,7 +371,7 @@ const priceDryRun = async(
 		}
 		orderPrice += totals.newTicketsPrice;
 		discount = totals.discount;
-
+		console.log('vytiahlo discounty')
 	}
 	return {
 		orderPrice: Math.floor(orderPrice * 100) / 100,
@@ -395,6 +399,7 @@ const saveTickets = async (
 	// 		ticketType.price +
 	// 		(ticketType.childrenPrice || 0) * numberOfChildren;
 	if (!dryRun) {
+		console.log('ide vkladat listok')
 		await createTicket(ticket, ticketType, orderId, isChildren, ticketsPrice, null);
 	}	
 
@@ -500,7 +505,34 @@ const createTicket = async (
 	parentTicketId: null | string,
 ) => {
 	const profileId = uuidv4();
+	console.log('vygenerovalo uuidv4 - profileId', uuidv4());
 	(ticket.modelIds || (ticket.modelIds = [])).push(profileId);
+	console.log('vlozilo do modelIds', ticket.modelIds)
+	console.log('toto ide vkladat do ticketu', 
+	{
+		isChildren: isChildren,
+		ticketTypeId: ticketType.id,
+		orderId,
+		price: ticketPrice,
+		parentTicketId: parentTicketId,
+		remainingEntries: ticketType.entriesNumber,
+		loggedUserId: ticket.loggedUserId,
+		associatedSwimmerId: ticket.associatedSwimmerId,
+		profile: {
+			id: profileId,
+			email: ticket.email,
+			name: ticket.name,
+			age: ticket.age,
+			zip: ticket.zip,
+		},
+	},
+	{
+		include: [
+			{
+				association: "profile",
+			},
+		],
+	})
 	return await Ticket.create(
 		{
 			isChildren: isChildren,
