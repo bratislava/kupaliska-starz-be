@@ -44,6 +44,7 @@ export const sendEmail = async (
 	};
 
 	try {
+		console.log('SEND MAIL DATA', mailData);
 		await mailer.messages().send(mailData);
 	} catch (err) {
 		logger.error(`${424} - EMAIL ERROR - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`)

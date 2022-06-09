@@ -85,7 +85,7 @@ try {
             const ticketType = await TicketType.findByPk(ticket.ticketTypeId)
             ticketResult.type = ticketType.name;
             const qrCode = await generateQrCode(ticket.id, 'buffer', ticketType.getExpiresIn());
-            ticketResult.qrCode = Buffer.from(qrCode).toString('base64');
+            ticketResult.qrCode = 'data:image/png;base64, ' + Buffer.from(qrCode).toString('base64');
 
             if (ticket.associatedSwimmerId) {
                 const associatedSwimmer = await AssociatedSwimmer.findByPk(ticket.associatedSwimmerId)
@@ -108,10 +108,10 @@ try {
             }
 
             ticketResult.entries = await getEntries(ticket.id);
-            
             result.push(ticketResult)
         }
     }
+    
     
     return res.json(result);
 } catch (err) {
