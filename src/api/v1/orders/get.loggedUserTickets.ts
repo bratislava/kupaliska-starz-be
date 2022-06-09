@@ -145,5 +145,9 @@ const getEntries = async (
             entryResult = null;
         } 
     }
+    if (entryResult) {
+        result.push(entryResult);
+        entryResult = null;
+    }
     return result.reverse()
 }
