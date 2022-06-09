@@ -43,25 +43,32 @@ export const workflow = async (
 
 				let transaction: any = null
 				transaction = await sequelize.transaction()
+				if (!swimmingLoggedUser.age && !body.age) {
+					throw new ErrorBuilder(400, req.t('error:ageNotFound'))
+				}
+				if (!swimmingLoggedUser.image && !body.image) {
+					throw new ErrorBuilder(400, req.t('error:photoNotFound'))
+				}
 				await swimmingLoggedUser.update(
 					{
-						age: body.age,
+						age: body.age ? body.age : swimmingLoggedUser.age,
 						zip: body.zip,
 					},
 					{ transaction }
 				)
-
-				await uploadImage(
-					req,
-					body.image,
-					swimmingLoggedUser.id,
-					SwimmingLoggedUserModel.name,
-					swimmingLoggedUserUploadFolder,
-					transaction,
-					swimmingLoggedUser.image
-						? swimmingLoggedUser.image.id
-						: undefined
-				)
+				if (body.image) {
+					await uploadImage(
+						req,
+						body.image,
+						swimmingLoggedUser.id,
+						SwimmingLoggedUserModel.name,
+						swimmingLoggedUserUploadFolder,
+						transaction,
+						swimmingLoggedUser.image
+							? swimmingLoggedUser.image.id
+							: undefined
+					)
+				}
 
 				await transaction.commit()
 				await swimmingLoggedUser.reload({
