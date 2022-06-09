@@ -37,7 +37,19 @@ import { getDataAboutCurrentUser } from '../../../utils/getDataCurrentUser'
 // 	params: Joi.object(),
 // })
 
-export const schema = Joi.object()
+
+
+export const schema = Joi.object().keys({
+	body: Joi.object().keys({
+		firstname: Joi.string().required(),
+		lastname: Joi.string().required(),
+		age: Joi.number().integer().min(3).required(),
+		zip: Joi.string().allow(null, ''),
+		image: Joi.string().required(),
+	}),
+	query: Joi.object(),
+	params: Joi.object(),
+});
 
 const { AssociatedSwimmer } = models
 

@@ -2,10 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import { azureGetAzureData, isAzureAutehnticated } from "../../../utils/azureAuthentication";
 import ErrorBuilder from "../../../utils/ErrorBuilder";
 import { models } from "../../../db/models";
-import { ENTRY_TYPE, ORDER_STATE } from "../../../utils/enums";
+import { ENTRY_TYPE, ORDER_STATE, TICKET_CATEGORY } from "../../../utils/enums";
 import { generateQrCode } from "../../../utils/qrCodeGenerator";
 
-const { Ticket, Order, TicketType, AssociatedSwimmer, Entry, SwimmingPool } = models;
+const { Ticket, Order, TicketType, AssociatedSwimmer, Entry, SwimmingPool, SwimmingLoggedUser } = models;
 
 interface GetEntry {
     id: string,
@@ -24,6 +24,19 @@ interface GetTicket {
     entries: GetEntry[],
     qrCode: string | Buffer,
     price: number,
+    ticketColor: TicketColors | null,
+    age: null | number
+}
+
+interface TicketColors {
+    text: string;
+    background: string;
+}
+
+const textColorsMap = {
+	[TICKET_CATEGORY.ADULT]:  {text: '#FFFFFF', background:  '#07038C'},
+	[TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT]: {text: '#FFFFFF', background:  '#07038C'},
+	[TICKET_CATEGORY.CHILDREN_WITH_ADULT]: {text: '#FFFFFF', background:  '#07038C'},
 }
 
 export const workflow = async (
@@ -59,12 +72,15 @@ try {
             entries: [],
             qrCode:"",
             price: 0,
+            ticketColor: null,
+            age: null
         };
 
         const order = await Order.findByPk(ticket.orderId)
         if (order.state === ORDER_STATE.PAID){
             ticketResult.id = ticket.id;
             ticketResult.price = ticket.price;
+            ticketResult.remainingEntries = ticket.remainingEntries;
             
             const ticketType = await TicketType.findByPk(ticket.ticketTypeId)
             ticketResult.type = ticketType.name;
@@ -75,9 +91,20 @@ try {
                 const associatedSwimmer = await AssociatedSwimmer.findByPk(ticket.associatedSwimmerId)
                 ticketResult.ownerName = associatedSwimmer.firstname + ' ' + associatedSwimmer.lastname;
                 ticketResult.ownerId = ticket.associatedSwimmerId;
+                ticketResult.age = associatedSwimmer.age;
             } else {
+                const loggedSwimmer = await SwimmingLoggedUser.findOne({where: {externalId: loggedUser.oid}})
                 ticketResult.ownerName = loggedUser.given_name + ' ' + loggedUser.family_name
                 ticketResult.ownerId = ticket.loggedUserId;
+                ticketResult.age = loggedSwimmer.age;
+            }
+
+            if (ticketResult.age >=3 && ticketResult.age <= 10) {
+                ticketResult.ticketColor = textColorsMap[TICKET_CATEGORY.CHILDREN_WITH_ADULT]
+            } else if (ticketResult.age >=11 && ticketResult.age <= 17) {
+                ticketResult.ticketColor = textColorsMap[TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT]
+            } else {
+                ticketResult.ticketColor = textColorsMap[TICKET_CATEGORY.ADULT]
             }
 
             ticketResult.entries = await getEntries(ticket.id);

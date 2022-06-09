@@ -37,7 +37,7 @@ export const sendEmail = async (
 		'h:X-Mailgun-Variables': JSON.stringify(variables),
 		inline: [
 			path.join(appConfig.filesPath, 'public/email-attachments/ba-logo-white.png'),
-			path.join(appConfig.filesPath, 'public/email-attachments/eportal_ilustracia.png'),
+			// path.join(appConfig.filesPath, 'public/email-attachments/eportal_ilustracia.png'),
 			...(inlineAttachments || []),
 		],
 		attachment: attachments
