@@ -9,7 +9,7 @@ import { last } from 'lodash'
 import readAsBase64 from '../../../utils/reader'
 
 const {
-	Ticket,
+	Ticket, File, SwimmingLoggedUser
 } = models
 
 export const schema = Joi.object().keys({
@@ -74,6 +74,16 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		const checkoutTicketErrorBuilder = validateCheckout(ticket, params.swimmingPoolId)
 		const lastEntry = last(ticket.entries)
 
+		let relatedId = ""
+		if (ticket.associatedSwimmerId) {
+			relatedId = ticket.associatedSwimmerId
+		} else { 
+			const loggedUser = await SwimmingLoggedUser.findOne({where: {externalId: ticket.loggedUserId}})
+			relatedId = loggedUser.id;
+		}
+
+		const file = await File.findOne({where: {relatedId: relatedId}})
+
 		return res.json({
 			ticket: {
 				id: ticket.id,
@@ -82,7 +92,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				name: ticket.profile.name,
 				age: ticket.profile.age,
 				zip: ticket.profile.zip,
-				photo: ticket.profile.photo ? await readAsBase64(ticket.profile.photo) : null,
+				photo: file ? await readAsBase64(file) : null,
 				remainingEntries: ticket.remainingEntries
 			},
 			ticketType: {
