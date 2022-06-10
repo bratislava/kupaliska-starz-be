@@ -2,6 +2,12 @@ import { DataTypes, Sequelize, literal, UUIDV4 } from 'sequelize'
 import { DatabaseModel } from '../../types/models'
 import { ProfileModel } from './profile'
 
+export enum RelatedType {
+	SWIMMINGPOOL = "swimmingPool",
+	ASSOCIATEDSWIMMER = "associatedSwimmer",
+	SWIMMINGLOGGEDUSER = "swimmingLoggedUser"
+}
+
 export class FileModel extends DatabaseModel {
 	id: string
 	name: string
@@ -11,6 +17,7 @@ export class FileModel extends DatabaseModel {
 	mediumSizePath: string
 	largeSizePath: string
 	mimeType: string
+	size: number
 	altText: string
 	// foreing
 	related: ProfileModel

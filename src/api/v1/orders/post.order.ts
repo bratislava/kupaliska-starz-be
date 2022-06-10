@@ -10,7 +10,7 @@ import { IAppConfig, IPassportConfig } from "../../../types/interfaces";
 import { MESSAGE_TYPE, ORDER_STATE } from "../../../utils/enums";
 import ErrorBuilder from "../../../utils/ErrorBuilder";
 import { TicketTypeModel } from "../../../db/models/ticketType";
-import { validate, validBase64 } from "../../../utils/validation";
+import { validate } from "../../../utils/validation";
 import uploadFileFromBase64 from "../../../utils/uploader";
 import { createPayment } from "../../../services/webpayService";
 import { getDiscountCode } from "../../../services/discountCodeValidationService";
@@ -18,6 +18,7 @@ import { DiscountCodeModel } from "../../../db/models/discountCode";
 import { createJwt } from "../../../utils/authorization";
 import { sendOrderEmail } from "../../../utils/emailSender";
 import { azureGetAzureData, azureGetAzureId, isAzureAutehnticated } from "../../../utils/azureAuthentication";
+import { RelatedType } from "../../../db/models/file";
 
 const { SwimmingLoggedUser, AssociatedSwimmer, Order, Ticket, TicketType, File } = models;
 
@@ -404,7 +405,8 @@ const saveTickets = async (
 	// 		ticketType.price +
 	// 		(ticketType.childrenPrice || 0) * numberOfChildren;
 	if (!dryRun) {
-		await createTicket(ticket, ticketType, orderId, isChildren, ticketsPrice, null);
+		const createdTicket = await createTicket(ticket, ticketType, orderId, isChildren, ticketsPrice, null);
+		await uploadProfilePhotos(createdTicket);
 	}	
 
 	return ticketsPrice;
@@ -541,30 +543,60 @@ const createTicket = async (
 /**
  * Upload profile photo for every ticket and children
  */
-const uploadProfilePhotos = async (
-	req: Request,
-	tickets: any,
-) => {
-	for (const ticket of tickets) {
-		if (ticket.photo) {
-			await uploadAndCreate(
-				req,
-				ticket.photo,
-				ticket.modelIds
-			);
-		}
 
-		for (const oneChildren of ticket.children || []) {
-			if (oneChildren.photo) {
-				await uploadAndCreate(
-					req,
-					oneChildren.photo,
-					oneChildren.modelIds,
-				);
-			}
-		}
+const uploadProfilePhotos = async (
+	ticket: any,
+) => {
+	let relatedId = null;
+	if (ticket.associatedSwimmerId) {
+		relatedId = ticket.associatedSwimmerId;
+	} else if (ticket.loggedUserId) {
+		const loggedUser = await SwimmingLoggedUser.findOne({where: {externalId: ticket.loggedUserId}})
+		relatedId = loggedUser.id;
 	}
+	const file = await File.findOne({where: {relatedId: relatedId}})
+	if (file) {
+		await File.create({
+			name: file.name,
+			originalPath: file.originalPath,
+			thumbnailSizePath: file.thumbnailSizePath,
+			smallSizePath: file.smallSizePath,
+			mediumSizePath: file.mediumSizePath,
+			largeSizePath: file.largeSizePath,
+			altText: file.altText,
+			mimeType: file.mimeType,
+			size: file.size,
+			relatedId: ticket.profileId,
+			relatedType: file.relatedType,
+		})
+	}
+
 };
+
+// const uploadProfilePhotos = async (
+// 	req: Request,
+// 	tickets: any,
+// ) => {
+// 	for (const ticket of tickets) {
+// 		if (ticket.photo) {
+// 			await uploadAndCreate(
+// 				req,
+// 				ticket.photo,
+// 				ticket.modelIds
+// 			);
+// 		}
+
+// 		for (const oneChildren of ticket.children || []) {
+// 			if (oneChildren.photo) {
+// 				await uploadAndCreate(
+// 					req,
+// 					oneChildren.photo,
+// 					oneChildren.modelIds,
+// 				);
+// 			}
+// 		}
+// 	}
+// };
 
 /**
  * Create files from base64 and persist them for every CREATED ticket ( means if ticket has 5 quantity we are creating profile file for each )
