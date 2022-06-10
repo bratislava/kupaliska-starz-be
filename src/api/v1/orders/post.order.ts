@@ -567,7 +567,7 @@ const uploadProfilePhotos = async (
 			mimeType: file.mimeType,
 			size: file.size,
 			relatedId: ticket.profileId,
-			relatedType: file.relatedType,
+			relatedType: 'profile',
 		})
 	}
 
