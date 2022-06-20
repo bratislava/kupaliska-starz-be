@@ -99,13 +99,18 @@ try {
                 ticketResult.age = loggedSwimmer.age;
             }
 
-            if (ticketResult.age >=3 && ticketResult.age <= 10) {
-                ticketResult.ticketColor = textColorsMap[TICKET_CATEGORY.CHILDREN_WITH_ADULT]
-            } else if (ticketResult.age >=11 && ticketResult.age <= 17) {
-                ticketResult.ticketColor = textColorsMap[TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT]
+            if (ticketType.childrenAgeFrom && ticketType.childrenAgeTo && ticketType.childrenAgeToWithAdult ) {
+                if (ticketResult.age >= ticketType.childrenAgeFrom && ticketResult.age <= ticketType.childrenAgeToWithAdult) {
+                    ticketResult.ticketColor = textColorsMap[TICKET_CATEGORY.CHILDREN_WITH_ADULT]
+                } else if (ticketResult.age > ticketType.childrenAgeToWithAdult && ticketResult.age <= ticketType.childrenAgeTo) {
+                    ticketResult.ticketColor = textColorsMap[TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT]
+                } else {
+                    ticketResult.ticketColor = textColorsMap[TICKET_CATEGORY.ADULT]
+                }
             } else {
                 ticketResult.ticketColor = textColorsMap[TICKET_CATEGORY.ADULT]
             }
+            
 
             ticketResult.entries = await getEntries(ticket.id);
             result.push(ticketResult)
