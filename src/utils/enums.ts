@@ -1,20 +1,20 @@
 export enum ENV {
 	production = 'production',
 	development = 'development',
-	test = 'test'
+	test = 'test',
 }
 
 export enum LANGUAGE {
 	SK = 'sk',
 	CZ = 'cz',
-	EN = 'en'
+	EN = 'en',
 }
 
 export enum MESSAGE_TYPE {
 	ERROR = 'ERROR',
 	WARNING = 'WARNING',
 	SUCCESS = 'SUCCESS',
-	INFO = 'INFO'
+	INFO = 'INFO',
 }
 
 export enum TICKET_TYPE {
@@ -33,20 +33,20 @@ export enum USER_ROLE {
 	SWIMMING_POOL_EMPLOYEE = 'SWIMMING_POOL_EMPLOYEE',
 	SWIMMING_POOL_OPERATOR = 'SWIMMING_POOL_OPERATOR',
 	OPERATOR = 'OPERATOR',
-	SUPER_ADMIN = 'SUPER_ADMIN'
+	SUPER_ADMIN = 'SUPER_ADMIN',
 }
 
 export enum ORDER_STATE {
 	CREATED = 'CREATED', // Order was created, but it`s not paid yet
 	PAID = 'PAID',
 	FAILED = 'FAILED',
-	CANCELED = 'CANCELED'
+	CANCELED = 'CANCELED',
 }
 
 export enum PAYMENT_OPERATION {
 	CREATE_ORDER = 'CREATE_ORDER', // Card payment
 	CARD_VERIFICATION = 'CARD_VERIFICATION', // Card verification
-	FINALIZE_ORDER = 'FINALIZE_ORDER' // MasterPass digital wallet
+	FINALIZE_ORDER = 'FINALIZE_ORDER', // MasterPass digital wallet
 }
 
 export enum ENTRY_TYPE {
@@ -88,6 +88,22 @@ export const PAYMENT_OPERATIONS = Object.values(PAYMENT_OPERATION)
 export const TICKET_TYPES = Object.values(TICKET_TYPE)
 export const ORDER_STATES = Object.values(ORDER_STATE)
 export const ENTRY_TYPES = Object.values(ENTRY_TYPE)
-export const TICKET_CHECKIN_ERROR_CODES = Object.values(TICKET_CHECKIN_ERROR_CODE)
-export const TICKET_CHECKOUT_ERROR_CODES = Object.values(TICKET_CHECKOUT_ERROR_CODE)
+export const TICKET_CHECKIN_ERROR_CODES = Object.values(
+	TICKET_CHECKIN_ERROR_CODE
+)
+export const TICKET_CHECKOUT_ERROR_CODES = Object.values(
+	TICKET_CHECKOUT_ERROR_CODE
+)
 export const CHECK_STATUSS = Object.values(CHECK_STATUS)
+
+export const textColorsMap = {
+	[TICKET_CATEGORY.ADULT]: { text: '#FFFFFF', background: '#07038C' },
+	[TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT]: {
+		text: '#07038C',
+		background: '#D0ECF8',
+	},
+	[TICKET_CATEGORY.CHILDREN_WITH_ADULT]: {
+		text: '#07038C',
+		background: '#FFFFFF',
+	},
+}
