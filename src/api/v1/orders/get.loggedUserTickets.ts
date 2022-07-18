@@ -13,15 +13,7 @@ import {
 } from '../../../utils/enums'
 import { generateQrCode } from '../../../utils/qrCodeGenerator'
 
-const {
-	Ticket,
-	Order,
-	TicketType,
-	AssociatedSwimmer,
-	Entry,
-	SwimmingPool,
-	SwimmingLoggedUser,
-} = models
+const { Ticket, Order, TicketType, Entry, SwimmingPool } = models
 
 interface GetEntry {
 	id: string
@@ -71,6 +63,11 @@ export const workflow = async (
 		const tickets = await Ticket.findAll({
 			where: { loggedUserId: loggedUser.oid },
 			order: [['createdAt', 'DESC']],
+			include: [
+				{
+					association: 'profile',
+				},
+			],
 		})
 
 		let result: GetTicket[] = []
@@ -108,24 +105,12 @@ export const workflow = async (
 					'data:image/png;base64, ' +
 					Buffer.from(qrCode).toString('base64')
 
+				ticketResult.ownerName = ticket.profile.name
+				ticketResult.age = ticket.profile.age
 				if (ticket.associatedSwimmerId) {
-					const associatedSwimmer = await AssociatedSwimmer.findByPk(
-						ticket.associatedSwimmerId
-					)
-					ticketResult.ownerName =
-						associatedSwimmer.firstname +
-						' ' +
-						associatedSwimmer.lastname
 					ticketResult.ownerId = ticket.associatedSwimmerId
-					ticketResult.age = associatedSwimmer.age
 				} else {
-					const loggedSwimmer = await SwimmingLoggedUser.findOne({
-						where: { externalId: loggedUser.oid },
-					})
-					ticketResult.ownerName =
-						loggedUser.given_name + ' ' + loggedUser.family_name
 					ticketResult.ownerId = ticket.loggedUserId
-					ticketResult.age = loggedSwimmer.age
 				}
 
 				if (
