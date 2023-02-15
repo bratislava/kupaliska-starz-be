@@ -28,7 +28,7 @@ forEach(appConfig.subdirs, (subdir) => {
 // Init workers
 initWorkers()
 
-httpServer.listen(appConfig.port).on('listening', () => {
+httpServer.listen({port: parseInt(appConfig.port.replace(/"/g, '')), host: "0.0.0.0"}).on('listening', () => {
 	console.log(`Server started in ${process.env.NODE_ENV} mode at port ${appConfig.port}`.green)
 })
 

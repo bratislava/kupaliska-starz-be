@@ -129,3 +129,5 @@ files/public/swimming-pools
 # Junit report
 /junit.xml
 
+# bratiska-cli manifest files
+manifest-*.y?ml

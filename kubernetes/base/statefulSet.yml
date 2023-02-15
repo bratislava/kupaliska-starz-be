@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: database
+  namespace: ${NAMESPACE}
   labels:
     service: database
 spec:
@@ -18,6 +19,10 @@ spec:
       containers:
         - image: postgres:14-alpine
           name: database
+          ports:
+          - name: db
+            containerPort: 5432
+            protocol: TCP
           resources:
             limits:
               cpu: 500m
@@ -32,6 +37,8 @@ spec:
           envFrom:
             - secretRef:
                 name: db
+      imagePullSecrets:
+        - name: ${IMAGE_PULL_SECRET}
   # Volume Claim
   volumeClaimTemplates:
     - metadata:
