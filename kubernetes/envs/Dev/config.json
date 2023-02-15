@@ -1,0 +1,8 @@
+{
+    "envs": {
+        "APP_PORT": 3000,
+        "FE_HOSTNAME": "kupaliska.dev.bratislava.sk",
+        "ADMIN_HOSTNAME": "login.kupaliska.dev.bratislava.sk",
+        "API_HOST": "api.kupaliska.dev.bratislava.sk"
+    }
+}

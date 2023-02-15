@@ -11,7 +11,7 @@ export interface IServerConfig {
 }
 
 export interface IAppConfig {
-	port: number;
+	port: string;
 	host: string;
 	subdirs: string[];
 	filesPath: string;

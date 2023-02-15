@@ -2,6 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ingress
+  namespace: ${NAMESPACE}
   labels:
     service: app
   annotations:
@@ -11,11 +12,11 @@ metadata:
 spec:
   tls:
     - hosts:
-        - $HOSTNAME
-        - www.$HOSTNAME
+        - ${API_HOST}
+        - www.${API_HOST}
       secretName: tls
   rules:
-    - host: $HOSTNAME
+    - host: ${API_HOST}
       http:
         paths:
           - path: /
@@ -25,8 +26,7 @@ spec:
                 name: app
                 port:
                   number: 80
-    
-    - host: www.$HOSTNAME
+    - host: www.${API_HOST}
       http:
         paths:
           - path: /

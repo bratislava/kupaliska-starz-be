@@ -1,7 +1,6 @@
 resources:
   - ../../base
-  - ../../base/secrets/app.prod.secret.yml
-
+  - secrets/app.secret.yml
 
 configMapGenerator:
 - name: env
@@ -20,4 +19,3 @@ patches:
       - op: replace
         path: /spec/tls/0/hosts/0
         value: api.kupaliska.bratislava.sk
-
