@@ -1,10 +1,10 @@
 resources:
   - ../../base
-  - secrets/app.secret.yml
+  - secrets/app.staging.secret.yml
 
 configMapGenerator:
 - name: env
   namespace: ${NAMESPACE}
   behavior: merge
   envs:
-  - .env
+    - .env
