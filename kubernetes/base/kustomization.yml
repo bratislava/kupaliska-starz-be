@@ -21,5 +21,6 @@ generatorOptions:
 
 configMapGenerator:
 - name: env
+  namespace: ${NAMESPACE}
   envs:
-  - .env
+    - .env
