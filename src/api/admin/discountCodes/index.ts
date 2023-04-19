@@ -12,30 +12,37 @@ import { USER_ROLE } from '../../../utils/enums'
 const router: Router = Router()
 
 export default () => {
-	router.post('/',
+	router.post(
+		'/',
 		passport.authenticate('jwt'),
 		authorizationMiddleware([USER_ROLE.SUPER_ADMIN]),
 		schemaMiddleware(PostDiscountCode.schema),
-		PostDiscountCode.workflow)
+		PostDiscountCode.workflow
+	)
 
-
-	router.get('/',
+	router.get(
+		'/',
 		passport.authenticate('jwt'),
 		authorizationMiddleware([USER_ROLE.SUPER_ADMIN]),
 		schemaMiddleware(GetDiscountCodes.schema),
-		GetDiscountCodes.workflow)
+		GetDiscountCodes.workflow
+	)
 
-	router.get('/:discountCodeId',
+	router.get(
+		'/:discountCodeId',
 		passport.authenticate('jwt'),
 		authorizationMiddleware([USER_ROLE.SUPER_ADMIN]),
 		schemaMiddleware(GetDiscountCode.schema),
-		GetDiscountCode.workflow)
+		GetDiscountCode.workflow
+	)
 
-	router.delete('/:discountCodeId',
+	router.delete(
+		'/:discountCodeId',
 		passport.authenticate('jwt'),
 		authorizationMiddleware([USER_ROLE.SUPER_ADMIN]),
 		schemaMiddleware(DeleteDiscountCode.schema),
-		DeleteDiscountCode.workflow)
+		DeleteDiscountCode.workflow
+	)
 
 	return router
 }

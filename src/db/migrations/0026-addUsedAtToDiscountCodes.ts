@@ -10,33 +10,23 @@ export async function up(queryInterface: QueryInterface) {
 
 		const table: any = await queryInterface.describeTable('discountCodes')
 		if (!table.usedAt) {
-			await queryInterface.addColumn(
-				'discountCodes',
-				'usedAt',
-				{
-					type: DataTypes.DATE,
-					allowNull: true,
-				},
-			)
+			await queryInterface.addColumn('discountCodes', 'usedAt', {
+				type: DataTypes.DATE,
+				allowNull: true,
+			})
 		}
 
-
 		return Promise.resolve()
-
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
 	const table: any = await queryInterface.describeTable('discountCodes')
 	if (table.usedAt) {
-		await queryInterface.removeColumn(
-			'discountCodes',
-			'usedAt'
-		)
+		await queryInterface.removeColumn('discountCodes', 'usedAt')
 	}
-
 
 	return Promise.resolve()
 }

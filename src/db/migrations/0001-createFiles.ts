@@ -10,39 +10,39 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			name: {
 				type: DataTypes.STRING(255),
-				allowNull: false
+				allowNull: false,
 			},
 			originalPath: {
 				type: DataTypes.TEXT,
-				allowNull: false
+				allowNull: false,
 			},
 			thumbnailSizePath: {
 				type: DataTypes.TEXT,
-				allowNull: true
+				allowNull: true,
 			},
 			smallSizePath: {
 				type: DataTypes.TEXT,
-				allowNull: true
+				allowNull: true,
 			},
 			mediumSizePath: {
 				type: DataTypes.TEXT,
-				allowNull: true
+				allowNull: true,
 			},
 			largeSizePath: {
 				type: DataTypes.TEXT,
-				allowNull: true
+				allowNull: true,
 			},
 			altText: {
 				type: DataTypes.STRING(255),
-				allowNull: true
+				allowNull: true,
 			},
 			mimeType: {
 				type: DataTypes.TEXT,
-				allowNull: true
+				allowNull: true,
 			},
 			size: {
 				type: DataTypes.INTEGER,
-				allowNull: true
+				allowNull: true,
 			},
 			relatedId: {
 				type: DataTypes.UUID,
@@ -50,25 +50,24 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			relatedType: {
 				type: DataTypes.STRING,
-				allowNull: false
+				allowNull: false,
 			},
 			createdAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			updatedAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
-			}
-		});
-
+				defaultValue: literal('NOW()'),
+			},
+		})
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-    await queryInterface.dropTable('files');
+	await queryInterface.dropTable('files')
 }

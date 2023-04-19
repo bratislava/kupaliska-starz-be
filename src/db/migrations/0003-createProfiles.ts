@@ -10,41 +10,40 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			email: {
 				type: DataTypes.STRING(255),
-				allowNull: false
+				allowNull: false,
 			},
 			name: {
 				type: DataTypes.STRING(255),
-				allowNull: true
+				allowNull: true,
 			},
 			age: {
 				type: DataTypes.SMALLINT,
-				allowNull: true
+				allowNull: true,
 			},
 			zip: {
 				type: DataTypes.STRING(10),
-				allowNull: true
+				allowNull: true,
 			},
 			createdAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			updatedAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			deletedAt: {
 				type: DataTypes.DATE,
 				allowNull: true,
-			}
-		});
-
+			},
+		})
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-    await queryInterface.dropTable('profiles');
+	await queryInterface.dropTable('profiles')
 }

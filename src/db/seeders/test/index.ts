@@ -7,10 +7,4 @@ import { up as orders } from './04-orders'
 export const up = () => Promise.resolve()
 export const down = () => Promise.resolve()
 
-export const seedsUp =  [
-	users,
-	ticketTypes,
-	swimmingPools,
-	tickets,
-	orders
-]
+export const seedsUp = [users, ticketTypes, swimmingPools, tickets, orders]

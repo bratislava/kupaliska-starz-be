@@ -1,7 +1,6 @@
-
-import { map } from "lodash";
-import sequelize from "sequelize";
-import { Op } from "sequelize";
+import { map } from 'lodash'
+import sequelize from 'sequelize'
+import { Op } from 'sequelize'
 
 /**
  * Returns variables for SQL binding and raw SQL. There are 3 types of filters available.
@@ -34,54 +33,68 @@ import { Op } from "sequelize";
  */
 export const getFilters = (filters: any, tablePrefix = '', func = '') => {
 	let filterVariables = {} as any
-	const filterSQL = Object.keys(filters || {}).map((filterName) => {
+	const filterSQL = Object.keys(filters || {})
+		.map((filterName) => {
+			if (filters[filterName] === undefined) return ''
 
-		if (filters[filterName] === undefined) return ''
+			const tablePrefixString = tablePrefix ? `"${tablePrefix}".` : ''
 
-		const tablePrefixString = tablePrefix ? `"${tablePrefix}".` : ''
-
-		if (filters[filterName].type === 'exact') {
-			filterVariables = {
-				[filterName]: filters[filterName].value,
-				...filterVariables
-			}
-			return `AND ${tablePrefixString}"${filterName}" = $${filterName}`
-		}
-
-		if (filters[filterName].type === 'like') {
-			filters[filterName].value = `%${filters[filterName].value}%`
-			filterVariables = {
-				[filterName]: filters[filterName].value,
-				...filterVariables
-			}
-			return `AND ${tablePrefixString}"${filterName}" ILIKE $${filterName}`
-		}
-
-		if (filters[filterName].type === 'range') {
-			filterVariables = {
-				[`${filterName}From`]: filters[filterName].from ? filters[filterName].from : undefined,
-				[`${filterName}To`]: filters[filterName].to ? filters[filterName].to : undefined,
-				...filterVariables
-			}
-			const column = filters[filterName].dataType === 'date'
-				? `CAST(${tablePrefixString}"${filterName}" as date)`
-				: `${tablePrefixString}"${filterName}"`
-
-			return (filters[filterName].from ? `AND ${column} >= $${`${filterName}From`} ` : '')
-				+ (filters[filterName].to ? `AND ${column} <= $${`${filterName}To`}` : '')
-		}
-
-		if (filters[filterName].type === 'in') {
-
-			for (const [i, value] of filters[filterName].value.entries()) {
-				filterVariables[`${filterName}${i}`] = value
+			if (filters[filterName].type === 'exact') {
+				filterVariables = {
+					[filterName]: filters[filterName].value,
+					...filterVariables,
+				}
+				return `AND ${tablePrefixString}"${filterName}" = $${filterName}`
 			}
 
-			const filterIds = map(filters[filterName].value, (_value, index) => (`$${filterName}${index}`)).join(',')
-			return `AND ${tablePrefixString}"${filterName}" IN (${filterIds})`
-		}
-		return ''
-	}).join(' ');
+			if (filters[filterName].type === 'like') {
+				filters[filterName].value = `%${filters[filterName].value}%`
+				filterVariables = {
+					[filterName]: filters[filterName].value,
+					...filterVariables,
+				}
+				return `AND ${tablePrefixString}"${filterName}" ILIKE $${filterName}`
+			}
+
+			if (filters[filterName].type === 'range') {
+				filterVariables = {
+					[`${filterName}From`]: filters[filterName].from
+						? filters[filterName].from
+						: undefined,
+					[`${filterName}To`]: filters[filterName].to
+						? filters[filterName].to
+						: undefined,
+					...filterVariables,
+				}
+				const column =
+					filters[filterName].dataType === 'date'
+						? `CAST(${tablePrefixString}"${filterName}" as date)`
+						: `${tablePrefixString}"${filterName}"`
+
+				return (
+					(filters[filterName].from
+						? `AND ${column} >= $${`${filterName}From`} `
+						: '') +
+					(filters[filterName].to
+						? `AND ${column} <= $${`${filterName}To`}`
+						: '')
+				)
+			}
+
+			if (filters[filterName].type === 'in') {
+				for (const [i, value] of filters[filterName].value.entries()) {
+					filterVariables[`${filterName}${i}`] = value
+				}
+
+				const filterIds = map(
+					filters[filterName].value,
+					(_value, index) => `$${filterName}${index}`
+				).join(',')
+				return `AND ${tablePrefixString}"${filterName}" IN (${filterIds})`
+			}
+			return ''
+		})
+		.join(' ')
 
 	return [filterVariables, filterSQL]
 }
@@ -115,42 +128,45 @@ export const getFilters = (filters: any, tablePrefix = '', func = '') => {
  * @param tablePrefix Table prefix. Used only for ranges filters with dataType `date`.
  *
  */
-export const getSequelizeFilters = (filters: any, tablePrefix ='') => {
-
+export const getSequelizeFilters = (filters: any, tablePrefix = '') => {
 	return Object.keys(filters || {}).map((filterName) => {
-
 		if (filters[filterName] === undefined) return {}
 
-
 		if (filters[filterName].type === 'exact') {
-
 			return {
 				[filterName]: {
-					[Op.eq]: filters[filterName].value
-				}
+					[Op.eq]: filters[filterName].value,
+				},
 			}
 		}
 		if (filters[filterName].type === 'like') {
 			return {
 				[filterName]: {
-					[Op.iLike]: `%${filters[filterName].value}%`
-				}
+					[Op.iLike]: `%${filters[filterName].value}%`,
+				},
 			}
 		}
 
 		if (filters[filterName].type === 'range') {
 			const tablePrefixString = tablePrefix ? `"${tablePrefix}".` : ''
 
-			const from = filters[filterName].from ? ({ [Op.gte]: filters[filterName].from }) : undefined
-			const to = filters[filterName].to ? ({ [Op.lte]: filters[filterName].to }) : undefined
+			const from = filters[filterName].from
+				? { [Op.gte]: filters[filterName].from }
+				: undefined
+			const to = filters[filterName].to
+				? { [Op.lte]: filters[filterName].to }
+				: undefined
 
 			return sequelize.where(
-				(filters[filterName].dataType === 'date'
-					? sequelize.cast(sequelize.col(`${tablePrefixString}${filterName}`), 'date')
-					: filterName),
+				filters[filterName].dataType === 'date'
+					? sequelize.cast(
+							sequelize.col(`${tablePrefixString}${filterName}`),
+							'date'
+					  )
+					: filterName,
 				{
 					...from,
-					...to
+					...to,
 				}
 			)
 		}
@@ -159,7 +175,7 @@ export const getSequelizeFilters = (filters: any, tablePrefix ='') => {
 			return {
 				[filterName]: {
 					[Op.in]: filters[filterName].value,
-				}
+				},
 			}
 		}
 		return {}

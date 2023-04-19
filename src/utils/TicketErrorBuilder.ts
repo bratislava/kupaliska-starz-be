@@ -1,4 +1,8 @@
-import { CHECK_STATUS, TICKET_CHECKIN_ERROR_CODE, TICKET_CHECKOUT_ERROR_CODE } from './enums'
+import {
+	CHECK_STATUS,
+	TICKET_CHECKIN_ERROR_CODE,
+	TICKET_CHECKOUT_ERROR_CODE,
+} from './enums'
 
 interface ITicketErrorBuilderItem {
 	text: string
@@ -15,11 +19,15 @@ export default class TicketErrorBuilder {
 		this.items = []
 	}
 
-	addError(errorCode: TICKET_CHECKIN_ERROR_CODE | TICKET_CHECKOUT_ERROR_CODE, text: string, optionalCheck = false) {
+	addError(
+		errorCode: TICKET_CHECKIN_ERROR_CODE | TICKET_CHECKOUT_ERROR_CODE,
+		text: string,
+		optionalCheck = false
+	) {
 		this.items.push({
 			text,
 			optionalCheck,
-			code: errorCode
+			code: errorCode,
 		})
 		if (optionalCheck === false) {
 			this.status = CHECK_STATUS.NOK

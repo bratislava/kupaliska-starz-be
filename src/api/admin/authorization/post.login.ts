@@ -14,61 +14,79 @@ const passwordConfig: IPassportConfig = config.get('passport')
 export const schema = Joi.object().keys({
 	body: Joi.object().keys({
 		email: Joi.string().email().required(),
-		password: Joi.string().required()
+		password: Joi.string().required(),
 	}),
 	query: Joi.object(),
-	params: Joi.object()
+	params: Joi.object(),
 })
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	let transaction: Transaction
 	try {
 		const { body } = req
-		const {
-			User,
-			SwimmingPool
-		} = models
+		const { User, SwimmingPool } = models
 
 		const user = await User.findOne({
 			where: {
 				email: {
-					[Op.eq]: body.email
+					[Op.eq]: body.email,
 				},
 				isConfirmed: {
-					[Op.eq]: true
-				}
+					[Op.eq]: true,
+				},
 			},
-			include: { association: 'swimmingPools' }
+			include: { association: 'swimmingPools' },
 		})
 
 		if (!user) {
-			throw new ErrorBuilder(401, req.t('error:incorrectUsernameOrPassword'))
+			throw new ErrorBuilder(
+				401,
+				req.t('error:incorrectUsernameOrPassword')
+			)
 		}
 
 		const passwordVerified = await comparePassword(body.password, user.hash)
 
 		if (!passwordVerified) {
-			throw new ErrorBuilder(401, req.t('error:incorrectUsernameOrPassword'))
+			throw new ErrorBuilder(
+				401,
+				req.t('error:incorrectUsernameOrPassword')
+			)
 		}
 
 		transaction = await DB.transaction()
 
 		const newIssuedTokens = user.issuedTokens + 1
-		await user.update({
-			lastLoginAt: new Date(),
-			issuedTokens: newIssuedTokens
-		}, { transaction })
+		await user.update(
+			{
+				lastLoginAt: new Date(),
+				issuedTokens: newIssuedTokens,
+			},
+			{ transaction }
+		)
 
-		const accessToken = await createJwt({
-			uid: user.id,
-			s: newIssuedTokens,
-		}, {
-			audience: passwordConfig.jwt.user.audience,
-			expiresIn: passwordConfig.jwt.user.exp
-		})
+		const accessToken = await createJwt(
+			{
+				uid: user.id,
+				s: newIssuedTokens,
+			},
+			{
+				audience: passwordConfig.jwt.user.audience,
+				expiresIn: passwordConfig.jwt.user.exp,
+			}
+		)
 
-		if (user.role === USER_ROLE.SUPER_ADMIN || user.role === USER_ROLE.OPERATOR) {
-			user.swimmingPools = await SwimmingPool.findAll({ attributes: ['id', 'name']})
+		if (
+			user.role === USER_ROLE.SUPER_ADMIN ||
+			user.role === USER_ROLE.OPERATOR
+		) {
+			user.swimmingPools = await SwimmingPool.findAll({
+				attributes: ['id', 'name'],
+			})
 		}
 
 		await transaction.commit()
@@ -83,11 +101,11 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 					lastLoginAt: user.lastLoginAt,
 					swimmingPools: map(user.swimmingPools, (pool) => ({
 						id: pool.id,
-						name: pool.name
-					}))
-				}
+						name: pool.name,
+					})),
+				},
 			},
-			messages: []
+			messages: [],
 		})
 	} catch (err) {
 		if (transaction) {

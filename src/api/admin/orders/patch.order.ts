@@ -8,26 +8,33 @@ import { Transaction } from 'sequelize'
 export const schema = Joi.object().keys({
 	body: Joi.object().keys({
 		email: Joi.string().max(255).email(),
-		state: Joi.string().valid(...ORDER_STATES)
+		state: Joi.string().valid(...ORDER_STATES),
 	}),
 	query: Joi.object(),
 	params: Joi.object().keys({
-		orderId: Joi.string().guid({ version: ['uuidv4'] }).required()
-	})
+		orderId: Joi.string()
+			.guid({ version: ['uuidv4'] })
+			.required(),
+	}),
 })
 
-const {
-	Order
-} = models
+const { Order } = models
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	let transaction: Transaction
 	try {
 		const { body, params } = req
 
-		const order = await Order.findByPk(params.orderId,
-			{ include: { association: "tickets", include: [{ association: 'profile' }] } }
-		)
+		const order = await Order.findByPk(params.orderId, {
+			include: {
+				association: 'tickets',
+				include: [{ association: 'profile' }],
+			},
+		})
 
 		if (!order) {
 			throw new ErrorBuilder(404, req.t('error:orderNotFound'))
@@ -45,7 +52,12 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		}
 
 		await transaction.commit()
-		await order.reload({ include: { association: "tickets", include: [{ association: 'profile' }] } })
+		await order.reload({
+			include: {
+				association: 'tickets',
+				include: [{ association: 'profile' }],
+			},
+		})
 
 		transaction = null
 
@@ -55,13 +67,15 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				order: {
 					id: order.id,
 					email: order.tickets[0].profile.email,
-					state: order.state
-				}
+					state: order.state,
+				},
 			},
-			messages: [{
-				type: MESSAGE_TYPE.SUCCESS,
-				message: req.t('success:admin.order.updated')
-			}]
+			messages: [
+				{
+					type: MESSAGE_TYPE.SUCCESS,
+					message: req.t('success:admin.order.updated'),
+				},
+			],
 		})
 	} catch (err) {
 		if (transaction) {

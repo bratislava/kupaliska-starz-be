@@ -13,44 +13,34 @@ export async function up(queryInterface: QueryInterface) {
 		if (table.displayProperties) {
 			await queryInterface.removeColumn(
 				'ticketTypes',
-				'displayProperties',
+				'displayProperties'
 			)
 		}
 
 		if (table.childrenDisplayProperties) {
 			await queryInterface.removeColumn(
 				'ticketTypes',
-				'childrenDisplayProperties',
+				'childrenDisplayProperties'
 			)
 		}
 
 		return Promise.resolve()
-
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
+	await queryInterface.addColumn('ticketTypes', 'displayProperties', {
+		type: DataTypes.TEXT,
+		allowNull: false,
+		defaultValue: '',
+	})
 
-	await queryInterface.addColumn(
-		'ticketTypes',
-		'displayProperties',
-		{
-			type: DataTypes.TEXT,
-			allowNull: false,
-			defaultValue: ''
-		}
-	)
-
-	await queryInterface.addColumn(
-		'ticketTypes',
-		'childrenDisplayProperties',
-		{
-			type: DataTypes.TEXT,
-			allowNull: true,
-		}
-	)
+	await queryInterface.addColumn('ticketTypes', 'childrenDisplayProperties', {
+		type: DataTypes.TEXT,
+		allowNull: true,
+	})
 
 	return Promise.resolve()
 }

@@ -6,16 +6,9 @@
 		"outDir": "./dist",
 		"sourceMap": false,
 		"noImplicitAny": true,
-		"typeRoots" : [
-			"node_modules/@types",
-			"./src/types"
-		],
+		"typeRoots": ["node_modules/@types", "./src/types"],
 		"resolveJsonModule": true
 	},
-	"include": [
-		"./src/db/**/*"
-	],
-	"exclude": [
-		"node_modules"
-	]
+	"include": ["./src/db/**/*"],
+	"exclude": ["node_modules"]
 }

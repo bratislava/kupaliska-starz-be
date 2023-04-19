@@ -64,7 +64,6 @@ export const azureGetAzureId = async (req: any) => {
 	return oid
 }
 
-
 export const azureGetAzureData = async (req: any) => {
 	const authorization = req.headers.authorization
 	if (authorization === undefined) {

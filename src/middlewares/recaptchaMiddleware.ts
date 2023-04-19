@@ -8,7 +8,7 @@ const googleServiceConfig: IGoogleServiceConfig = config.get('googleService')
 
 export default async (req: Request, _res: Response, next: NextFunction) => {
 	try {
-		console.log('BODY: ', req.body);
+		console.log('BODY: ', req.body)
 		const recaptchaResponse = req.body.recaptcha
 		const response = await axios({
 			method: 'POST',
@@ -21,12 +21,13 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 					expectedAction: 'order',
 				},
 			},
-		}).then(response => {
-			return response
-		 })
-		 .catch(error => {
-			return error.response
-		 })
+		})
+			.then((response) => {
+				return response
+			})
+			.catch((error) => {
+				return error.response
+			})
 
 		if (response.status !== 200) {
 			console.log(response.status)
@@ -36,13 +37,11 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 			console.log(response.data.tokenProperties.invalidReason)
 			console.log(response.data.reasons)
 			throw new ErrorBuilder(400, req.t('error:invalidRecaptcha'))
-		} else if (response.data.score >= 0.5){
+		} else if (response.data.score >= 0.5) {
 			return next()
-		}
-		else {
+		} else {
 			throw new ErrorBuilder(400, req.t('error:invalidRecaptcha'))
 		}
-		
 	} catch (err) {
 		console.log(err)
 		return next(err)

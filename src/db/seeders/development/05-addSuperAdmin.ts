@@ -1,7 +1,7 @@
 import { Op, QueryInterface } from 'sequelize'
 import { USER_ROLE } from '../../../utils/enums'
 import { hashPassword } from '../../../utils/authorization'
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'
 
 const id = uuidv4()
 
@@ -13,13 +13,11 @@ export async function up(queryInterface: QueryInterface) {
 			email: 'super@admin.com',
 			role: USER_ROLE.SUPER_ADMIN,
 			isConfirmed: true,
-			hash: hashPassword('amcefPass132')
+			hash: hashPassword('amcefPass132'),
 		},
 	])
 }
 
 export async function down(queryInterface: QueryInterface) {
-	return queryInterface.bulkDelete('users',
-		{ id: { [Op.eq]: id } }
-	)
+	return queryInterface.bulkDelete('users', { id: { [Op.eq]: id } })
 }

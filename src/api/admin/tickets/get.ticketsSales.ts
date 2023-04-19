@@ -1,16 +1,16 @@
-import Joi from "joi";
-import { QueryTypes } from "sequelize";
-import { NextFunction, Request, Response } from "express";
-import { find, map, reduce } from "lodash";
-import config from "config";
-import sequelize, { models } from "../../../db/models";
-import { TICKET_TYPE } from "../../../utils/enums";
-import { getFilters } from "../../../utils/dbFilters";
-import { IAppConfig } from "../../../types/interfaces";
+import Joi from 'joi'
+import { QueryTypes } from 'sequelize'
+import { NextFunction, Request, Response } from 'express'
+import { find, map, reduce } from 'lodash'
+import config from 'config'
+import sequelize, { models } from '../../../db/models'
+import { TICKET_TYPE } from '../../../utils/enums'
+import { getFilters } from '../../../utils/dbFilters'
+import { IAppConfig } from '../../../types/interfaces'
 
-const appConfig: IAppConfig = config.get("app");
+const appConfig: IAppConfig = config.get('app')
 
-const { SwimmingPool } = models;
+const { SwimmingPool } = models
 
 export const schema = Joi.object().keys({
 	body: Joi.object(),
@@ -20,39 +20,39 @@ export const schema = Joi.object().keys({
 			.required()
 			.items(
 				Joi.string()
-					.guid({ version: ["uuidv4"] })
+					.guid({ version: ['uuidv4'] })
 					.required()
 			),
 		multipleEntries: Joi.boolean().default(false),
 		day: Joi.object().keys({
 			from: Joi.date(),
-			to: Joi.date().when("type", {
-				is: Joi.valid("range"),
-				then: Joi.when("from", {
+			to: Joi.date().when('type', {
+				is: Joi.valid('range'),
+				then: Joi.when('from', {
 					is: Joi.required(),
 					otherwise: Joi.required(),
 				}),
 			}),
-			type: Joi.string().valid("range").default("range"),
-			dataType: Joi.string().default("date"),
+			type: Joi.string().valid('range').default('range'),
+			dataType: Joi.string().default('date'),
 		}),
 	}),
 	params: Joi.object(),
-});
+})
 
 interface SwimmingPoolRecord {
-	id: string;
-	name: string;
-	numberOfUses: number;
+	id: string
+	name: string
+	numberOfUses: number
 }
 
 interface TicketTypeRecord {
-	ticketTypeName: string;
-	isChildren: boolean;
-	price: string;
-	entryPrice: string;
-	numberOfUses: number;
-	swimmingPools: SwimmingPoolRecord[];
+	ticketTypeName: string
+	isChildren: boolean
+	price: string
+	entryPrice: string
+	numberOfUses: number
+	swimmingPools: SwimmingPoolRecord[]
 }
 
 export const workflow = async (
@@ -61,23 +61,23 @@ export const workflow = async (
 	next: NextFunction
 ) => {
 	try {
-		const { query }: any = req;
+		const { query }: any = req
 
 		const [swimmingPoolsFilterVariables, swimmingPoolsFilterSql] =
 			getFilters({
-				swimmingPoolId: { type: "in", value: query.swimmingPools },
-			});
+				swimmingPoolId: { type: 'in', value: query.swimmingPools },
+			})
 
 		const [dayFilterVariables, dayFilterSQL] = getFilters({
 			day: query.day,
-		});
+		})
 
 		const computeRealPriceSql = `
 			CASE
 				WHEN dc.amount IS NULL
 				THEN tickets.price
 				ELSE (tickets.price * (1 - dc.amount / 100))
-			END AS "realPrice"`;
+			END AS "realPrice"`
 
 		// CASE
 		// 	WHEN (tickets.price * (1 - dc.amount / 100)) < 0.01
@@ -88,19 +88,19 @@ export const workflow = async (
 		// Whether we count visit only for first visited swimming pool in day (multipleEntries === false)
 		// Or we count visit for every swimming pool
 		const visitsForFirstSwimmingPoolsFilter =
-			query.multipleEntries === false ? 'AND "checkInOrder" = 1 ' : "";
+			query.multipleEntries === false ? 'AND "checkInOrder" = 1 ' : ''
 
 		// Ticket types in this endpoint are different
 		// they are not defined by ID, but by their PRICE and ID (because of ticket types with discounts)
 		const result = await sequelize.query<{
-			price: string;
-			swimmingPoolId: string;
-			ticketTypeName: string;
-			ticketTypeId: string;
-			isChildren: boolean;
-			numberOfUses: number;
-			entryPrice: string;
-			remainingEntries: number;
+			price: string
+			swimmingPoolId: string
+			ticketTypeName: string
+			ticketTypeId: string
+			isChildren: boolean
+			numberOfUses: number
+			entryPrice: string
+			remainingEntries: number
 		}>(
 			`
 
@@ -174,13 +174,13 @@ export const workflow = async (
 				raw: true,
 				type: QueryTypes.SELECT,
 			}
-		);
+		)
 
 		const swimmingPools = await SwimmingPool.findAll({
 			where: {
 				id: query.swimmingPools,
 			},
-		});
+		})
 
 		// Group data by price and ticket type name and create desired response
 		const responseData = reduce(
@@ -191,18 +191,18 @@ export const workflow = async (
 					remainingEntries,
 					swimmingPoolId,
 					...others
-				} = data;
+				} = data
 				const ticketType = find(arr, {
 					price: data.price,
 					ticketTypeName: data.ticketTypeName,
-				});
+				})
 				if (ticketType) {
-					ticketType.numberOfUses += numberOfUses;
+					ticketType.numberOfUses += numberOfUses
 					const swimmingPool = find(ticketType.swimmingPools, {
 						id: swimmingPoolId,
-					});
+					})
 					if (swimmingPool) {
-						swimmingPool.numberOfUses = numberOfUses;
+						swimmingPool.numberOfUses = numberOfUses
 					}
 				} else {
 					// push new ticket type record and his all swimming pools
@@ -216,33 +216,33 @@ export const workflow = async (
 									numberOfUses,
 									id: swimmingPoolId,
 									name: pool.name,
-								};
+								}
 							}
 							return {
 								numberOfUses: 0,
 								id: pool.id,
 								name: pool.name,
-							};
+							}
 						}),
-					});
+					})
 				}
 
-				return arr;
+				return arr
 			},
 			[]
-		);
+		)
 
 		return res.json({
 			data: map(responseData, (ticketType: TicketTypeRecord) => {
-				const { price, entryPrice, ...other } = ticketType;
+				const { price, entryPrice, ...other } = ticketType
 				const finalPrice =
 					Math.round(
 						Number(entryPrice) * ticketType.numberOfUses * 100
-					) / 100;
+					) / 100
 				const commission =
 					Math.round(
 						finalPrice * appConfig.commissionCoefficient * 100
-					) / 100;
+					) / 100
 				return {
 					finalPrice,
 					commission,
@@ -251,10 +251,10 @@ export const workflow = async (
 					price: Number(price),
 					entryPrice: Number(entryPrice),
 					...other,
-				};
+				}
 			}),
-		});
+		})
 	} catch (err) {
-		return next(err);
+		return next(err)
 	}
-};
+}

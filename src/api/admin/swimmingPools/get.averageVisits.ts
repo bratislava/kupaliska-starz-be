@@ -1,13 +1,13 @@
-import { getAllAges } from './../../../utils/helpers';
-import { formatVisits } from './../../../utils/formatters';
-import { SwimmingPoolModel } from './../../../db/models/swimmingPool';
+import { getAllAges } from './../../../utils/helpers'
+import { formatVisits } from './../../../utils/formatters'
+import { SwimmingPoolModel } from './../../../db/models/swimmingPool'
 import Joi from 'joi'
 import { Op, QueryTypes } from 'sequelize'
 import { NextFunction, Request, Response } from 'express'
 import sequelize from '../../../db/models'
-import { groupBy, reduce } from 'lodash';
+import { groupBy, reduce } from 'lodash'
 import joiDate from '@joi/date'
-import { getFilters } from '../../../utils/dbFilters';
+import { getFilters } from '../../../utils/dbFilters'
 
 const JoiDateExtension = Joi.extend(joiDate(Joi))
 
@@ -18,19 +18,30 @@ export const schema = Joi.object().keys({
 		ageMinimum: Joi.number().default(0),
 		from: JoiDateExtension.date().format(['YYYY-MM-DD']).raw().required(),
 		to: JoiDateExtension.date().format(['YYYY-MM-DD']).raw().required(),
-		swimmingPools: Joi.array().min(1).required().items(
-			Joi.string().guid({ version: ['uuidv4'] }).required()
-		),
+		swimmingPools: Joi.array()
+			.min(1)
+			.required()
+			.items(
+				Joi.string()
+					.guid({ version: ['uuidv4'] })
+					.required()
+			),
 	}),
-	params: Joi.object().keys()
+	params: Joi.object().keys(),
 })
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { query }: any = req
 
-		const [swimmingPoolsFilterVariables, swimmingPoolsFilterSql] = getFilters(
-			{ swimmingPoolId: { type: 'in', value: query.swimmingPools } })
+		const [swimmingPoolsFilterVariables, swimmingPoolsFilterSql] =
+			getFilters({
+				swimmingPoolId: { type: 'in', value: query.swimmingPools },
+			})
 
 		const fromSqlQuery = `
 			SELECT *
@@ -47,7 +58,11 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				ten * $ageInterval + $ageMinimum AS r_min, ten * $ageInterval + ($ageInterval - 1) + $ageMinimum AS r_max
 			FROM generate_series(0, CAST(CEIL(100 / $ageInterval) - 1 AS INTEGER) ) AS t(ten)`
 
-		const swimmingPoolsVisitsResult = await sequelize.query<{ id: string, range: { age: string, value: string } }>(`
+		const swimmingPoolsVisitsResult = await sequelize.query<{
+			id: string
+			range: { age: string; value: string }
+		}>(
+			`
 			SELECT "swimmingPoolId" as "id", ranges.range as "range.age", TO_CHAR(((AVG("visitDuration"))::varchar)::interval, 'HH24:MI:SS') as "range.value"
 				FROM
 					(${fromSqlQuery}) as "entries"
@@ -67,15 +82,19 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 					ageMinimum: query.ageMinimum,
 					from: query.from,
 					to: query.to,
-					...swimmingPoolsFilterVariables
+					...swimmingPoolsFilterVariables,
 				},
 				raw: false,
 				nest: true,
 				type: QueryTypes.SELECT,
 			}
-		);
+		)
 
-		const swimmingPoolsAverageVisitsResult = await sequelize.query<{ id: string, total: string }>(`
+		const swimmingPoolsAverageVisitsResult = await sequelize.query<{
+			id: string
+			total: string
+		}>(
+			`
 			SELECT "swimmingPoolId" as "id", TO_CHAR(((AVG("visitDuration"))::varchar)::interval, 'HH24:MI:SS') as "total"
 			FROM
 				(${fromSqlQuery}) as "entries"
@@ -85,15 +104,19 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				bind: {
 					from: query.from,
 					to: query.to,
-					...swimmingPoolsFilterVariables
+					...swimmingPoolsFilterVariables,
 				},
 				raw: false,
 				nest: true,
 				type: QueryTypes.SELECT,
 			}
-		);
+		)
 
-		const agesAverageVisitsResult = await sequelize.query<{ age: string, total: string }>(`
+		const agesAverageVisitsResult = await sequelize.query<{
+			age: string
+			total: string
+		}>(
+			`
 			SELECT ranges.range as "age", TO_CHAR(((AVG("visitDuration"))::varchar)::interval, 'HH24:MI:SS') as "total"
 			FROM
 				(${fromSqlQuery}) as "entries"
@@ -112,20 +135,20 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 					ageMinimum: query.ageMinimum,
 					from: query.from,
 					to: query.to,
-					...swimmingPoolsFilterVariables
+					...swimmingPoolsFilterVariables,
 				},
 				raw: false,
 				nest: true,
 				type: QueryTypes.SELECT,
 			}
-		);
+		)
 
 		const allSwimmingPools = await SwimmingPoolModel.findAll({
 			where: {
 				id: {
-					[Op.in]: query.swimmingPools
-				}
-			}
+					[Op.in]: query.swimmingPools,
+				},
+			},
 		})
 
 		const allAges = getAllAges(query.ageInterval, query.ageMinimum)
@@ -133,19 +156,27 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 
 		return res.json({
 			data: {
-
-				swimmingPools: formatVisits(allSwimmingPools, allAges, swimmingPoolsVisits, swimmingPoolsAverageVisitsResult,  'time'),
-				ages: reduce(agesAverageVisitsResult, (allRanges, range) => {
-					let ageTitle = range.age
-					if (range.age === null) {
-						ageTitle = req.t('none')
-					}
-					allRanges[ageTitle] = range.total
-					return allRanges
-				}, {} as any)
-			}
+				swimmingPools: formatVisits(
+					allSwimmingPools,
+					allAges,
+					swimmingPoolsVisits,
+					swimmingPoolsAverageVisitsResult,
+					'time'
+				),
+				ages: reduce(
+					agesAverageVisitsResult,
+					(allRanges, range) => {
+						let ageTitle = range.age
+						if (range.age === null) {
+							ageTitle = req.t('none')
+						}
+						allRanges[ageTitle] = range.total
+						return allRanges
+					},
+					{} as any
+				),
+			},
 		})
-
 	} catch (err) {
 		return next(err)
 	}
