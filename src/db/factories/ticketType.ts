@@ -1,6 +1,6 @@
-import { TICKET_TYPE } from "../../utils/enums";
-import { v4 as uuidv4 } from 'uuid';
-import faker from "faker";
+import { TICKET_TYPE } from '../../utils/enums'
+import { v4 as uuidv4 } from 'uuid'
+import faker from 'faker'
 
 export const createTicketType = (ticketTypeId = uuidv4()) => ({
 	id: ticketTypeId,

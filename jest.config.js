@@ -1,17 +1,10 @@
 module.exports = {
 	transform: {
-		'^.+\\.ts?$': 'ts-jest'
+		'^.+\\.ts?$': 'ts-jest',
 	},
-	roots: [
-		'<rootDir>/tests/'
-	],
-	moduleFileExtensions: [
-		'ts',
-		'js'
-	],
-	setupFilesAfterEnv: [
-		'<rootDir>/tests/setup.ts'
-	],
+	roots: ['<rootDir>/tests/'],
+	moduleFileExtensions: ['ts', 'js'],
+	setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
 	globalSetup: '<rootDir>/tests/global.ts',
-	testEnvironment: 'node'
+	testEnvironment: 'node',
 }

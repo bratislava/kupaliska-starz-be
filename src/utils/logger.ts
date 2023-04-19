@@ -20,9 +20,7 @@ const level = () => {
 const format = winston.format.json()
 
 // set where to send logs (console is good enough because of log aggregation on loki)
-const transports = [
-	new winston.transports.Console(),
-]
+const transports = [new winston.transports.Console()]
 
 // instantiate a new Winston Logger with the settings defined above
 const logger = winston.createLogger({
@@ -30,7 +28,7 @@ const logger = winston.createLogger({
 	levels,
 	format,
 	transports,
-	exitOnError: false // do not exit on handled exceptions
+	exitOnError: false, // do not exit on handled exceptions
 })
 
 export default logger

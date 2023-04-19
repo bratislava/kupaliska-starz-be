@@ -8,16 +8,17 @@ export async function up(queryInterface: QueryInterface) {
 			return Promise.resolve()
 		}
 
-		await queryInterface.sequelize.query('create index entries_ticketid on entries ("ticketId") ');
+		await queryInterface.sequelize.query(
+			'create index entries_ticketid on entries ("ticketId") '
+		)
 		return Promise.resolve()
-
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-	await queryInterface.sequelize.query('drop index entries_ticketid');
+	await queryInterface.sequelize.query('drop index entries_ticketid')
 
 	return Promise.resolve()
 }

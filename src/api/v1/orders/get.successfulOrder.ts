@@ -1,26 +1,30 @@
-import { formatTicket } from './../../../utils/formatters';
-import { generateQrCode } from '../../../utils/qrCodeGenerator';
+import { formatTicket } from './../../../utils/formatters'
+import { generateQrCode } from '../../../utils/qrCodeGenerator'
 import Joi from 'joi'
 import { Op } from 'sequelize'
 import { NextFunction, Request, Response } from 'express'
 import { models } from '../../../db/models'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
-import { map } from 'lodash';
-import { generatePdf } from '../../../utils/pdfGenerator';
+import { map } from 'lodash'
+import { generatePdf } from '../../../utils/pdfGenerator'
 
-const {
-	Order,
-} = models
+const { Order } = models
 
 export const schema = Joi.object().keys({
 	body: Joi.object(),
 	query: Joi.object(),
 	params: Joi.object().keys({
-		orderId: Joi.string().guid({version: ['uuidv4']}).required()
-	})
+		orderId: Joi.string()
+			.guid({ version: ['uuidv4'] })
+			.required(),
+	}),
 })
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { params } = req
 		const authInfo = req.authInfo as { orderId: string }
@@ -32,7 +36,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		const order = await Order.findOne({
 			attributes: ['id'],
 			where: {
-				id: { [Op.eq]: authInfo.orderId }
+				id: { [Op.eq]: authInfo.orderId },
 			},
 			include: [
 				{
@@ -41,15 +45,20 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 					include: [
 						{
 							association: 'ticketType',
-							attributes: ['id', 'validTo', 'name', 'childrenAgeToWithAdult']
+							attributes: [
+								'id',
+								'validTo',
+								'name',
+								'childrenAgeToWithAdult',
+							],
 						},
 						{
 							association: 'profile',
-							attributes: ['name', 'age']
-						}
-					]
-				}
-			]
+							attributes: ['name', 'age'],
+						},
+					],
+				},
+			],
 		})
 
 		if (!order) {
@@ -58,21 +67,20 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 
 		for (const ticket of order.tickets) {
 			const ticketType = ticket.ticketType
-			ticket.qrCode = await generateQrCode(ticket.id, 'datauri', ticketType.getExpiresIn())
+			ticket.qrCode = await generateQrCode(
+				ticket.id,
+				'datauri',
+				ticketType.getExpiresIn()
+			)
 		}
 
 		const pdfBase64 = await generatePdf(order.tickets)
 
 		return res.json({
-			tickets: map(order.tickets, (ticket) => (
-				formatTicket(ticket)
-			)),
-			pdf: `data:application/pdf;base64,${pdfBase64}`
-
+			tickets: map(order.tickets, (ticket) => formatTicket(ticket)),
+			pdf: `data:application/pdf;base64,${pdfBase64}`,
 		})
 	} catch (err) {
 		return next(err)
 	}
 }
-
-

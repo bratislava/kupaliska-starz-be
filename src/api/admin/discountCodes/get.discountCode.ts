@@ -1,23 +1,27 @@
-import { formatDiscountCode } from '../../../utils/formatters';
+import { formatDiscountCode } from '../../../utils/formatters'
 import Joi from 'joi'
 import { Op } from 'sequelize'
 import { NextFunction, Request, Response } from 'express'
 import { models } from '../../../db/models'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 
-const {
-	DiscountCode,
-} = models
+const { DiscountCode } = models
 
 export const schema = Joi.object().keys({
 	body: Joi.object(),
 	query: Joi.object(),
 	params: Joi.object().keys({
-		discountCodeId: Joi.string().guid({version: ['uuidv4']}).required()
-	})
+		discountCodeId: Joi.string()
+			.guid({ version: ['uuidv4'] })
+			.required(),
+	}),
 })
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { params } = req
 
@@ -29,33 +33,37 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				'validFrom',
 				'validTo',
 				'createdAt',
-				'usedAt'
+				'usedAt',
 			],
 			where: {
-				id: { [Op.eq]: params.discountCodeId }
+				id: { [Op.eq]: params.discountCodeId },
 			},
 			include: [
 				{
-					association: "ticketTypes"
+					association: 'ticketTypes',
 				},
 				{
-					association: "order",
-					include: [{
-						required: false,
-						separate: true,
-						association: 'tickets',
-						limit: 1,
-						where: {
-							isChildren: {
-								[Op.is]: false
-							}
+					association: 'order',
+					include: [
+						{
+							required: false,
+							separate: true,
+							association: 'tickets',
+							limit: 1,
+							where: {
+								isChildren: {
+									[Op.is]: false,
+								},
+							},
+							include: [
+								{
+									association: 'profile',
+								},
+							],
 						},
-						include: [{
-							association: 'profile'
-						}]
-					}]
-				}
-			]
+					],
+				},
+			],
 		})
 
 		if (!discountCode) {

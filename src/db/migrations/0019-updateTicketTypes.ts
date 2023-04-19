@@ -16,38 +16,29 @@ export async function up(queryInterface: QueryInterface) {
 				{
 					type: DataTypes.BOOLEAN,
 					allowNull: false,
-					defaultValue: false
+					defaultValue: false,
 				}
 			)
 		}
 
 		if (!table.hasTicketDuration) {
-			await queryInterface.addColumn(
-				'ticketTypes',
-				'hasTicketDuration',
-				{
-					type: DataTypes.BOOLEAN,
-					allowNull: false,
-					defaultValue: false
-				}
-			)
+			await queryInterface.addColumn('ticketTypes', 'hasTicketDuration', {
+				type: DataTypes.BOOLEAN,
+				allowNull: false,
+				defaultValue: false,
+			})
 		}
 
 		if (!table.entranceTo) {
-			await queryInterface.addColumn(
-				'ticketTypes',
-				'entranceTo',
-				{
-					type: DataTypes.TIME,
-					allowNull: true,
-				}
-			)
+			await queryInterface.addColumn('ticketTypes', 'entranceTo', {
+				type: DataTypes.TIME,
+				allowNull: true,
+			})
 		}
 
 		return Promise.resolve()
-
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
@@ -61,17 +52,11 @@ export async function down(queryInterface: QueryInterface) {
 	}
 
 	if (table.hasTicketDuration) {
-		await queryInterface.removeColumn(
-			'ticketTypes',
-			'hasTicketDuration'
-		)
+		await queryInterface.removeColumn('ticketTypes', 'hasTicketDuration')
 	}
 
 	if (table.entranceTo) {
-		await queryInterface.removeColumn(
-			'ticketTypes',
-			'entranceTo'
-		)
+		await queryInterface.removeColumn('ticketTypes', 'entranceTo')
 	}
 
 	return Promise.resolve()

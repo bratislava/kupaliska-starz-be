@@ -11,66 +11,65 @@ export async function up(queryInterface: QueryInterface) {
 			email: {
 				type: DataTypes.STRING(255),
 				allowNull: false,
-				unique: true
+				unique: true,
 			},
 			name: {
 				type: DataTypes.STRING(500),
-				allowNull: false
+				allowNull: false,
 			},
 			hash: {
 				type: DataTypes.TEXT,
-				allowNull: false
+				allowNull: false,
 			},
 			issuedTokens: {
 				type: DataTypes.INTEGER,
 				defaultValue: 0,
-				allowNull: false
+				allowNull: false,
 			},
 			tokenValidFromNumber: {
 				type: DataTypes.INTEGER,
 				defaultValue: 0,
-				allowNull: false
+				allowNull: false,
 			},
 			role: {
 				type: DataTypes.STRING(50),
-				allowNull: false
+				allowNull: false,
 			},
 			isConfirmed: {
 				type: DataTypes.BOOLEAN,
 				defaultValue: false,
-				allowNull: false
+				allowNull: false,
 			},
 			lastLoginAt: {
 				type: DataTypes.DATE,
-				allowNull: true
+				allowNull: true,
 			},
 			createdAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			updatedAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			deletedAt: {
 				type: DataTypes.DATE,
 				allowNull: true,
-			}
-		});
+			},
+		})
 
 		await queryInterface.addConstraint('users', {
 			fields: ['email'],
 			type: 'unique',
-			name: 'users_unique_contraint'
-		});
-
+			name: 'users_unique_contraint',
+		})
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-    await queryInterface.dropTable('users');
+	await queryInterface.dropTable('users')
 }

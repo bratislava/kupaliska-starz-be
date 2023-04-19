@@ -1,7 +1,5 @@
 module.exports = {
-	input: [
-		'src/**/*.{ts,tsx}'
-	],
+	input: ['src/**/*.{ts,tsx}'],
 	output: './',
 	options: {
 		debug: false,
@@ -21,8 +19,8 @@ module.exports = {
 			loadPath: 'locales/{{lng}}/{{ns}}.json',
 			savePath: 'locales/{{lng}}/{{ns}}.json',
 			jsonIndent: 4,
-			lineEnding: '\n'
+			lineEnding: '\n',
 		},
 		nsSeparator: ':',
-	}
+	},
 }

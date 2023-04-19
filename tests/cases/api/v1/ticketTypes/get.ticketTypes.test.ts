@@ -6,19 +6,22 @@ const endpoint = '/api/v1/ticketTypes'
 
 const schema = Joi.object().keys({
 	ticketTypes: Joi.array().items(Joi.object()).min(1).required(),
-	pagination: Joi.object().keys({
-		limit: Joi.number().integer().required(),
-		page: Joi.number().integer().required(),
-		totalPages: Joi.number().integer().required(),
-		totalCount: Joi.number().integer().required()
-	}).required()
+	pagination: Joi.object()
+		.keys({
+			limit: Joi.number().integer().required(),
+			page: Joi.number().integer().required(),
+			totalPages: Joi.number().integer().required(),
+			totalCount: Joi.number().integer().required(),
+		})
+		.required(),
 })
 
 describe(`[GET] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Response should return code 200', async () => {
-		const response = await request.get(endpoint)
+		const response = await request
+			.get(endpoint)
 			.set('Content-Type', 'application/json')
 		expect(response.status).toBe(200)
 		expect(response.type).toBe('application/json')

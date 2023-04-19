@@ -15,24 +15,23 @@ export async function up(queryInterface: QueryInterface) {
 			createdAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			updatedAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			deletedAt: {
 				type: DataTypes.DATE,
 				allowNull: true,
-			}
-		});
-
+			},
+		})
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-    await queryInterface.dropTable('orders');
+	await queryInterface.dropTable('orders')
 }

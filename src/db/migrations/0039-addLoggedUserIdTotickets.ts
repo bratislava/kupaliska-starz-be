@@ -11,31 +11,22 @@ export async function up(queryInterface: QueryInterface) {
 		const table: any = await queryInterface.describeTable('tickets')
 
 		if (!table.loggedUserId) {
-			await queryInterface.addColumn(
-				'tickets',
-				'loggedUserId',
-				{
-					type: DataTypes.UUID,
-					allowNull: true,
-				}
-			)
+			await queryInterface.addColumn('tickets', 'loggedUserId', {
+				type: DataTypes.UUID,
+				allowNull: true,
+			})
 		}
 
 		if (!table.associatedSwimmerId) {
-			await queryInterface.addColumn(
-				'tickets',
-				'associatedSwimmerId',
-				{
-					type: DataTypes.UUID,
-					allowNull: true,
-				}
-			)
+			await queryInterface.addColumn('tickets', 'associatedSwimmerId', {
+				type: DataTypes.UUID,
+				allowNull: true,
+			})
 		}
 
 		return Promise.resolve()
-
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
@@ -43,17 +34,11 @@ export async function down(queryInterface: QueryInterface) {
 	const table: any = await queryInterface.describeTable('tickets')
 
 	if (table.remainingEntries) {
-		await queryInterface.removeColumn(
-			'tickets',
-			'loggedUserId'
-		)
+		await queryInterface.removeColumn('tickets', 'loggedUserId')
 	}
 
 	if (table.associatedSwimmerId) {
-		await queryInterface.removeColumn(
-			'tickets',
-			'associatedSwimmerId',
-		)
+		await queryInterface.removeColumn('tickets', 'associatedSwimmerId')
 	}
 
 	return Promise.resolve()

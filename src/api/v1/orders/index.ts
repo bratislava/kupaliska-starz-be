@@ -11,35 +11,45 @@ import recaptchaMiddleware from '../../../middlewares/recaptchaMiddleware'
 const router = Router()
 
 export default () => {
-
-	router.get('/discountCodes/:code/ticketTypes/:ticketTypeId',
+	router.get(
+		'/discountCodes/:code/ticketTypes/:ticketTypeId',
 		schemaMiddleware(GetDiscountCode.schema),
-		GetDiscountCode.workflow)
+		GetDiscountCode.workflow
+	)
 
-	router.post('/',
+	router.post(
+		'/',
 		recaptchaMiddleware,
 		schemaMiddleware(PostOrder.schema),
-		PostOrder.workflow)
+		PostOrder.workflow
+	)
 
 	router.get('/tickets', GetLoggedUserTickets.workflow)
-	
-	router.post('/getPrice',
+
+	router.post(
+		'/getPrice',
 		schemaMiddleware(PostOrder.schema),
-		PostOrder.workflowDryRun)
+		PostOrder.workflowDryRun
+	)
 
-
-	router.get('/:orderId/successful',
+	router.get(
+		'/:orderId/successful',
 		passport.authenticate('jwt-order-response'),
 		schemaMiddleware(GetSuccessfulOrder.schema),
-		GetSuccessfulOrder.workflow)
+		GetSuccessfulOrder.workflow
+	)
 
-	router.get('/webpay/response',
+	router.get(
+		'/webpay/response',
 		schemaMiddleware(GetPostPaymentResponse.schema),
-		GetPostPaymentResponse.workflow)
+		GetPostPaymentResponse.workflow
+	)
 
-	router.post('/webpay/response',
+	router.post(
+		'/webpay/response',
 		schemaMiddleware(GetPostPaymentResponse.schema),
-		GetPostPaymentResponse.workflow)
+		GetPostPaymentResponse.workflow
+	)
 
 	return router
 }

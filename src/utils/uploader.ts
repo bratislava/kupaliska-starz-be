@@ -1,16 +1,16 @@
 import { Request } from 'express'
-import fs from 'fs';
+import fs from 'fs'
 import path from 'path'
 import util from 'util'
 import config from 'config'
-import { access, unlink, writeFile } from 'fs/promises';
+import { access, unlink, writeFile } from 'fs/promises'
 import mime from 'mime-types'
 
 import ErrorBuilder from './ErrorBuilder'
 import logger from './logger'
 import { IAppConfig } from '../types/interfaces'
-import { captureError } from '../services/sentryService';
-import { uploadFileToBucket } from './minio';
+import { captureError } from '../services/sentryService'
+import { uploadFileToBucket } from './minio'
 
 const appConfig: IAppConfig = config.get('app')
 
@@ -25,16 +25,38 @@ async function checkDestinationAccess(req: Request, directory: string) {
 			switch (err.code) {
 				case 'ENOENT':
 					// create filesystem errors log
-					logger.error(`${403} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`)
-					logger.error(`stack: ${JSON.stringify(util.inspect(err.stack))} \n`)
-					captureError(err, req.ip, 'uploadInfo', { path: resultPath})
-					throw new ErrorBuilder(403, req.t('error:uploadIncorrectSubdir'))
+					logger.error(
+						`${403} - ${err.message} - ${req.originalUrl} - ${
+							req.method
+						} - ${req.ip}`
+					)
+					logger.error(
+						`stack: ${JSON.stringify(util.inspect(err.stack))} \n`
+					)
+					captureError(err, req.ip, 'uploadInfo', {
+						path: resultPath,
+					})
+					throw new ErrorBuilder(
+						403,
+						req.t('error:uploadIncorrectSubdir')
+					)
 				case 'LIMIT_FILE_SIZE':
 					// create filesystem errors log
-					logger.error(`${418} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`)
-					logger.error(`stack: ${JSON.stringify(util.inspect(err.stack))} \n`)
-					captureError(err, req.ip, 'uploadInfo', { path: resultPath})
-					throw new ErrorBuilder(418, req.t('error:uploadFileTooLarge'))
+					logger.error(
+						`${418} - ${err.message} - ${req.originalUrl} - ${
+							req.method
+						} - ${req.ip}`
+					)
+					logger.error(
+						`stack: ${JSON.stringify(util.inspect(err.stack))} \n`
+					)
+					captureError(err, req.ip, 'uploadInfo', {
+						path: resultPath,
+					})
+					throw new ErrorBuilder(
+						418,
+						req.t('error:uploadFileTooLarge')
+					)
 				default:
 					throw err
 			}
@@ -56,9 +78,11 @@ function getRelativeFilePath(fileName: string, directory: string) {
 	return path.join(directory, fileName)
 }
 
-export default async function uploadFileFromBase64(req: Request, fileBase64: string, directory: string) {
-
-
+export default async function uploadFileFromBase64(
+	req: Request,
+	fileBase64: string,
+	directory: string
+) {
 	var matches = fileBase64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
 	if (!matches || matches.length !== 3) {
 		throw new ErrorBuilder(400, req.t('error:invalidBase64'))
@@ -77,12 +101,11 @@ export default async function uploadFileFromBase64(req: Request, fileBase64: str
 	const fullFilePath = getFilePath(fileName, directory)
 	const relativeFilePath = getRelativeFilePath(fileName, directory)
 
-
 	try {
-		await writeFile(fullFilePath, base64, { encoding: 'base64' });
+		await writeFile(fullFilePath, base64, { encoding: 'base64' })
 		await uploadFileToBucket(fullFilePath)
 	} catch (err) {
-		captureError(err, req.ip, 'uploadInfo', { path: fullFilePath})
+		captureError(err, req.ip, 'uploadInfo', { path: fullFilePath })
 		throw new ErrorBuilder(409, req.t('error:failedUpload'))
 	}
 
@@ -90,7 +113,7 @@ export default async function uploadFileFromBase64(req: Request, fileBase64: str
 		fileName: fileName,
 		filePath: relativeFilePath,
 		mimeType: mimeType,
-		size: Buffer.byteLength(base64)
+		size: Buffer.byteLength(base64),
 	}
 }
 
