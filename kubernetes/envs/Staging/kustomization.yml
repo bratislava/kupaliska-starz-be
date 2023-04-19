@@ -1,6 +1,6 @@
 resources:
   - ../../base
-  - secrets/app.staging.secret.yml
+  - secrets/app.secret.yml
 
 configMapGenerator:
 - name: env
