@@ -30,38 +30,26 @@ export const ticketTypeAddSchema = {
 				.required()
 		),
 	childrenAllowed: Joi.boolean().required(),
-	childrenMaxNumber: Joi.number()
-		.min(0)
-		.max(100)
-		.when('childrenAllowed', {
-			is: true,
-			then: Joi.required(),
-			otherwise: Joi.forbidden(),
-		}),
-	childrenPrice: Joi.number()
-		.min(0)
-		.precision(2)
-		.when('childrenAllowed', {
-			is: true,
-			then: Joi.required(),
-			otherwise: Joi.forbidden(),
-		}),
-	childrenAgeFrom: Joi.number()
-		.min(0)
-		.max(150)
-		.when('childrenAllowed', {
-			is: true,
-			then: Joi.required(),
-			otherwise: Joi.forbidden(),
-		}),
-	childrenAgeTo: Joi.number()
-		.min(0)
-		.max(150)
-		.when('childrenAllowed', {
-			is: true,
-			then: Joi.required(),
-			otherwise: Joi.forbidden(),
-		}),
+	childrenMaxNumber: Joi.number().min(0).max(100).when('childrenAllowed', {
+		is: true,
+		then: Joi.required(),
+		otherwise: Joi.forbidden(),
+	}),
+	childrenPrice: Joi.number().min(0).precision(2).when('childrenAllowed', {
+		is: true,
+		then: Joi.required(),
+		otherwise: Joi.forbidden(),
+	}),
+	childrenAgeFrom: Joi.number().min(0).max(150).when('childrenAllowed', {
+		is: true,
+		then: Joi.required(),
+		otherwise: Joi.forbidden(),
+	}),
+	childrenAgeTo: Joi.number().min(0).max(150).when('childrenAllowed', {
+		is: true,
+		then: Joi.required(),
+		otherwise: Joi.forbidden(),
+	}),
 	childrenAgeToWithAdult: Joi.number()
 		.min(0)
 		.max(150)
