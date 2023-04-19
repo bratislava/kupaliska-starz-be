@@ -5,7 +5,7 @@
 	"scripts": {
 		"build": "rimraf ./dist && tsc --project tsconfig.json",
 		"build:db": "rimraf ./dist && tsc --project tsconfig.database.json",
-		"debug": "cross-env TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true NODE_ENV=development nodemon --watch src -L --exec 'node --inspect -r dotenv/config -r ts-node/register src/index.ts'",
+		"debug": "cross-env TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true NODE_ENV=development nodemon --watch src --ext 'js,ts,json' -L --exec 'node --inspect -r dotenv/config -r ts-node/register src/index.ts'",
 		"start": "cross-env TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true node -r dotenv/config -r ts-node/register src/index.ts",
 		"start:workers": "cross-env TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true node -r dotenv/config -r ts-node/register src/workers/index.ts",
 		"script": "cross-env TS_NODE_FILES=true TS_NODE_TRANSPILE_ONLY=true node -r dotenv/config -r ts-node/register",
