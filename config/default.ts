@@ -98,11 +98,6 @@ export = {
 		upperCase: 1,
 		numeric: 1,
 	},
-	googleService: {
-		recaptcha: {
-			clientSecret: process.env.RECAPTCHA_CLIENT_SECRET,
-		},
-	},
 	mailgunService: {
 		apiKey: process.env.MAILGUN_API_KEY,
 		domain: process.env.MAILGUN_DOMAIN,
