@@ -100,12 +100,6 @@ export interface IJwtResetPasswordPayload {
 }
 
 /* Services */
-export interface IGoogleServiceConfig {
-	recaptcha: {
-		clientSecret: string
-	}
-}
-
 export interface IMailguntemplatesConfig {
 	resetPassword: string
 	order: string
