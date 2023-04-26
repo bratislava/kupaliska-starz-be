@@ -14,6 +14,17 @@ There is .pdf documentation in docs folder
 
 Before you start you need to have Postgres database running locally so install it.
 
+#### Create database:
+
+In pgAdmin create new database with name **kupaliska** and owner **postgres**.
+
+```sql
+CREATE DATABASE kupaliska;
+CREATE USER postgres WITH PASSWORD 'password';
+GRANT ALL ON DATABASE kupaliska TO postgres;
+ALTER DATABASE kupaliska OWNER TO postgres;
+```
+
 #### Dependencies
 
 Install dependencies:

@@ -105,7 +105,7 @@ describe('[POST] /api/v1/orders', () => {
 						},
 					],
 					agreement: true,
-					recaptcha: 'recaptcha123',
+					token: 'recaptcha123',
 				})
 
 			expect(response.status).toBe(200)
@@ -141,7 +141,7 @@ describe('[POST] /api/v1/orders', () => {
 						},
 					],
 					agreement: true,
-					recaptcha: 'recaptcha123',
+					token: 'recaptcha123',
 				})
 			expect(response.status).toBe(200)
 		})
@@ -186,7 +186,7 @@ describe('[POST] /api/v1/orders', () => {
 						},
 					],
 					agreement: true,
-					recaptcha: 'recaptcha123',
+					token: 'recaptcha123',
 				})
 			expect(response.status).toBe(400)
 			expect(schema.validate(response.body).error).toBeUndefined()
@@ -212,7 +212,7 @@ describe('[POST] /api/v1/orders', () => {
 						},
 					],
 					agreement: true,
-					recaptcha: 'recaptcha123',
+					token: 'recaptcha123',
 				})
 			expect(response.status).toBe(400)
 			expect(schema.validate(response.body).error).toBeUndefined()
@@ -240,7 +240,7 @@ describe('[POST] /api/v1/orders', () => {
 						},
 					],
 					agreement: true,
-					recaptcha: 'recaptcha123',
+					token: 'recaptcha123',
 				})
 			expect(response.status).toBe(400)
 			expect(schema.validate(response.body).error).toBeUndefined()
@@ -265,7 +265,7 @@ describe('[POST] /api/v1/orders', () => {
 						},
 					],
 					agreement: false,
-					recaptcha: 'recaptcha123',
+					token: 'recaptcha123',
 				})
 			expect(response.status).toBe(400)
 			expect(response.body.messages[0].path).toBe('body.agreement')
@@ -298,7 +298,7 @@ describe('[POST] /api/v1/orders', () => {
 							},
 						],
 						agreement: true,
-						recaptcha: 'recaptcha123',
+						token: 'recaptcha123',
 					})
 
 				expect(response.status).toBe(expected === true ? 200 : 400)
@@ -326,7 +326,7 @@ describe('[POST] /api/v1/orders', () => {
 						},
 					],
 					agreement: true,
-					recaptcha: 'recaptcha123',
+					token: 'recaptcha123',
 				})
 			expect(response.status).toBe(400)
 			expect(schema.validate(response.body).error).toBeUndefined()
@@ -359,7 +359,7 @@ describe('[POST] /api/v1/orders', () => {
 						},
 					],
 					agreement: true,
-					recaptcha: 'recaptcha123',
+					token: 'recaptcha123',
 				})
 			expect(response.status).toBe(200)
 			const newFiles = await readdir(
@@ -390,7 +390,7 @@ describe('[POST] /api/v1/orders', () => {
 						},
 					],
 					agreement: true,
-					recaptcha: 'recaptcha123',
+					token: 'recaptcha123',
 				})
 			expect(response.status).toBe(200)
 			const order = await OrderModel.findByPk(response.body.data.id, {
@@ -416,7 +416,7 @@ describe('[POST] /api/v1/orders', () => {
 						},
 					],
 					agreement: true,
-					recaptcha: 'recaptcha123',
+					token: 'recaptcha123',
 				})
 			expect(response.status).toBe(200)
 			const order = await OrderModel.findByPk(response.body.data.id, {
@@ -449,7 +449,7 @@ describe('[POST] /api/v1/orders', () => {
 						},
 					],
 					agreement: true,
-					recaptcha: 'recaptcha123',
+					token: 'recaptcha123',
 				})
 			expect(response.status).toBe(200)
 			const order = await OrderModel.findByPk(response.body.data.id)
@@ -504,7 +504,7 @@ describe('[POST] /api/v1/orders', () => {
 					],
 					discountCode: discountCode,
 					agreement: true,
-					recaptcha: 'recaptcha123',
+					token: 'recaptcha123',
 				})
 			expect(response.status).toBe(200)
 			const order = await OrderModel.findByPk(response.body.data.id)

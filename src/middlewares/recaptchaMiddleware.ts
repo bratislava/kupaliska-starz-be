@@ -1,49 +1,33 @@
 import { Request, Response, NextFunction } from 'express'
-import config from 'config'
-import axios from 'axios'
-import { IGoogleServiceConfig } from '../types/interfaces'
 import ErrorBuilder from '../utils/ErrorBuilder'
+import Turnstile, { TurnstileOptions, TurnstileResponse } from 'cf-turnstile'
 
-const googleServiceConfig: IGoogleServiceConfig = config.get('googleService')
+// inspired from https://github.com/bratislava/nest-city-account/commit/08bdea6c13b7258e9ac1a2cfa33ec9bd66024ec2
+let turnstile:
+	| ((
+			token: string,
+			options?: TurnstileOptions
+	  ) => Promise<TurnstileResponse>)
+	| undefined
+
+if (!process.env.RECAPTCHA_CLIENT_SECRET) {
+	console.warn(
+		'TURNSTILE_SECRET not set! Using dummy token, captcha will always pass.'
+	)
+	turnstile = Turnstile('1x0000000000000000000000000000000AA')
+} else {
+	turnstile = Turnstile(process.env.RECAPTCHA_CLIENT_SECRET)
+	console.log('Successfully initialized Turnstile')
+}
 
 export default async (req: Request, _res: Response, next: NextFunction) => {
 	try {
-		console.log('BODY: ', req.body)
-		const recaptchaResponse = req.body.recaptcha
-		const response = await axios({
-			method: 'POST',
-			url: 'https://recaptchaenterprise.googleapis.com/v1beta1/projects/kupaliska/assessments?key=AIzaSyBylFCQ0PBYSTjdwxOjtIvA6K7Cv7xBZjg',
-			headers: { 'Content-Type': 'application/json' },
-			data: {
-				event: {
-					siteKey: googleServiceConfig.recaptcha.clientSecret,
-					token: recaptchaResponse,
-					expectedAction: 'order',
-				},
-			},
-		})
-			.then((response) => {
-				return response
-			})
-			.catch((error) => {
-				return error.response
-			})
-
-		if (response.status !== 200) {
-			console.log(response.status)
-			console.log(response.data)
-			throw new ErrorBuilder(400, req.t('error:Recaptcha request error'))
-		} else if (response.data.score < 0.5) {
-			console.log(response.data.tokenProperties.invalidReason)
-			console.log(response.data.reasons)
-			throw new ErrorBuilder(400, req.t('error:invalidRecaptcha'))
-		} else if (response.data.score >= 0.5) {
-			return next()
-		} else {
+		const result = await turnstile(req.body.token)
+		if (!result?.success) {
 			throw new ErrorBuilder(400, req.t('error:invalidRecaptcha'))
 		}
-	} catch (err) {
-		console.log(err)
-		return next(err)
+		return next()
+	} catch (error) {
+		return next(error)
 	}
 }

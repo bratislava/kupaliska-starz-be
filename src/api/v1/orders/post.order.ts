@@ -69,7 +69,7 @@ export const schema = Joi.object({
 		agreement: Joi.boolean().valid(true),
 		discountCode: Joi.string().min(5).max(20),
 		discountPercent: Joi.number(),
-		recaptcha: Joi.string(),
+		token: Joi.string(),
 	}),
 	query: Joi.object(),
 	params: Joi.object(),

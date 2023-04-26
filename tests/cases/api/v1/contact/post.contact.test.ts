@@ -30,7 +30,7 @@ describe(`[POST] ${endpoint})`, () => {
 				email: faker.internet.email(),
 				message: faker.lorem.text(),
 				agreement: true,
-				recaptcha: 'Recaptcha',
+				token: 'Recaptcha',
 			})
 
 		expect(response.status).toBe(200)
