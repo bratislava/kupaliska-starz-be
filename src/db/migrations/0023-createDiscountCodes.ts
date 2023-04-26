@@ -11,11 +11,11 @@ export async function up(queryInterface: QueryInterface) {
 			code: {
 				type: DataTypes.STRING(30),
 				allowNull: false,
-				unique: true
+				unique: true,
 			},
 			amount: {
-				type: DataTypes.DECIMAL(10,2),
-				allowNull: false
+				type: DataTypes.DECIMAL(10, 2),
+				allowNull: false,
 			},
 			validFrom: {
 				type: DataTypes.DATEONLY,
@@ -28,24 +28,23 @@ export async function up(queryInterface: QueryInterface) {
 			createdAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			updatedAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			deletedAt: {
 				type: DataTypes.DATE,
 				allowNull: true,
-			}
-		});
-
+			},
+		})
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-	await queryInterface.dropTable('discountCodes');
+	await queryInterface.dropTable('discountCodes')
 }

@@ -8,18 +8,21 @@ const endpoint = '/api/v1/contact'
 
 const schema = Joi.object().keys({
 	data: Joi.object(),
-	messages: Joi.array().items(Joi.object().keys({
-		message: Joi.string().invalid('_NEPRELOZENE_'),
-		type: Joi.string().valid(...MESSAGE_TYPES),
-		path: Joi.string()
-	}))
+	messages: Joi.array().items(
+		Joi.object().keys({
+			message: Joi.string().invalid('_NEPRELOZENE_'),
+			type: Joi.string().valid(...MESSAGE_TYPES),
+			path: Joi.string(),
+		})
+	),
 })
 
 describe(`[POST] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Response should return code 200', async () => {
-		const response = await request.post(endpoint)
+		const response = await request
+			.post(endpoint)
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
 			.send({
@@ -27,7 +30,7 @@ describe(`[POST] ${endpoint})`, () => {
 				email: faker.internet.email(),
 				message: faker.lorem.text(),
 				agreement: true,
-				recaptcha: 'Recaptcha'
+				recaptcha: 'Recaptcha',
 			})
 
 		expect(response.status).toBe(200)
@@ -36,7 +39,8 @@ describe(`[POST] ${endpoint})`, () => {
 	})
 
 	it('Agreement must be true and recaptcha is required', async () => {
-		const response = await request.post(endpoint)
+		const response = await request
+			.post(endpoint)
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
 			.send({
@@ -47,9 +51,15 @@ describe(`[POST] ${endpoint})`, () => {
 			})
 
 		expect(response.status).toBe(400)
-		expect(response.body.messages).toEqual(expect.arrayContaining([expect.objectContaining(
-			{ path: 'body.agreement' })]))
-		expect(response.body.messages).toEqual(expect.arrayContaining([expect.objectContaining(
-			{ path: 'body.recaptcha' })]))
+		expect(response.body.messages).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({ path: 'body.agreement' }),
+			])
+		)
+		expect(response.body.messages).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({ path: 'body.recaptcha' }),
+			])
+		)
 	})
 })

@@ -10,30 +10,22 @@ export async function up(queryInterface: QueryInterface) {
 
 		const table: any = await queryInterface.describeTable('entries')
 		if (!table.flag) {
-			await queryInterface.addColumn(
-				'entries',
-				'flag',
-				{
-					type: DataTypes.STRING(1),
-					allowNull: false,
-				},
-			)
+			await queryInterface.addColumn('entries', 'flag', {
+				type: DataTypes.STRING(1),
+				allowNull: false,
+			})
 		}
 
 		return Promise.resolve()
-
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
 	const table: any = await queryInterface.describeTable('entries')
 	if (table.flag) {
-		await queryInterface.removeColumn(
-			'entries',
-			'flag'
-		)
+		await queryInterface.removeColumn('entries', 'flag')
 	}
 
 	return Promise.resolve()

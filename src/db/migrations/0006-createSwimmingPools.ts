@@ -10,53 +10,52 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			description: {
 				type: DataTypes.STRING(1000),
-				allowNull: false
+				allowNull: false,
 			},
 			expandedDescription: {
 				type: DataTypes.TEXT,
-				allowNull: false
+				allowNull: false,
 			},
 			name: {
 				type: DataTypes.STRING(500),
-				allowNull: false
+				allowNull: false,
 			},
 			waterTemp: {
 				type: DataTypes.SMALLINT,
-				allowNull: true
+				allowNull: true,
 			},
 			maxCapacity: {
 				type: DataTypes.SMALLINT,
-				allowNull: false
+				allowNull: false,
 			},
 			openingHours: {
 				type: DataTypes.JSON,
-				allowNull: false
+				allowNull: false,
 			},
 			facilities: {
 				type: DataTypes.JSON,
-				allowNull: false
+				allowNull: false,
 			},
 			createdAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			updatedAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			deletedAt: {
 				type: DataTypes.DATE,
 				allowNull: true,
-			}
-		});
-
+			},
+		})
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-	await queryInterface.dropTable('swimmingPools');
+	await queryInterface.dropTable('swimmingPools')
 }

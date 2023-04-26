@@ -1,6 +1,6 @@
 module.exports = {
 	createTransport: () => ({
 		verify: () => {},
-		sendMail: async () => Promise.resolve()
-	})
+		sendMail: async () => Promise.resolve(),
+	}),
 }

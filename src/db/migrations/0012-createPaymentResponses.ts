@@ -10,41 +10,40 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			data: {
 				type: DataTypes.JSON,
-				allowNull: false
+				allowNull: false,
 			},
 			isVerified: {
 				type: DataTypes.BOOLEAN,
-				allowNull: false
+				allowNull: false,
 			},
 			isSuccess: {
 				type: DataTypes.BOOLEAN,
-				allowNull: false
+				allowNull: false,
 			},
 			paymentOrderId: {
 				type: DataTypes.UUID,
 				references: {
-					model: "paymentOrders",
-					key: "id"
+					model: 'paymentOrders',
+					key: 'id',
 				},
-				allowNull: false
+				allowNull: false,
 			},
 			createdAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			updatedAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
-		});
-
+		})
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-	await queryInterface.dropTable('paymentResponses');
+	await queryInterface.dropTable('paymentResponses')
 }

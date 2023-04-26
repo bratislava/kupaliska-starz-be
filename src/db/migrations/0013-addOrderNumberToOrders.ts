@@ -10,32 +10,24 @@ export async function up(queryInterface: QueryInterface) {
 
 		const table: any = await queryInterface.describeTable('orders')
 		if (!table.orderNumber) {
-			await queryInterface.addColumn(
-				'orders',
-				'orderNumber',
-				{
-					type: DataTypes.BIGINT,
-					autoIncrement: true,
-					allowNull: false,
-					unique: true
-				}
-			)
+			await queryInterface.addColumn('orders', 'orderNumber', {
+				type: DataTypes.BIGINT,
+				autoIncrement: true,
+				allowNull: false,
+				unique: true,
+			})
 		}
 
 		return Promise.resolve()
-
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
 	const table: any = await queryInterface.describeTable('orders')
 	if (table.orderNumber) {
-		await queryInterface.removeColumn(
-			'orders',
-			'orderNumber'
-		)
+		await queryInterface.removeColumn('orders', 'orderNumber')
 	}
 
 	return Promise.resolve()

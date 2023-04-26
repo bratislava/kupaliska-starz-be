@@ -80,8 +80,8 @@ export async function up(queryInterface: QueryInterface) {
 			photoRequired: false,
 			childrenAllowed: false,
 			entriesNumber: 10,
-			validFrom: "2021-05-12",
-			validTo: "2021-11-12",
+			validFrom: '2021-05-12',
+			validTo: '2021-11-12',
 			hasTicketDuration: false,
 			hasEntranceConstraints: false,
 		},
@@ -102,13 +102,12 @@ export async function up(queryInterface: QueryInterface) {
 			childrenAgeToWithAdult: 10,
 			childrenPhotoRequired: false,
 			entriesNumber: 10,
-			validFrom: "2021-05-12",
-			validTo: "2021-11-12",
+			validFrom: '2021-05-12',
+			validTo: '2021-11-12',
 			hasTicketDuration: false,
 			hasEntranceConstraints: false,
 		},
 	])
-
 }
 
 export async function down(queryInterface: QueryInterface) {

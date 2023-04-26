@@ -9,8 +9,19 @@ import { IWorkersConfig } from '../types/interfaces'
 const workersConfig: IWorkersConfig = config.get('workers')
 
 function workerCallback(workerName: string, data: any) {
-	const workerPath = path.join(process.cwd(), 'dist', 'src', 'workers', `${workerName}.js`)
-	const workerPathTs = path.join(process.cwd(), 'src', 'workers', `${workerName}.ts`)
+	const workerPath = path.join(
+		process.cwd(),
+		'dist',
+		'src',
+		'workers',
+		`${workerName}.js`
+	)
+	const workerPathTs = path.join(
+		process.cwd(),
+		'src',
+		'workers',
+		`${workerName}.ts`
+	)
 
 	let workerProcess: ChildProcess
 	if (fs.existsSync(workerPath)) {
@@ -20,7 +31,7 @@ function workerCallback(workerName: string, data: any) {
 	}
 
 	workerProcess.send({
-		...data
+		...data,
 	})
 	workerProcess.on('message', (messageData) => {
 		console.log('Cron finish', messageData)
@@ -29,6 +40,18 @@ function workerCallback(workerName: string, data: any) {
 }
 
 export default async () => {
-	new CronJob(workersConfig.schedule.visitsComputation, () => workerCallback('visitsComputation', {}), null, true, 'Europe/Bratislava').start(),
-	new CronJob(workersConfig.schedule.refreshCustomersView, () => workerCallback('refreshCustomersView', {}), null, true, 'Europe/Bratislava').start()
+	new CronJob(
+		workersConfig.schedule.visitsComputation,
+		() => workerCallback('visitsComputation', {}),
+		null,
+		true,
+		'Europe/Bratislava'
+	).start(),
+		new CronJob(
+			workersConfig.schedule.refreshCustomersView,
+			() => workerCallback('refreshCustomersView', {}),
+			null,
+			true,
+			'Europe/Bratislava'
+		).start()
 }

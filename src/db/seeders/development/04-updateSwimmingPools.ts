@@ -1,18 +1,21 @@
 import { QueryInterface } from 'sequelize'
 
 export async function up(queryInterface: QueryInterface) {
-
-	return queryInterface.bulkUpdate('swimmingPools',
+	return queryInterface.bulkUpdate(
+		'swimmingPools',
 		{
-			openingHours: "[]"
+			openingHours: '[]',
 		},
-		{})
+		{}
+	)
 }
 
 export async function down(queryInterface: QueryInterface) {
-	return queryInterface.bulkUpdate('swimmingPools',
+	return queryInterface.bulkUpdate(
+		'swimmingPools',
 		{
-			openingHours: "[{}]"
+			openingHours: '[{}]',
 		},
-		{})
+		{}
+	)
 }

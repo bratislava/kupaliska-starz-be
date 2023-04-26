@@ -1,7 +1,6 @@
-version: "3.8"
+version: '3.8'
 
 services:
-
-  postgres:
-    ports: 
-      - "${PG_OUT_HOST}:5432"
+    postgres:
+        ports:
+            - '${PG_OUT_HOST}:5432'

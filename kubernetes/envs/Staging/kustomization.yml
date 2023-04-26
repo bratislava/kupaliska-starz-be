@@ -7,4 +7,4 @@ configMapGenerator:
   namespace: ${NAMESPACE}
   behavior: merge
   envs:
-  - .env
+    - .env

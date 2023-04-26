@@ -10,31 +10,23 @@ export async function up(queryInterface: QueryInterface) {
 
 		const table: any = await queryInterface.describeTable('swimmingPools')
 		if (!table.locationUrl) {
-			await queryInterface.addColumn(
-				'swimmingPools',
-				'locationUrl',
-				{
-					type: DataTypes.STRING(1000),
-					allowNull: false,
-					defaultValue: ''
-				},
-			)
+			await queryInterface.addColumn('swimmingPools', 'locationUrl', {
+				type: DataTypes.STRING(1000),
+				allowNull: false,
+				defaultValue: '',
+			})
 		}
 
 		return Promise.resolve()
-
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
 	const table: any = await queryInterface.describeTable('swimmingPools')
 	if (table.locationUrl) {
-		await queryInterface.removeColumn(
-			'swimmingPools',
-			'locationUrl'
-		)
+		await queryInterface.removeColumn('swimmingPools', 'locationUrl')
 	}
 
 	return Promise.resolve()

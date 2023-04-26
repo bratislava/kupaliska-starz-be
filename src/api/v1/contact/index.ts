@@ -7,7 +7,9 @@ import * as PostContact from './post.contact'
 const router: Router = Router()
 
 export default () => router
-router.post('/',
+router.post(
+	'/',
 	recaptchaMiddleware,
 	schemaMiddleware(PostContact.schema),
-	PostContact.workflow)
+	PostContact.workflow
+)

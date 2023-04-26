@@ -10,30 +10,22 @@ export async function up(queryInterface: QueryInterface) {
 
 		const table: any = await queryInterface.describeTable('ticketTypes')
 		if (!table.ticketDuration) {
-			await queryInterface.addColumn(
-				'ticketTypes',
-				'ticketDuration',
-				{
-					type: DataTypes.TIME,
-					allowNull: true,
-				}
-			)
+			await queryInterface.addColumn('ticketTypes', 'ticketDuration', {
+				type: DataTypes.TIME,
+				allowNull: true,
+			})
 		}
 
 		return Promise.resolve()
-
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
 	const table: any = await queryInterface.describeTable('ticketTypes')
 	if (table.ticketDuration) {
-		await queryInterface.removeColumn(
-			'ticketTypes',
-			'ticketDuration'
-		)
+		await queryInterface.removeColumn('ticketTypes', 'ticketDuration')
 	}
 
 	return Promise.resolve()

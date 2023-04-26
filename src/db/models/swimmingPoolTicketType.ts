@@ -1,8 +1,4 @@
-import {
-	Sequelize,
-	DataTypes,
-	literal,
-} from 'sequelize'
+import { Sequelize, DataTypes, literal } from 'sequelize'
 
 import { DatabaseModel } from '../../types/models'
 
@@ -14,33 +10,36 @@ export class SwimmingPoolTicketTypeModel extends DatabaseModel {
 }
 
 export default (sequelize: Sequelize) => {
-	SwimmingPoolTicketTypeModel.init({
-		ticketTypeId: {
-			type: DataTypes.UUID,
-			primaryKey: true,
-			allowNull: false,
+	SwimmingPoolTicketTypeModel.init(
+		{
+			ticketTypeId: {
+				type: DataTypes.UUID,
+				primaryKey: true,
+				allowNull: false,
+			},
+			swimmingPoolId: {
+				type: DataTypes.UUID,
+				primaryKey: true,
+				allowNull: false,
+			},
+			createdAt: {
+				type: DataTypes.DATE,
+				allowNull: false,
+				defaultValue: literal('NOW()'),
+			},
+			updatedAt: {
+				type: DataTypes.DATE,
+				allowNull: false,
+				defaultValue: literal('NOW()'),
+			},
 		},
-		swimmingPoolId: {
-			type: DataTypes.UUID,
-			primaryKey: true,
-			allowNull: false,
-		},
-		createdAt: {
-			type: DataTypes.DATE,
-			allowNull: false,
-			defaultValue: literal('NOW()')
-		},
-		updatedAt: {
-			type: DataTypes.DATE,
-			allowNull: false,
-			defaultValue: literal('NOW()')
+		{
+			freezeTableName: true,
+			timestamps: true,
+			sequelize,
+			modelName: 'swimmingPoolTicketType',
 		}
-	}, {
-		freezeTableName: true,
-		timestamps: true,
-		sequelize,
-		modelName: 'swimmingPoolTicketType',
-	})
+	)
 
 	return SwimmingPoolTicketTypeModel
 }
