@@ -20,7 +20,7 @@ In pgAdmin create new database with name **kupaliska** and owner **postgres**.
 
 ```sql
 CREATE DATABASE kupaliska;
-CREATE USER postgres WITH PASSWORD 'postgres';
+CREATE USER postgres WITH PASSWORD 'password';
 GRANT ALL ON DATABASE kupaliska TO postgres;
 ALTER DATABASE kupaliska OWNER TO postgres;
 ```
