@@ -1,6 +1,6 @@
 import { sequelize } from '../src/db/models'
 import { seedsUp } from '../src/db/seeders/test'
-import clearDB from './clearDB';
+import clearDB from './clearDB'
 
 jest.mock('../src/middlewares/recaptchaMiddleware')
 jest.mock('../src/services/mailerService')
@@ -8,7 +8,11 @@ jest.mock('../src/services/mailerService')
 
 beforeAll(async () => {
 	// Sequence running of seeds (some seeds depend on others)
-	await seedsUp.reduce((promise, seed): Promise<any> => promise.then(() => seed(sequelize.getQueryInterface())), Promise.resolve())
+	await seedsUp.reduce(
+		(promise, seed): Promise<any> =>
+			promise.then(() => seed(sequelize.getQueryInterface())),
+		Promise.resolve()
+	)
 })
 
 afterAll(async () => {

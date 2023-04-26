@@ -1,23 +1,27 @@
-import { formatTicketType } from './../../../utils/formatters';
+import { formatTicketType } from './../../../utils/formatters'
 import Joi from 'joi'
 import { Op } from 'sequelize'
 import { NextFunction, Request, Response } from 'express'
 import { models } from '../../../db/models'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 
-const {
-	TicketType,
-} = models
+const { TicketType } = models
 
 export const schema = Joi.object().keys({
 	body: Joi.object(),
 	query: Joi.object(),
 	params: Joi.object().keys({
-		ticketTypeId: Joi.string().guid({version: ['uuidv4']}).required()
-	})
+		ticketTypeId: Joi.string()
+			.guid({ version: ['uuidv4'] })
+			.required(),
+	}),
 })
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { params } = req
 
@@ -48,9 +52,9 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				'createdAt',
 			],
 			where: {
-				id: { [Op.eq]: params.ticketTypeId }
+				id: { [Op.eq]: params.ticketTypeId },
 			},
-			include: { association: 'swimmingPools'}
+			include: { association: 'swimmingPools' },
 		})
 
 		if (!ticketType) {

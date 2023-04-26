@@ -12,29 +12,42 @@ export const userPutSchema = {
 	name: Joi.string().required().max(255),
 	isConfirmed: Joi.boolean().required(),
 	email: Joi.string().email().max(255).required(),
-	role: Joi.string().uppercase().valid(...USER_ROLES).required(),
-	swimmingPools: Joi.array().items(
-		Joi.string().guid({ version: ['uuidv4'] }).required()
-	).when('role', {
-		is: Joi.valid(USER_ROLE.SWIMMING_POOL_EMPLOYEE, USER_ROLE.SWIMMING_POOL_OPERATOR),
-		then: Joi.required(), otherwise: Joi.forbidden()
-	}),
+	role: Joi.string()
+		.uppercase()
+		.valid(...USER_ROLES)
+		.required(),
+	swimmingPools: Joi.array()
+		.items(
+			Joi.string()
+				.guid({ version: ['uuidv4'] })
+				.required()
+		)
+		.when('role', {
+			is: Joi.valid(
+				USER_ROLE.SWIMMING_POOL_EMPLOYEE,
+				USER_ROLE.SWIMMING_POOL_OPERATOR
+			),
+			then: Joi.required(),
+			otherwise: Joi.forbidden(),
+		}),
 }
 
 export const schema = Joi.object().keys({
 	body: Joi.object().keys(userPutSchema),
 	query: Joi.object(),
 	params: Joi.object().keys({
-		userId: Joi.string().guid({ version: ['uuidv4'] }).required()
-	})
+		userId: Joi.string()
+			.guid({ version: ['uuidv4'] })
+			.required(),
+	}),
 })
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
-	const {
-		User,
-		SwimmingPool,
-		SwimmingPoolUser
-	} = models
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	const { User, SwimmingPool, SwimmingPoolUser } = models
 
 	let transaction: Transaction
 	try {
@@ -43,14 +56,17 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 
 		const userExists = await User.unscoped().findOne({
 			where: {
-				email: { [Op.eq]: body.email }
+				email: { [Op.eq]: body.email },
 			},
-			paranoid: false
+			paranoid: false,
 		})
 
 		if (userExists) {
 			if (userExists.id !== params.userId) {
-				throw new ErrorBuilder(409, req.t('error:userEmailAlreadyExists'))
+				throw new ErrorBuilder(
+					409,
+					req.t('error:userEmailAlreadyExists')
+				)
 			}
 		}
 
@@ -59,7 +75,10 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			throw new ErrorBuilder(404, req.t('error:userNotFound'))
 		}
 
-		if (authUser.canPerformAction(user.role) === false || authUser.canPerformAction(body.role) === false) {
+		if (
+			authUser.canPerformAction(user.role) === false ||
+			authUser.canPerformAction(body.role) === false
+		) {
 			throw new ErrorBuilder(403, 'Forbidden action')
 		}
 
@@ -67,12 +86,15 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			const swimmingPools = await SwimmingPool.findAll({
 				where: {
 					id: {
-						[Op.in]: body.swimmingPools
-					}
-				}
+						[Op.in]: body.swimmingPools,
+					},
+				},
 			})
 			if (swimmingPools.length !== body.swimmingPools.length) {
-				throw new ErrorBuilder(400, req.t('error:incorrectSwimmingPools'))
+				throw new ErrorBuilder(
+					400,
+					req.t('error:incorrectSwimmingPools')
+				)
 			}
 		}
 
@@ -83,18 +105,20 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		await SwimmingPoolUser.destroy({
 			where: {
 				userId: {
-					[Op.eq]: user.id
-				}
+					[Op.eq]: user.id,
+				},
 			},
-			transaction
+			transaction,
 		})
 
 		if (!isEmpty(body.swimmingPools)) {
-
-			await SwimmingPoolUser.bulkCreate(map(body.swimmingPools, (poolId) => ({
-				swimmingPoolId: poolId,
-				userId: user.id
-			})), { transaction })
+			await SwimmingPoolUser.bulkCreate(
+				map(body.swimmingPools, (poolId) => ({
+					swimmingPoolId: poolId,
+					userId: user.id,
+				})),
+				{ transaction }
+			)
 		}
 
 		await transaction.commit()
@@ -104,12 +128,14 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		return res.json({
 			data: {
 				id: user.id,
-				user: formatUser(user)
+				user: formatUser(user),
 			},
-			messages: [{
-				type: MESSAGE_TYPE.SUCCESS,
-				message: req.t('success:admin.users.updated')
-			}]
+			messages: [
+				{
+					type: MESSAGE_TYPE.SUCCESS,
+					message: req.t('success:admin.users.updated'),
+				},
+			],
 		})
 	} catch (err) {
 		if (transaction) {

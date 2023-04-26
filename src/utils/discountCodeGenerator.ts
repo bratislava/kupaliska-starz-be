@@ -1,6 +1,5 @@
 import { customAlphabet } from 'nanoid'
 export const generateDiscountCode = (existingCodes: string[]): string => {
-
 	let code
 	do {
 		code = generateRandomCode()
@@ -13,5 +12,3 @@ const generateRandomCode = () => {
 	const coupon = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 8)()
 	return coupon.toUpperCase()
 }
-
-

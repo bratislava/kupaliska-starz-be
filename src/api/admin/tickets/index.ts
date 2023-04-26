@@ -18,7 +18,8 @@ const router: Router = Router()
 
 export default () => router
 
-router.get('/swimmingPools/:swimmingPoolId/scan',
+router.get(
+	'/swimmingPools/:swimmingPoolId/scan',
 	passport.authenticate('jwt'),
 	validateTicketMiddleware('jwt-qr-code'),
 	authorizationMiddleware([
@@ -32,7 +33,8 @@ router.get('/swimmingPools/:swimmingPoolId/scan',
 	GetTicketScan.workflow
 )
 
-router.post('/swimmingPools/:swimmingPoolId/checkin',
+router.post(
+	'/swimmingPools/:swimmingPoolId/checkin',
 	passport.authenticate('jwt'),
 	validateTicketMiddleware('jwt-qr-code'),
 	authorizationMiddleware([
@@ -46,7 +48,8 @@ router.post('/swimmingPools/:swimmingPoolId/checkin',
 	PostTicketCheckin.workflow
 )
 
-router.post('/swimmingPools/:swimmingPoolId/checkout',
+router.post(
+	'/swimmingPools/:swimmingPoolId/checkout',
 	passport.authenticate('jwt'),
 	validateTicketMiddleware('jwt-qr-code'),
 	authorizationMiddleware([
@@ -60,39 +63,41 @@ router.post('/swimmingPools/:swimmingPoolId/checkout',
 	PostTicketCheckout.workflow
 )
 
-router.get('/swimmingPools/:swimmingPoolId',
+router.get(
+	'/swimmingPools/:swimmingPoolId',
 	passport.authenticate('jwt'),
 	authorizationMiddleware([
 		USER_ROLE.SWIMMING_POOL_OPERATOR,
 		USER_ROLE.OPERATOR,
-		USER_ROLE.SUPER_ADMIN
+		USER_ROLE.SUPER_ADMIN,
 	]),
 	swimmingPoolAuthorizationMiddleware(),
 	schemaMiddleware(GetTickets.schema),
 	GetTickets.workflow
 )
 
-router.get('/swimmingPools/:swimmingPoolId/summary',
+router.get(
+	'/swimmingPools/:swimmingPoolId/summary',
 	passport.authenticate('jwt'),
 	authorizationMiddleware([
 		USER_ROLE.SWIMMING_POOL_OPERATOR,
 		USER_ROLE.OPERATOR,
-		USER_ROLE.SUPER_ADMIN
+		USER_ROLE.SUPER_ADMIN,
 	]),
 	swimmingPoolAuthorizationMiddleware(),
 	schemaMiddleware(GetTicketsSummary.schema),
 	GetTicketsSummary.workflow
 )
 
-router.get('/sales',
+router.get(
+	'/sales',
 	passport.authenticate('jwt'),
 	authorizationMiddleware([
 		USER_ROLE.SWIMMING_POOL_OPERATOR,
 		USER_ROLE.OPERATOR,
-		USER_ROLE.SUPER_ADMIN
+		USER_ROLE.SUPER_ADMIN,
 	]),
 	swimmingPoolAuthorizationMiddleware('query'),
 	schemaMiddleware(GetTicketsSales.schema),
 	GetTicketsSales.workflow
 )
-

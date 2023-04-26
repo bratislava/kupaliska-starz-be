@@ -15,31 +15,30 @@ export async function up(queryInterface: QueryInterface) {
 			timestamp: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			ticketId: {
 				type: DataTypes.UUID,
 				references: {
-					model: "tickets",
-					key: "id"
+					model: 'tickets',
+					key: 'id',
 				},
-				allowNull: false
+				allowNull: false,
 			},
 			swimmingPoolId: {
 				type: DataTypes.UUID,
 				references: {
-					model: "swimmingPools",
-					key: "id"
+					model: 'swimmingPools',
+					key: 'id',
 				},
-				allowNull: false
+				allowNull: false,
 			},
-		});
-
+		})
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-	await queryInterface.dropTable('entries');
+	await queryInterface.dropTable('entries')
 }

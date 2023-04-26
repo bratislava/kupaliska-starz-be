@@ -7,10 +7,14 @@ import * as GetSwimmingPool from './get.swimmingPool'
 const router: Router = Router()
 
 export default () => router
-router.get('/',
+router.get(
+	'/',
 	schemaMiddleware(GetSwimmingPools.schema),
-	GetSwimmingPools.workflow)
+	GetSwimmingPools.workflow
+)
 
-router.get('/:swimmingPoolId',
+router.get(
+	'/:swimmingPoolId',
 	schemaMiddleware(GetSwimmingPool.schema),
-	GetSwimmingPool.workflow)
+	GetSwimmingPool.workflow
+)

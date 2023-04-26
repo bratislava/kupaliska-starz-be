@@ -7,36 +7,35 @@ export async function up(queryInterface: QueryInterface) {
 				primaryKey: true,
 				allowNull: false,
 				references: {
-					model: "ticketTypes",
-					key: "id"
+					model: 'ticketTypes',
+					key: 'id',
 				},
 			},
 			discountCodeId: {
 				type: DataTypes.UUID,
 				primaryKey: true,
 				references: {
-					model: "discountCodes",
-					key: "id"
+					model: 'discountCodes',
+					key: 'id',
 				},
-				allowNull: false
+				allowNull: false,
 			},
 			createdAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			updatedAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
-		});
-
+		})
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-	await queryInterface.dropTable('discountCodeTicketType');
+	await queryInterface.dropTable('discountCodeTicketType')
 }

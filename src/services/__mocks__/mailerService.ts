@@ -6,6 +6,6 @@ export const sendRawEmail = async () => {
 	// This is intentional
 }
 
-export const createAttachment = async () => { 
-	return {} 
+export const createAttachment = async () => {
+	return {}
 }

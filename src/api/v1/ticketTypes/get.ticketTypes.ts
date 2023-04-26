@@ -11,33 +11,36 @@ export const schema = Joi.object().keys({
 		search: Joi.string().allow(null, ''),
 		limit: Joi.number().integer().min(1).default(20).empty(['', null]),
 		page: Joi.number().integer().min(1).default(1).empty(['', null]),
-		order: Joi.string().valid(
-			'name',
-			'description',
-			'price',
-			'type',
-			'createdAt',
-		).empty(['', null]).default('name'),
-		direction: Joi.string().lowercase().valid('asc', 'desc').empty(['', null]).default('asc')
+		order: Joi.string()
+			.valid('name', 'description', 'price', 'type', 'createdAt')
+			.empty(['', null])
+			.default('name'),
+		direction: Joi.string()
+			.lowercase()
+			.valid('asc', 'desc')
+			.empty(['', null])
+			.default('asc'),
 	}),
-	params: Joi.object()
+	params: Joi.object(),
 })
 
-const {
-	TicketType
-} = models
+const { TicketType } = models
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { query }: any = req
 		const { limit, page } = query
-		const offset = (limit * page) - limit
+		const offset = limit * page - limit
 
 		const where: any = {}
 
 		if (query.search) {
 			where.name = {
-				[Op.iLike]: `%${query.search}%`
+				[Op.iLike]: `%${query.search}%`,
 			}
 		}
 
@@ -69,23 +72,23 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			limit,
 			offset,
 			order: [[query.order, query.direction]],
-			include: { association: 'swimmingPools'}
+			include: { association: 'swimmingPools' },
 		})
 
 		const count = await TicketType.count({
-			where
+			where,
 		})
 
 		return res.json({
-			ticketTypes: map(ticketTypes, (ticketType) => (
+			ticketTypes: map(ticketTypes, (ticketType) =>
 				formatTicketType(ticketType)
-			)),
+			),
 			pagination: {
 				page: query.page,
 				limit: query.limit,
 				totalPages: Math.ceil(count / limit) || 0,
-				totalCount: count
-			}
+				totalCount: count,
+			},
 		})
 	} catch (err) {
 		return next(err)

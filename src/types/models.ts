@@ -1,5 +1,9 @@
 import {
-	InstanceDestroyOptions, Model, WhereOptions, UpdateOptions, FindOptions
+	InstanceDestroyOptions,
+	Model,
+	WhereOptions,
+	UpdateOptions,
+	FindOptions,
 } from 'sequelize'
 
 /* eslint-disable import/prefer-default-export */

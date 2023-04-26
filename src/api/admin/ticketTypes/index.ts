@@ -13,35 +13,49 @@ import { USER_ROLE } from '../../../utils/enums'
 const router: Router = Router()
 
 export default () => {
-	router.post('/',
+	router.post(
+		'/',
 		passport.authenticate('jwt'),
 		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
 		schemaMiddleware(PostTicketTypes.schema),
-		PostTicketTypes.workflow)
+		PostTicketTypes.workflow
+	)
 
-	router.get('/',
+	router.get(
+		'/',
 		passport.authenticate('jwt'),
-		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN, USER_ROLE.SWIMMING_POOL_OPERATOR]),
+		authorizationMiddleware([
+			USER_ROLE.OPERATOR,
+			USER_ROLE.SUPER_ADMIN,
+			USER_ROLE.SWIMMING_POOL_OPERATOR,
+		]),
 		schemaMiddleware(GetTicketTypes.schema),
-		GetTicketTypes.workflow)
+		GetTicketTypes.workflow
+	)
 
-	router.get('/:ticketTypeId',
+	router.get(
+		'/:ticketTypeId',
 		passport.authenticate('jwt'),
 		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
 		schemaMiddleware(GetTicketType.schema),
-		GetTicketType.workflow)
+		GetTicketType.workflow
+	)
 
-	router.put('/:ticketTypeId',
+	router.put(
+		'/:ticketTypeId',
 		passport.authenticate('jwt'),
 		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
 		schemaMiddleware(PutTicketTypes.schema),
-		PutTicketTypes.workflow)
+		PutTicketTypes.workflow
+	)
 
-	router.delete('/:ticketTypeId',
+	router.delete(
+		'/:ticketTypeId',
 		passport.authenticate('jwt'),
 		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
 		schemaMiddleware(DeleteTicketTypes.schema),
-		DeleteTicketTypes.workflow)
+		DeleteTicketTypes.workflow
+	)
 
 	return router
 }

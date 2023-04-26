@@ -1,13 +1,13 @@
-import * as webpay from './../../../../../src/utils/webpay';
-import formurlencoded from 'form-urlencoded';
-import { ORDER_STATE } from './../../../../../src/utils/enums';
+import * as webpay from './../../../../../src/utils/webpay'
+import formurlencoded from 'form-urlencoded'
+import { ORDER_STATE } from './../../../../../src/utils/enums'
 import supertest from 'supertest'
 import Joi from 'joi'
 import app from '../../../../../src/app'
 import config from 'config'
 import { IAppConfig } from '../../../../../src/types/interfaces'
-import { OrderModel } from '../../../../../src/db/models/order';
-import { Op } from 'sequelize';
+import { OrderModel } from '../../../../../src/db/models/order'
+import { Op } from 'sequelize'
 import url from 'url'
 import queryString from 'query-string'
 
@@ -17,8 +17,8 @@ describe(`[GET] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Request without DIGEST params should return success=false ', async () => {
-
-		const response = await request.get(`${endpoint}`)
+		const response = await request
+			.get(`${endpoint}`)
 			.set('Content-Type', 'application/json')
 			.send()
 
@@ -27,13 +27,13 @@ describe(`[GET] ${endpoint})`, () => {
 	})
 
 	it('Request without PRCODE and SRCODE param should return success=false ', async () => {
-
 		const queryParams = formurlencoded({
 			DIGEST: 'digest',
-			DIGEST1: 'digest1'
+			DIGEST1: 'digest1',
 		})
 
-		const response = await request.get(`${endpoint}/?${queryParams}`)
+		const response = await request
+			.get(`${endpoint}/?${queryParams}`)
 			.set('Content-Type', 'application/json')
 			.send()
 
@@ -42,15 +42,15 @@ describe(`[GET] ${endpoint})`, () => {
 	})
 
 	it('Request without ORDER NUMBER param should return success=false ', async () => {
-
 		const queryParams = formurlencoded({
 			DIGEST: 'digest',
 			DIGEST1: 'digest1',
 			PRCODE: 0,
-			SRCODE: 0
+			SRCODE: 0,
 		})
 
-		const response = await request.get(`${endpoint}/?${queryParams}`)
+		const response = await request
+			.get(`${endpoint}/?${queryParams}`)
 			.set('Content-Type', 'application/json')
 			.send()
 
@@ -59,7 +59,6 @@ describe(`[GET] ${endpoint})`, () => {
 	})
 
 	it('Request with wrong ORDERNUMBER param should return success=false ', async () => {
-
 		const queryParams = formurlencoded({
 			DIGEST: 'digest',
 			DIGEST1: 'digest1',
@@ -68,7 +67,8 @@ describe(`[GET] ${endpoint})`, () => {
 			ORDERNUMBER: 10000,
 		})
 
-		const response = await request.get(`${endpoint}/?${queryParams}`)
+		const response = await request
+			.get(`${endpoint}/?${queryParams}`)
 			.set('Content-Type', 'application/json')
 			.send()
 
@@ -77,7 +77,6 @@ describe(`[GET] ${endpoint})`, () => {
 	})
 
 	it('Order without payment order should return success=false', async () => {
-
 		const queryParams = formurlencoded({
 			DIGEST: 'digest',
 			DIGEST1: 'digest1',
@@ -86,7 +85,8 @@ describe(`[GET] ${endpoint})`, () => {
 			ORDERNUMBER: 49,
 		})
 
-		const response = await request.get(`${endpoint}/?${queryParams}`)
+		const response = await request
+			.get(`${endpoint}/?${queryParams}`)
 			.set('Content-Type', 'application/json')
 			.send()
 
@@ -95,9 +95,8 @@ describe(`[GET] ${endpoint})`, () => {
 	})
 
 	it('Is not verified', async () => {
-
-		const verifySignatureMock = jest.spyOn(webpay, "verifySignature");
-		verifySignatureMock.mockImplementation(() => (false));
+		const verifySignatureMock = jest.spyOn(webpay, 'verifySignature')
+		verifySignatureMock.mockImplementation(() => false)
 
 		const queryParams = formurlencoded({
 			DIGEST: 'digest',
@@ -107,7 +106,8 @@ describe(`[GET] ${endpoint})`, () => {
 			ORDERNUMBER: 50,
 		})
 
-		const response = await request.get(`${endpoint}/?${queryParams}`)
+		const response = await request
+			.get(`${endpoint}/?${queryParams}`)
 			.set('Content-Type', 'application/json')
 			.send()
 
@@ -117,26 +117,25 @@ describe(`[GET] ${endpoint})`, () => {
 		const order = await OrderModel.findOne({
 			where: {
 				orderNumber: {
-					[Op.eq]: 50
-				}
+					[Op.eq]: 50,
+				},
 			},
 			include: {
 				association: 'paymentOrder',
-				include: [{ association: 'paymentResponse' }]
-			}
+				include: [{ association: 'paymentResponse' }],
+			},
 		})
 
 		expect(order.state).toBe(ORDER_STATE.FAILED)
 		expect(order.paymentOrder.paymentResponse.isVerified).toBe(false)
 		expect(order.paymentOrder.paymentResponse.isSuccess).toBe(true)
 
-		verifySignatureMock.mockRestore();
+		verifySignatureMock.mockRestore()
 	})
 
 	it('Is not successful', async () => {
-
-		const verifySignatureMock = jest.spyOn(webpay, "verifySignature");
-		verifySignatureMock.mockImplementation(() => (true));
+		const verifySignatureMock = jest.spyOn(webpay, 'verifySignature')
+		verifySignatureMock.mockImplementation(() => true)
 
 		const queryParams = formurlencoded({
 			DIGEST: 'digest',
@@ -146,7 +145,8 @@ describe(`[GET] ${endpoint})`, () => {
 			ORDERNUMBER: 51,
 		})
 
-		const response = await request.get(`${endpoint}/?${queryParams}`)
+		const response = await request
+			.get(`${endpoint}/?${queryParams}`)
 			.set('Content-Type', 'application/json')
 			.send()
 
@@ -156,25 +156,25 @@ describe(`[GET] ${endpoint})`, () => {
 		const order = await OrderModel.findOne({
 			where: {
 				orderNumber: {
-					[Op.eq]: 51
-				}
+					[Op.eq]: 51,
+				},
 			},
 			include: {
 				association: 'paymentOrder',
-				include: [{ association: 'paymentResponse' }]
-			}
+				include: [{ association: 'paymentResponse' }],
+			},
 		})
 
 		expect(order.state).toBe(ORDER_STATE.FAILED)
 		expect(order.paymentOrder.paymentResponse.isVerified).toBe(true)
 		expect(order.paymentOrder.paymentResponse.isSuccess).toBe(false)
 
-		verifySignatureMock.mockRestore();
+		verifySignatureMock.mockRestore()
 	})
 
 	it('Payment is successful', async () => {
-		const verifySignatureMock = jest.spyOn(webpay, "verifySignature");
-		verifySignatureMock.mockImplementation(() => (true));
+		const verifySignatureMock = jest.spyOn(webpay, 'verifySignature')
+		verifySignatureMock.mockImplementation(() => true)
 
 		const queryParams = formurlencoded({
 			DIGEST: 'digest',
@@ -184,24 +184,25 @@ describe(`[GET] ${endpoint})`, () => {
 			ORDERNUMBER: 52,
 		})
 
-		const response = await request.get(`${endpoint}/?${queryParams}`)
+		const response = await request
+			.get(`${endpoint}/?${queryParams}`)
 			.set('Content-Type', 'application/json')
 			.send()
 
 		const order = await OrderModel.findOne({
 			where: {
 				orderNumber: {
-					[Op.eq]: 52
-				}
+					[Op.eq]: 52,
+				},
 			},
 			include: {
 				association: 'paymentOrder',
-				include: [{ association: 'paymentResponse' }]
-			}
+				include: [{ association: 'paymentResponse' }],
+			},
 		})
 
-		let parsedUrl = url.parse(response.headers.location);
-		let parsedQs = queryString.parse(parsedUrl.query);
+		let parsedUrl = url.parse(response.headers.location)
+		let parsedQs = queryString.parse(parsedUrl.query)
 
 		expect(Boolean(parsedQs.success)).toBe(true)
 		expect(parsedQs.orderId).toBe(order.id)
@@ -211,7 +212,6 @@ describe(`[GET] ${endpoint})`, () => {
 		expect(order.paymentOrder.paymentResponse.isVerified).toBe(true)
 		expect(order.paymentOrder.paymentResponse.isSuccess).toBe(true)
 
-		verifySignatureMock.mockRestore();
+		verifySignatureMock.mockRestore()
 	})
-
 })

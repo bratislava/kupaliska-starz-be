@@ -4,19 +4,23 @@ import { MESSAGE_TYPE } from '../../../utils/enums'
 import { models } from '../../../db/models'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 
-const {
-	TicketType
-} = models
+const { TicketType } = models
 
 export const schema = Joi.object().keys({
 	body: Joi.object(),
 	query: Joi.object(),
 	params: Joi.object().keys({
-		ticketTypeId: Joi.string().guid({version: ['uuidv4']}).required()
-	})
+		ticketTypeId: Joi.string()
+			.guid({ version: ['uuidv4'] })
+			.required(),
+	}),
 })
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { params } = req
 
@@ -30,10 +34,12 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 
 		return res.json({
 			data: {},
-			messages: [{
-				type: MESSAGE_TYPE.SUCCESS,
-				message: req.t('success:admin.ticketTypes.deleted')
-			}]
+			messages: [
+				{
+					type: MESSAGE_TYPE.SUCCESS,
+					message: req.t('success:admin.ticketTypes.deleted'),
+				},
+			],
 		})
 	} catch (err) {
 		return next(err)

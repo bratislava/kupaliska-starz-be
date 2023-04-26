@@ -1,8 +1,8 @@
 {
-    "envs": {
-        "APP_PORT": 3000,
-        "FE_HOSTNAME": "kupaliska.staging.bratislava.sk",
-        "ADMIN_HOSTNAME": "login.kupaliska.staging.bratislava.sk",
-        "API_HOST": "api.kupaliska.staging.bratislava.sk"
-    }
+	"envs": {
+		"APP_PORT": 3000,
+		"FE_HOSTNAME": "kupaliska.staging.bratislava.sk",
+		"ADMIN_HOSTNAME": "login.kupaliska.staging.bratislava.sk",
+		"API_HOST": "api.kupaliska.staging.bratislava.sk"
+	}
 }

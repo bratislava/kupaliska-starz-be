@@ -14,38 +14,50 @@ import * as DeleteUser from './delete.user'
 const router: Router = Router()
 
 export default () => router
-router.post('/',
+router.post(
+	'/',
 	passport.authenticate('jwt'),
 	authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
 	schemaMiddleware(PostUser.schema),
-	PostUser.workflow)
+	PostUser.workflow
+)
 
-router.get('/',
+router.get(
+	'/',
 	passport.authenticate('jwt'),
 	authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
 	schemaMiddleware(GetUsers.schema),
-	GetUsers.workflow)
+	GetUsers.workflow
+)
 
-router.get('/:userId',
+router.get(
+	'/:userId',
 	passport.authenticate('jwt'),
 	authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
 	schemaMiddleware(GetUser.schema),
-	GetUser.workflow)
+	GetUser.workflow
+)
 
-router.put('/:userId',
+router.put(
+	'/:userId',
 	passport.authenticate('jwt'),
 	authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
 	schemaMiddleware(PutUser.schema),
-	PutUser.workflow)
+	PutUser.workflow
+)
 
-router.put('/:userId/activate',
+router.put(
+	'/:userId/activate',
 	passport.authenticate('jwt'),
 	authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
 	schemaMiddleware(PutUserActivate.schema),
-	PutUserActivate.workflow)
+	PutUserActivate.workflow
+)
 
-router.delete('/:userId',
+router.delete(
+	'/:userId',
 	passport.authenticate('jwt'),
 	authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SUPER_ADMIN]),
 	schemaMiddleware(DeleteUser.schema),
-	DeleteUser.workflow)
+	DeleteUser.workflow
+)

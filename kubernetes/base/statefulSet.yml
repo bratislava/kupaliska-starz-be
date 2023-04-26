@@ -1,52 +1,52 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: database
-  namespace: ${NAMESPACE}
-  labels:
-    service: database
-spec:
-  serviceName: database
-  selector:
-    matchLabels:
-      service: database
-  replicas: 1
-  template:
-    metadata:
-      labels:
+    name: database
+    namespace: ${NAMESPACE}
+    labels:
         service: database
-    spec:
-      containers:
-        - image: postgres:14-alpine
-          name: database
-          ports:
-          - name: db
-            containerPort: 5432
-            protocol: TCP
-          resources:
-            limits:
-              cpu: 500m
-              memory: 1Gi
-            requests:
-              cpu: 100m
-              memory: 128Mi
-          volumeMounts:
-            - name: postgresql
-              mountPath: /var/lib/postgresql/data
-              subPath: postgresql
-          envFrom:
-            - secretRef:
-                name: db
-      imagePullSecrets:
-        - name: ${IMAGE_PULL_SECRET}
-  # Volume Claim
-  volumeClaimTemplates:
-    - metadata:
-        name: postgresql
-        labels:
-          service: database
-      spec:
-        accessModes: ['ReadWriteOnce']
-        resources:
-          requests:
-            storage: 10Gi
+spec:
+    serviceName: database
+    selector:
+        matchLabels:
+            service: database
+    replicas: 1
+    template:
+        metadata:
+            labels:
+                service: database
+        spec:
+            containers:
+                - image: postgres:14-alpine
+                  name: database
+                  ports:
+                      - name: db
+                        containerPort: 5432
+                        protocol: TCP
+                  resources:
+                      limits:
+                          cpu: 500m
+                          memory: 1Gi
+                      requests:
+                          cpu: 100m
+                          memory: 128Mi
+                  volumeMounts:
+                      - name: postgresql
+                        mountPath: /var/lib/postgresql/data
+                        subPath: postgresql
+                  envFrom:
+                      - secretRef:
+                            name: db
+            imagePullSecrets:
+                - name: ${IMAGE_PULL_SECRET}
+    # Volume Claim
+    volumeClaimTemplates:
+        - metadata:
+              name: postgresql
+              labels:
+                  service: database
+          spec:
+              accessModes: ['ReadWriteOnce']
+              resources:
+                  requests:
+                      storage: 10Gi

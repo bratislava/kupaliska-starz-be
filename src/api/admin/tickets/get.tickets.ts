@@ -1,43 +1,74 @@
-import { TicketModel } from './../../../db/models/ticket';
+import { TicketModel } from './../../../db/models/ticket'
 import Joi from 'joi'
 import { QueryTypes } from 'sequelize'
 import { NextFunction, Request, Response } from 'express'
 import sequelize from '../../../db/models'
-import { getFilters } from '../../../utils/dbFilters';
-import { map } from 'lodash';
-import { ENTRY_TYPE } from '../../../utils/enums';
+import { getFilters } from '../../../utils/dbFilters'
+import { map } from 'lodash'
+import { ENTRY_TYPE } from '../../../utils/enums'
 
 export const filtersSchema = Joi.object().keys({
 	ticketTypes: Joi.object().keys({
-		value: Joi.array().min(1).required().items(Joi.string().guid({ version: ['uuidv4'] }).required()),
-		type: Joi.string().valid('in').default('in')
+		value: Joi.array()
+			.min(1)
+			.required()
+			.items(
+				Joi.string()
+					.guid({ version: ['uuidv4'] })
+					.required()
+			),
+		type: Joi.string().valid('in').default('in'),
 	}),
 	zip: Joi.object().keys({
 		value: Joi.string().required(),
-		type: Joi.string().valid('like', 'exact').default('like')
+		type: Joi.string().valid('like', 'exact').default('like'),
 	}),
 	age: Joi.object().keys({
 		from: Joi.number(),
-		to: Joi.number().when('type', { is: Joi.valid('range'), then: Joi.when('from', { is: Joi.required(), otherwise: Joi.required() }) }),
+		to: Joi.number().when('type', {
+			is: Joi.valid('range'),
+			then: Joi.when('from', {
+				is: Joi.required(),
+				otherwise: Joi.required(),
+			}),
+		}),
 		showUnspecified: Joi.boolean().default(false),
-		type: Joi.string().valid('range').default('range')
+		type: Joi.string().valid('range').default('range'),
 	}),
 	price: Joi.object().keys({
 		from: Joi.number(),
-		to: Joi.number().when('type', { is: Joi.valid('range'), then: Joi.when('from', { is: Joi.required(), otherwise: Joi.required() }) }),
-		type: Joi.string().valid('range').default('range')
+		to: Joi.number().when('type', {
+			is: Joi.valid('range'),
+			then: Joi.when('from', {
+				is: Joi.required(),
+				otherwise: Joi.required(),
+			}),
+		}),
+		type: Joi.string().valid('range').default('range'),
 	}),
 	numberOfVisits: Joi.object().keys({
 		from: Joi.number(),
-		to: Joi.number().when('type', { is: Joi.valid('range'), then: Joi.when('from', { is: Joi.required(), otherwise: Joi.required() }) }),
-		type: Joi.string().valid('range').default('range')
+		to: Joi.number().when('type', {
+			is: Joi.valid('range'),
+			then: Joi.when('from', {
+				is: Joi.required(),
+				otherwise: Joi.required(),
+			}),
+		}),
+		type: Joi.string().valid('range').default('range'),
 	}),
 	createdAt: Joi.object().keys({
 		from: Joi.date(),
-		to: Joi.date().when('type', { is: Joi.valid('range'), then: Joi.when('from', { is: Joi.required(), otherwise: Joi.required() }) }),
+		to: Joi.date().when('type', {
+			is: Joi.valid('range'),
+			then: Joi.when('from', {
+				is: Joi.required(),
+				otherwise: Joi.required(),
+			}),
+		}),
 		type: Joi.string().valid('range').default('range'),
-		dataType: Joi.string().default('date')
-	})
+		dataType: Joi.string().default('date'),
+	}),
 })
 
 export const schema = Joi.object().keys({
@@ -46,35 +77,53 @@ export const schema = Joi.object().keys({
 		filters: filtersSchema,
 		limit: Joi.number().integer().min(1).default(20).empty(['', null]),
 		page: Joi.number().integer().min(1).default(1).empty(['', null]),
-		order: Joi.string().valid(
-			'price',
-			'numberOfVisits',
-			'age',
-			'zip',
-			'ticketTypeName',
-			'createdAt',
-		).empty(['', null]).default('createdAt'),
-		direction: Joi.string().lowercase().valid('asc', 'desc').empty(['', null]).default('desc')
-		}),
+		order: Joi.string()
+			.valid(
+				'price',
+				'numberOfVisits',
+				'age',
+				'zip',
+				'ticketTypeName',
+				'createdAt'
+			)
+			.empty(['', null])
+			.default('createdAt'),
+		direction: Joi.string()
+			.lowercase()
+			.valid('asc', 'desc')
+			.empty(['', null])
+			.default('desc'),
+	}),
 	params: Joi.object().keys({
-		swimmingPoolId: Joi.string().guid({ version: ['uuidv4'] }).required()
-	})
+		swimmingPoolId: Joi.string()
+			.guid({ version: ['uuidv4'] })
+			.required(),
+	}),
 })
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { query, params }: any = req
 		const { limit, page } = query
-		const offset = (limit * page) - limit
+		const offset = limit * page - limit
 
-		const { ticketTypes, zip, age, numberOfVisits, ...otherFilters } = query.filters || {}
+		const { ticketTypes, zip, age, numberOfVisits, ...otherFilters } =
+			query.filters || {}
 
 		let havingSQL = ''
 		let havingVariables: any = {}
 
 		if (numberOfVisits) {
-			havingSQL += numberOfVisits.from ? ` AND COUNT(visits) >= $numberOfVisitsFrom ` : ''
-			havingSQL += numberOfVisits.to ? `AND COUNT(visits) <= $numberOfVisitsTo ` : ''
+			havingSQL += numberOfVisits.from
+				? ` AND COUNT(visits) >= $numberOfVisitsFrom `
+				: ''
+			havingSQL += numberOfVisits.to
+				? `AND COUNT(visits) <= $numberOfVisitsTo `
+				: ''
 			havingVariables.numberOfVisitsFrom = numberOfVisits.from
 			havingVariables.numberOfVisitsTo = numberOfVisits.to
 		}
@@ -86,17 +135,30 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			query.order = `profile.${query.order}`
 		}
 
-		const [ticketsFilterVariables, ticketsFilterSQL] = getFilters(otherFilters, "tickets")
-		const [profilesFilterVariables, profilesFilterSQL] = getFilters({ zip}, "profiles")
-		const [ticketTypesFilterVariables, ticketTypesFilterSQL] = getFilters({ id: ticketTypes }, "ticketTypes")
+		const [ticketsFilterVariables, ticketsFilterSQL] = getFilters(
+			otherFilters,
+			'tickets'
+		)
+		const [profilesFilterVariables, profilesFilterSQL] = getFilters(
+			{ zip },
+			'profiles'
+		)
+		const [ticketTypesFilterVariables, ticketTypesFilterSQL] = getFilters(
+			{ id: ticketTypes },
+			'ticketTypes'
+		)
 
 		let ageFilterSql = ''
 		let ageFilterVariables = {}
 		if (age) {
 			ageFilterSql += age.from ? `"profiles"."age" >= $ageFrom` : ''
 			const addAnd = age.from ? 'AND' : ''
-			ageFilterSql += age.to ? ` ${addAnd} "profiles"."age" <= $ageTo` : ''
-			ageFilterSql = age.showUnspecified ? `(${ageFilterSql} OR "profiles"."age" IS NULL)` : ageFilterSql
+			ageFilterSql += age.to
+				? ` ${addAnd} "profiles"."age" <= $ageTo`
+				: ''
+			ageFilterSql = age.showUnspecified
+				? `(${ageFilterSql} OR "profiles"."age" IS NULL)`
+				: ageFilterSql
 
 			ageFilterVariables = {
 				[`ageFrom`]: age.from ? age.from : undefined,
@@ -106,7 +168,8 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			ageFilterSql = `AND ${ageFilterSql}`
 		}
 
-		let tickets = await sequelize.query<TicketModel>(`
+		let tickets = await sequelize.query<TicketModel>(
+			`
 			SELECT
 				tickets.id, tickets.price as "price", tickets."isChildren", tickets."createdAt" as "createdAt", tickets."numberOfVisits" AS "numberOfVisits",
 				profiles.id as "profile.id", profiles.age as "profile.age", profiles.zip as "profile.zip",
@@ -143,17 +206,18 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 					...ticketsFilterVariables,
 					...profilesFilterVariables,
 					...ticketTypesFilterVariables,
-					...ageFilterVariables
+					...ageFilterVariables,
 				},
 				model: TicketModel,
 				raw: true,
 				mapToModel: true,
 				nest: true,
-				type: QueryTypes.SELECT
+				type: QueryTypes.SELECT,
 			}
 		)
 
-		const ticketsCount = await sequelize.query<{ count: number }>(`
+		const ticketsCount = await sequelize.query<{ count: number }>(
+			`
 			SELECT
 				COUNT(*) as "count"
 			FROM "ticketTypes"
@@ -183,11 +247,11 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 					...ticketsFilterVariables,
 					...profilesFilterVariables,
 					...ticketTypesFilterVariables,
-					...ageFilterVariables
+					...ageFilterVariables,
 				},
 				raw: true,
 				nest: true,
-				type: QueryTypes.SELECT
+				type: QueryTypes.SELECT,
 			}
 		)
 
@@ -201,15 +265,15 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 					age: ticket.profile.age ? ticket.profile.age : null,
 					zip: ticket.profile.zip ? ticket.profile.zip : null,
 					numberOfVisits: ticket.numberOfVisits,
-					createdAt: ticket.createdAt
+					createdAt: ticket.createdAt,
 				}
 			}),
 			pagination: {
 				page: query.page,
 				limit: query.limit,
 				totalPages: Math.ceil(ticketsCount[0].count / limit) || 0,
-				totalCount: ticketsCount[0].count
-			}
+				totalCount: ticketsCount[0].count,
+			},
 		})
 	} catch (err) {
 		return next(err)

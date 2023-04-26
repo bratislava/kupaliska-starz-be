@@ -1,7 +1,6 @@
 import { QueryInterface } from 'sequelize'
 export async function up(queryInterface: QueryInterface) {
 	try {
-
 		await queryInterface.sequelize.query(`
 			CREATE MATERIALIZED VIEW visits AS
 			SELECT "ticketId", "swimmingPoolId", CAST("timestamp" as date) as "day",
@@ -10,19 +9,16 @@ export async function up(queryInterface: QueryInterface) {
 			FROM
 				"entries"
 			GROUP BY
-				CAST("timestamp" as date), "ticketId", "swimmingPoolId"`
-		);
+				CAST("timestamp" as date), "ticketId", "swimmingPoolId"`)
 
 		return Promise.resolve()
-
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
 	await queryInterface.sequelize.query(`
-		DROP MATERIALIZED VIEW visits;`
-	);
+		DROP MATERIALIZED VIEW visits;`)
 	return Promise.resolve()
 }

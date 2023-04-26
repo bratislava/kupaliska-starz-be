@@ -22,14 +22,23 @@ forEach(appConfig.subdirs, (subdir) => {
 	}
 
 	// eslint-disable-next-line no-unused-expressions
-	fs.existsSync(absolutePath) || fs.mkdirSync(absolutePath, { recursive: true })
+	fs.existsSync(absolutePath) ||
+		fs.mkdirSync(absolutePath, { recursive: true })
 })
 
 // Init workers
 initWorkers()
 
-httpServer.listen({port: parseInt(appConfig.port.replace(/"/g, '')), host: "0.0.0.0"}).on('listening', () => {
-	console.log(`Server started in ${process.env.NODE_ENV} mode at port ${appConfig.port}`.green)
-})
+httpServer
+	.listen({
+		port: parseInt(appConfig.port.replace(/"/g, '')),
+		host: '0.0.0.0',
+	})
+	.on('listening', () => {
+		console.log(
+			`Server started in ${process.env.NODE_ENV} mode at port ${appConfig.port}`
+				.green
+		)
+	})
 
 export default httpServer
