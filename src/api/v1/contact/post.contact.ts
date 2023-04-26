@@ -15,7 +15,7 @@ export const contactSchema = {
 	email: JoiExtended.string().email().max(255).required().htmlStrip(),
 	message: JoiExtended.string().required().max(5000).htmlStrip(),
 	agreement: Joi.boolean().valid(true).required(),
-	recaptcha: Joi.string().required(),
+	token: Joi.string().required(),
 }
 
 export const schema = Joi.object().keys({
