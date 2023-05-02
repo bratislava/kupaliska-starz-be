@@ -44,7 +44,7 @@ jobs:
       registry-pass: ${{ secrets.HARBOR_REGISTRY_PASSWORD }}
 
   deploy-prod:
-    name: Deploy 'kupaliska' to STAGING
+    name: Deploy 'kupaliska' to PROD
     if: needs.conditions.outputs.prod == 'true'
     needs: [conditions]
     uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli.yml@stable
