@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import passport from 'passport'
 
 import schemaMiddleware from '../../../middlewares/schemaMiddleware'
 
@@ -19,6 +20,15 @@ router.post(
 
 router.get(
 	'/',
+	// passport.authenticate(
+	// 	'jwt-cognito',
+	// 	{ failureMessage: true },
+	// 	(a, b, c) => {
+	// 		console.log(a)
+	// 		console.log(b)
+	// 		console.log(c)
+	// 	}
+	// ),
 	schemaMiddleware(GetAssociatedSwimmers.schema),
 	GetAssociatedSwimmers.workflow
 )

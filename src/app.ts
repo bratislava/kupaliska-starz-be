@@ -6,7 +6,8 @@ import cors from 'cors'
 import config from 'config'
 import path from 'path'
 import i18next, { InitOptions } from 'i18next'
-import { Strategy as JwtStrategy } from 'passport-jwt'
+import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt'
+import { passportJwtSecret } from 'jwks-rsa'
 import helmet from 'helmet'
 
 // services
@@ -23,6 +24,7 @@ import {
 	jwtQrCodeVerify,
 	jwtOrderResponseVerify,
 	jwtResetPasswordVerify,
+	jwtCognitoUserVerify,
 } from './passport/jwtVerify'
 
 // utils
@@ -94,6 +96,30 @@ passport.use(
 			passReqToCallback: true,
 		},
 		jwtOrderResponseVerify
+	)
+)
+
+passport.use(
+	'jwt-cognito',
+	new JwtStrategy(
+		{
+			// jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+			// jwtFromRequest: ExtractJwt.fromHeader('authorizationcognito'),
+			// jwtFromRequest: () => 'brm',
+			jwtFromRequest: () =>
+				'eyJraWQiOiJ6U3NpNDZSXC9KeStkRGVxZitEaU5HRWRoY285QzNyMHczSGxGdmw0YmlWcz0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJkNmUyY2UzMC0zZWJlLTRmNjItYjI2OC1kZDc5NDg1MmUwMjgiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAuZXUtY2VudHJhbC0xLmFtYXpvbmF3cy5jb21cL2V1LWNlbnRyYWwtMV9HQ0JRemZBQ3kiLCJjbGllbnRfaWQiOiI0bmxqMm9hdWVhcjlhajduMmZxbXBjN2dkYiIsIm9yaWdpbl9qdGkiOiJiNGQ0NDQwZC1lYWU3LTQwZjYtYjk5MC1mOGE3NjRmOWVlZTciLCJldmVudF9pZCI6ImM4ZGVlYmRhLTBmNzYtNDVjYS1hNzgzLTgxNzFiOTc5MmRjZSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE2ODM2Mzg4NDQsImV4cCI6MTY4MzY0MjQ0NCwiaWF0IjoxNjgzNjM4ODQ0LCJqdGkiOiI0YzlmNjIxNC0wMTM0LTQwNjEtOTRkZC0yMDE1M2RmNDBjZjgiLCJ1c2VybmFtZSI6ImQ2ZTJjZTMwLTNlYmUtNGY2Mi1iMjY4LWRkNzk0ODUyZTAyOCJ9.SY2A3ZgmeOHYz9J_tVd28uoMrAQTX0KW18FWJXfSISEtSk5mjydUCef25Lh4uSg6bkJ4LHCBlXKpfSj6xzZB3aIEw_L2RB6YHkpJVH8K6qvoW6pNZevTZ8VY4zgLz3kHdmQvTJHPmk3Urhii5696rMD9CZxD8rJsPSZ-d3Rflz8k_zF6JyBeHJbikvY06-zKYqNIlnPafn9F5-hUkjctfW_hM0jcCW68gyWMlPlzbXFXupguhVBgnZ-l2j0JEg-1KUCJzXbdPzLHtB9q-2hK9WzLrpgSxTuU287Pgl_E7If2pKyorCVRpVYVHXBLHapa0fnFzPvbH_B9FsT13gAEUg',
+			ignoreExpiration: false,
+			audience: process.env.AWS_COGNITO_COGNITO_CLIENT_ID,
+			issuer: `https://cognito-idp.${process.env.AWS_COGNITO_REGION}.amazonaws.com/${process.env.AWS_COGNITO_USERPOOL_ID}`,
+			algorithms: ['RS256'],
+			secretOrKeyProvider: passportJwtSecret({
+				cache: true,
+				rateLimit: true,
+				jwksRequestsPerMinute: 5,
+				jwksUri: `https://cognito-idp.${process.env.AWS_COGNITO_REGION}.amazonaws.com/${process.env.AWS_COGNITO_USERPOOL_ID}/.well-known/jwks.json`,
+			}),
+		},
+		jwtCognitoUserVerify
 	)
 )
 
