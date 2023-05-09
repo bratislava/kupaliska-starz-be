@@ -166,3 +166,16 @@ export const jwtResetPasswordVerify = async (
 		return done(e)
 	}
 }
+
+export const jwtCognitoUserVerify = async (
+	req: Request,
+	payload: IJwtPayload,
+	done: VerifiedCallback
+) => {
+	try {
+		console.log('jwtCognitoUserVerify')
+		return done(null)
+	} catch (e) {
+		return done(e)
+	}
+}
