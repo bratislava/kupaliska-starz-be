@@ -30,7 +30,8 @@ export class TicketModel extends DatabaseModel {
 	entries: EntryModel[]
 	todaysEntries: EntryModel[]
 	numberOfVisits: number
-	loggedUserId: string
+	externalAzureId: string
+	swimmingLoggedUserId: string
 	associatedSwimmerId: string
 	// meta
 	createdAt: Date
@@ -138,7 +139,12 @@ export default (sequelize: Sequelize) => {
 				allowNull: false,
 				defaultValue: false,
 			},
-			loggedUserId: {
+			externalAzureId: {
+				type: DataTypes.UUID,
+				allowNull: true,
+				defaultValue: null,
+			},
+			swimmingLoggedUserId: {
 				type: DataTypes.UUID,
 				allowNull: true,
 				defaultValue: null,

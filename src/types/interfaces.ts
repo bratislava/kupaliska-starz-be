@@ -99,6 +99,27 @@ export interface IJwtResetPasswordPayload {
 	aud: string
 }
 
+export interface ICognitoAccessToken {
+	sub: string
+	device_key: string
+	iss: string
+	client_id: string
+	origin_jti: string
+	event_id: string
+	token_use: CognitoTokenType
+	scope: string
+	auth_time: number
+	exp: number
+	iat: number
+	jti: string
+	username: string
+}
+
+enum CognitoTokenType {
+	ID = 'id',
+	ACCESS = 'access',
+}
+
 /* Services */
 export interface IMailguntemplatesConfig {
 	resetPassword: string

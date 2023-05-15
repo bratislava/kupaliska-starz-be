@@ -5,6 +5,7 @@ import sequelize, { models } from '../../../db/models'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import {
 	azureGetAzureId,
+	getCognitoId,
 	isAzureAutehnticated,
 } from '../../../utils/azureAuthentication'
 
@@ -17,46 +18,38 @@ export const workflow = async (
 ) => {
 	try {
 		const { SwimmingLoggedUser } = models
-		if (await isAzureAutehnticated(req)) {
-			const oid = await azureGetAzureId(req)
-			if (oid) {
-				const swimmingLoggedUserExists =
-					await SwimmingLoggedUser.findOne({
-						where: {
-							externalId: { [Op.eq]: oid },
-						},
-					})
 
-				console.log(
-					'swimmingLoggedUserExists: ',
-					swimmingLoggedUserExists
+		const sub = getCognitoId(req)
+
+		if (sub) {
+			const swimmingLoggedUserExists = await SwimmingLoggedUser.findOne({
+				where: {
+					externalCognitoId: { [Op.eq]: sub },
+				},
+			})
+
+			if (!swimmingLoggedUserExists) {
+				let transaction: any = null
+				transaction = await sequelize.transaction()
+
+				await SwimmingLoggedUser.create(
+					{
+						externalCognitoId: sub,
+					},
+					{ transaction }
 				)
 
-				if (!swimmingLoggedUserExists) {
-					let transaction: any = null
-					transaction = await sequelize.transaction()
-
-					const order = await SwimmingLoggedUser.create(
-						{
-							externalId: oid,
-						},
-						{ transaction }
-					)
-
-					await transaction.commit()
-					console.log(
-						`SwimmingLoggedUser with externalId: ${oid} created`
-					)
-					return res.json(
-						`SwimmingLoggedUser with externalId: ${oid} created`
-					)
-				} else {
-					console.log('SwimmingLoggedUser already exists!')
-					return res.json(req.t('error:register.userExists'))
-				}
+				await transaction.commit()
+				console.log(
+					`SwimmingLoggedUser with externalCognitoId: ${sub} created`
+				)
+				return res.json(
+					`SwimmingLoggedUser with externalCognitoId: ${sub} created`
+				)
+			} else {
+				console.log('SwimmingLoggedUser already exists!')
+				return res.json(req.t('error:register.userExists'))
 			}
-		} else {
-			throw new ErrorBuilder(401, req.t('error:userNotAuthenticated'))
 		}
 	} catch (err) {
 		return next(err)

@@ -7,7 +7,8 @@ import { FileModel } from './file'
 
 export class SwimmingLoggedUserModel extends DatabaseModel {
 	id: string
-	externalId: string
+	externalAzureId: string
+	externalCognitoId: string
 	createdAt: Date
 	updatedAt: Date
 	deletedAt: Date
@@ -27,7 +28,12 @@ export default (sequelize: Sequelize) => {
 				allowNull: false,
 				defaultValue: UUIDV4,
 			},
-			externalId: {
+			externalCognitoId: {
+				type: DataTypes.UUID,
+				allowNull: false,
+				defaultValue: UUIDV4,
+			},
+			externalAzureId: {
 				type: DataTypes.UUID,
 				allowNull: false,
 				defaultValue: UUIDV4,
