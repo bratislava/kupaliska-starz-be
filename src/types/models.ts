@@ -1,3 +1,4 @@
+import { Strategy, StrategyOptions, VerifyCallback } from 'passport-jwt'
 import {
 	InstanceDestroyOptions,
 	Model,
@@ -25,4 +26,14 @@ export interface IUpdateOptions extends UpdateOptions {
 
 export interface IFindOptions extends FindOptions {
 	includeIgnoreAttributes: boolean
+}
+
+export class CognitoStrategy extends Strategy {
+	constructor(opt: CognitoStrategyOptions, verify: VerifyCallback) {
+		super(opt, verify)
+	}
+}
+
+export interface CognitoStrategyOptions extends StrategyOptions {
+	_audience?: string
 }

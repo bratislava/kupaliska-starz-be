@@ -5,6 +5,7 @@ import { Request, Response, NextFunction } from 'express'
 
 import { models } from '../db/models'
 import {
+	ICognitoAccessToken,
 	IJwtPayload,
 	IJwtQrCodePayload,
 	IJwtResetPasswordPayload,
@@ -168,13 +169,11 @@ export const jwtResetPasswordVerify = async (
 }
 
 export const jwtCognitoUserVerify = async (
-	req: Request,
-	payload: IJwtPayload,
+	payload: ICognitoAccessToken,
 	done: VerifiedCallback
 ) => {
 	try {
-		console.log('jwtCognitoUserVerify')
-		return done(null)
+		return done(null, payload)
 	} catch (e) {
 		return done(e)
 	}

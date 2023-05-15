@@ -1,9 +1,4 @@
 import { Request, Response, NextFunction } from 'express'
-import {
-	azureGetAzureData,
-	isAzureAutehnticated,
-} from '../../../utils/azureAuthentication'
-import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { models } from '../../../db/models'
 import {
 	ENTRY_TYPE,
@@ -12,6 +7,7 @@ import {
 	TICKET_CATEGORY,
 } from '../../../utils/enums'
 import { generateQrCode } from '../../../utils/qrCodeGenerator'
+import { getDataAboutCurrentUser } from '../../../utils/getDataCurrentUser'
 
 const { Ticket, Order, TicketType, Entry, SwimmingPool } = models
 
@@ -47,21 +43,9 @@ export const workflow = async (
 	next: NextFunction
 ) => {
 	try {
-		let authTest = false
-		try {
-			authTest = await isAzureAutehnticated(req)
-		} catch (err) {
-			throw new ErrorBuilder(401, req.t('error:notAuthenticated'))
-		}
-		let loggedUser = null
-		if (authTest) {
-			loggedUser = await azureGetAzureData(req)
-		} else {
-			throw new ErrorBuilder(401, req.t('error:notAuthenticated'))
-		}
-
+		const swimmingLoggedUser = await getDataAboutCurrentUser(req)
 		const tickets = await Ticket.findAll({
-			where: { loggedUserId: loggedUser.oid },
+			where: { loggedUserId: swimmingLoggedUser.id },
 			order: [['createdAt', 'DESC']],
 			include: [
 				{
@@ -110,7 +94,7 @@ export const workflow = async (
 				if (ticket.associatedSwimmerId) {
 					ticketResult.ownerId = ticket.associatedSwimmerId
 				} else {
-					ticketResult.ownerId = ticket.loggedUserId
+					ticketResult.ownerId = ticket.swimmingLoggedUserId
 				}
 
 				if (

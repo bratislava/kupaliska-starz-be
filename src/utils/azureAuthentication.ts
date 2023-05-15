@@ -64,6 +64,12 @@ export const azureGetAzureId = async (req: any) => {
 	return oid
 }
 
+export const getCognitoId = (req: any) => {
+	const { sub } = req.user
+
+	return sub
+}
+
 export const azureGetAzureData = async (req: any) => {
 	const authorization = req.headers.authorization
 	if (authorization === undefined) {
@@ -75,4 +81,8 @@ export const azureGetAzureData = async (req: any) => {
 	const payload = jwtDecode<JWTPayloadAzure>(token)
 
 	return payload
+}
+
+export const getCognitoData = async (req: any) => {
+	return req.user
 }

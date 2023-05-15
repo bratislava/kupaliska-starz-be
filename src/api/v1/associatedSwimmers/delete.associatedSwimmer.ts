@@ -1,9 +1,8 @@
 import Joi from 'joi'
 import { Request, Response, NextFunction } from 'express'
 import { MESSAGE_TYPE } from '../../../utils/enums'
-import DB, { models } from '../../../db/models'
+import { models } from '../../../db/models'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
-import { isAzureAutehnticated } from '../../../utils/azureAuthentication'
 import { getDataAboutCurrentUser } from '../../../utils/getDataCurrentUser'
 
 const { AssociatedSwimmer } = models
@@ -25,50 +24,35 @@ export const workflow = async (
 ) => {
 	try {
 		const { params } = req
-		// let transaction: Transaction
-		// transaction = await DB.transaction()
 
-		console.log('associatedSwimmerId: ', params.associatedSwimmerId)
-		if (isAzureAutehnticated(req)) {
-			let swimmingLoggedUser = await getDataAboutCurrentUser(req)
+		let swimmingLoggedUser = await getDataAboutCurrentUser(req)
 
-			const associatedSwimmer = await AssociatedSwimmer.findByPk(
-				params.associatedSwimmerId
+		const associatedSwimmer = await AssociatedSwimmer.findByPk(
+			params.associatedSwimmerId
+		)
+
+		if (!associatedSwimmer) {
+			// TODO error translation
+			throw new ErrorBuilder(
+				404,
+				req.t('error:associatedSwimmerNotFound')
 			)
+		}
+		if (associatedSwimmer.swimmingLoggedUserId === swimmingLoggedUser.id) {
+			await associatedSwimmer.destroy()
 
-			console.log(associatedSwimmer)
-
-			if (!associatedSwimmer) {
-				// TODO error translation
-				throw new ErrorBuilder(
-					404,
-					req.t('error:associatedSwimmerNotFound')
-				)
-			}
-			if (
-				associatedSwimmer.swimmingLoggedUserId === swimmingLoggedUser.id
-			) {
-				await associatedSwimmer.destroy()
-				// await AssociatedSwimmer.destroy({
-				// 	where: { id: params.associatedSwimmerId },
-				// })
-				// await transaction.commit()
-
-				return res.json({
-					data: {},
-					messages: [
-						{
-							type: MESSAGE_TYPE.SUCCESS,
-							message: req.t(
-								// TODO error translation
-								'success:loggedSwimmer.associatedSwimmer.deleted'
-							),
-						},
-					],
-				})
-			}
-		} else {
-			throw new ErrorBuilder(401, req.t('error:userNotAuthenticated'))
+			return res.json({
+				data: {},
+				messages: [
+					{
+						type: MESSAGE_TYPE.SUCCESS,
+						message: req.t(
+							// TODO error translation
+							'success:loggedSwimmer.associatedSwimmer.deleted'
+						),
+					},
+				],
+			})
 		}
 	} catch (err) {
 		return next(err)

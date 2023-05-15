@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import * as PostOrder from './post.order'
 import * as GetDiscountCode from './get.discountCode'
 import * as GetSuccessfulOrder from './get.successfulOrder'
@@ -19,17 +20,44 @@ export default () => {
 
 	router.post(
 		'/',
+		passport.authenticate('jwt-cognito'),
 		recaptchaMiddleware,
 		schemaMiddleware(PostOrder.schema),
-		PostOrder.workflow
+		(req: Request, res: Response, next: NextFunction) => {
+			PostOrder.workflow(req, res, next, true)
+		}
 	)
 
-	router.get('/tickets', GetLoggedUserTickets.workflow)
+	router.post(
+		'/unauthenticated',
+		recaptchaMiddleware,
+		schemaMiddleware(PostOrder.schema),
+		(req: Request, res: Response, next: NextFunction) => {
+			PostOrder.workflow(req, res, next, false)
+		}
+	)
+
+	router.get(
+		'/tickets',
+		passport.authenticate('jwt-cognito'),
+		GetLoggedUserTickets.workflow
+	)
 
 	router.post(
 		'/getPrice',
+		passport.authenticate('jwt-cognito'),
 		schemaMiddleware(PostOrder.schema),
-		PostOrder.workflowDryRun
+		(req: Request, res: Response, next: NextFunction) => {
+			PostOrder.workflowDryRun(req, res, next, true)
+		}
+	)
+
+	router.post(
+		'/getPrice/unauthenticated',
+		schemaMiddleware(PostOrder.schema),
+		(req: Request, res: Response, next: NextFunction) => {
+			PostOrder.workflowDryRun(req, res, next, false)
+		}
 	)
 
 	router.get(
