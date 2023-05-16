@@ -2,6 +2,9 @@ resources:
   - ../../base
   - secrets/app.secret.yml
 
+generatorOptions:
+    disableNameSuffixHash: true
+
 configMapGenerator:
 - name: env
   namespace: ${NAMESPACE}
