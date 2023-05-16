@@ -17,7 +17,7 @@ commonAnnotations:
     repositoryUrl: ${BUILD_REPOSITORY_URI}
 
 generatorOptions:
-    disableNameSuffixHash: false
+    disableNameSuffixHash: true
 
 configMapGenerator:
     - name: env
