@@ -80,8 +80,8 @@ export const jwtAdminVerify = async (
 				id: {
 					[Op.eq]: payload.uid,
 				},
-				[Op.not]: {
-					hash: {
+				hash: {
+					[Op.not]: {
 						[Op.eq]: '',
 					},
 				},
