@@ -81,7 +81,7 @@ export const workflow = async (
 							limit: 1,
 							where: {
 								isChildren: {
-									[Op.is]: false,
+									[Op.eq]: false,
 								},
 							},
 							include: [
