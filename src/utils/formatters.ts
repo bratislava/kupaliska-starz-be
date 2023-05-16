@@ -282,7 +282,7 @@ export const formatSwimmingLoggedUser = (
 
 	return {
 		id: swimmingLoggedUser.id,
-		externalId: swimmingLoggedUser.externalId,
+		externalId: swimmingLoggedUser.externalCognitoId,
 		age: swimmingLoggedUser.age,
 		zip: swimmingLoggedUser.zip,
 		image: swimmingLoggedUser.image,

@@ -6,7 +6,8 @@ import cors from 'cors'
 import config from 'config'
 import path from 'path'
 import i18next, { InitOptions } from 'i18next'
-import { Strategy as JwtStrategy } from 'passport-jwt'
+import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt'
+import { passportJwtSecret } from 'jwks-rsa'
 import helmet from 'helmet'
 
 // services
@@ -23,6 +24,7 @@ import {
 	jwtQrCodeVerify,
 	jwtOrderResponseVerify,
 	jwtResetPasswordVerify,
+	jwtCognitoUserVerify,
 } from './passport/jwtVerify'
 
 // utils
@@ -41,6 +43,7 @@ import {
 	minioStaticServeMiddleware,
 } from './utils/minio'
 import { readFile } from 'fs/promises'
+import { CognitoStrategy } from './types/models'
 
 const passportConfig: IPassportConfig = config.get('passport')
 const i18NextConfig: InitOptions = config.get('i18next')
@@ -94,6 +97,26 @@ passport.use(
 			passReqToCallback: true,
 		},
 		jwtOrderResponseVerify
+	)
+)
+
+passport.use(
+	'jwt-cognito',
+	new CognitoStrategy(
+		{
+			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+			ignoreExpiration: false,
+			_audience: process.env.AWS_COGNITO_COGNITO_CLIENT_ID,
+			issuer: `https://cognito-idp.${process.env.AWS_COGNITO_REGION}.amazonaws.com/${process.env.AWS_COGNITO_USERPOOL_ID}`,
+			algorithms: ['RS256'],
+			secretOrKeyProvider: passportJwtSecret({
+				cache: true,
+				rateLimit: true,
+				jwksRequestsPerMinute: 5,
+				jwksUri: `https://cognito-idp.${process.env.AWS_COGNITO_REGION}.amazonaws.com/${process.env.AWS_COGNITO_USERPOOL_ID}/.well-known/jwks.json`,
+			}),
+		},
+		jwtCognitoUserVerify
 	)
 )
 
