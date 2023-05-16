@@ -6,7 +6,7 @@ import 'colors'
 import { Op } from 'sequelize'
 import faker from 'faker'
 import { v4 as uuidv4 } from 'uuid'
-import sequelize, { models } from '../db/models'
+import { models } from '../db/models'
 import { ENTRY_FLAG, ENTRY_TYPE, TICKET_TYPE, USER_ROLE } from '../utils/enums'
 import { concat, map, reduce } from 'lodash'
 import { SwimmingPoolModel } from '../db/models/swimmingPool'
@@ -21,7 +21,7 @@ async function generateData() {
 	const seasonalTicketType = await TicketType.findOne({
 		where: {
 			childrenAllowed: {
-				[Op.is]: true,
+				[Op.eq]: true,
 			},
 			type: {
 				[Op.eq]: TICKET_TYPE.SEASONAL,
@@ -32,7 +32,7 @@ async function generateData() {
 	const entriesTicketType = await TicketType.findOne({
 		where: {
 			childrenAllowed: {
-				[Op.is]: false,
+				[Op.eq]: false,
 			},
 			entriesNumber: {
 				[Op.gte]: 5,

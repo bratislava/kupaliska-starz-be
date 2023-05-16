@@ -1,11 +1,10 @@
 import { Request, Response, NextFunction } from 'express'
 import Joi from 'joi'
 import config from 'config'
-import { map, reduce } from 'lodash'
 import { Op, Sequelize } from 'sequelize'
 import formUrlEncoded from 'form-urlencoded'
 import { v4 as uuidv4 } from 'uuid'
-import { models, sequelize } from '../../../db/models'
+import { models } from '../../../db/models'
 import { IAppConfig, IPassportConfig } from '../../../types/interfaces'
 import { MESSAGE_TYPE, ORDER_STATE } from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
@@ -17,12 +16,7 @@ import { getDiscountCode } from '../../../services/discountCodeValidationService
 import { DiscountCodeModel } from '../../../db/models/discountCode'
 import { createJwt } from '../../../utils/authorization'
 import { sendOrderEmail } from '../../../utils/emailSender'
-import {
-	azureGetAzureData,
-	azureGetAzureId,
-	isAzureAutehnticated,
-} from '../../../utils/azureAuthentication'
-import { RelatedType } from '../../../db/models/file'
+import { getCognitoData } from '../../../utils/azureAuthentication'
 
 const {
 	SwimmingLoggedUser,
@@ -78,7 +72,8 @@ export const schema = Joi.object({
 export const workflowDryRun = async (
 	req: Request,
 	res: Response,
-	next: NextFunction
+	next: NextFunction,
+	auth: boolean
 ) => {
 	try {
 		const { body } = req
@@ -92,17 +87,10 @@ export const workflowDryRun = async (
 			)
 		}
 
-		let authTest = false
-		try {
-			authTest = await isAzureAutehnticated(req)
-		} catch (err) {
-			console.log('bad token')
-		}
-
 		let loggedUser = null
 
-		if (authTest) {
-			loggedUser = await azureGetAzureData(req)
+		if (auth) {
+			loggedUser = await getCognitoData(req)
 		}
 
 		const pricing = await priceDryRun(req, ticketType, loggedUser, true, '')
@@ -125,20 +113,14 @@ export const workflowDryRun = async (
 export const workflow = async (
 	req: Request,
 	res: Response,
-	next: NextFunction
+	next: NextFunction,
+	auth: boolean
 ) => {
 	try {
-		let authTest = false
-		try {
-			authTest = await isAzureAutehnticated(req)
-		} catch (err) {
-			console.log('bad token')
-		}
-
 		let loggedUser = null
 
-		if (authTest) {
-			loggedUser = await azureGetAzureData(req)
+		if (auth) {
+			loggedUser = await getCognitoData(req)
 		}
 		const { body } = req
 
@@ -170,7 +152,7 @@ export const workflow = async (
 		}
 
 		// check ticket type and logged user
-		if (ticketType.nameRequired && !authTest) {
+		if (ticketType.nameRequired && !auth) {
 			throw new ErrorBuilder(
 				400,
 				req.t('error:ticket.notLoggedUserForTicket')
@@ -469,18 +451,21 @@ const getUser = async (
 		}
 	} else if (ticket.personId === null) {
 		const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
-			where: { externalId: loggedUser.oid },
+			where: { externalCognitoId: loggedUser.sub },
 		})
 		return {
 			associatedSwimmerId: null,
-			loggedUserId: loggedUser.oid,
+			loggedUserId: swimmingLoggedUser.id,
 			email: loggedUser.emails[0],
-			name: loggedUser.given_name + ' ' + loggedUser.family_name,
+			name: loggedUser.given_name + ' ' + loggedUser.family_name, //TODO missing in cognito token, need to get this info from cognito endpoint probabaly
 			age: swimmingLoggedUser.age,
 			zip: swimmingLoggedUser.zip,
 		}
 	} else {
 		const user = await AssociatedSwimmer.findByPk(ticket.personId)
+		const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
+			where: { externalCognitoId: loggedUser.sub },
+		})
 		if (!user) {
 			throw new ErrorBuilder(
 				404,
@@ -489,7 +474,7 @@ const getUser = async (
 		} else {
 			return {
 				associatedSwimmerId: user.id,
-				loggedUserId: loggedUser.oid,
+				loggedUserId: swimmingLoggedUser.id,
 				email: loggedUser.emails[0],
 				name: user.firstname + ' ' + user.lastname,
 				age: user.age,
@@ -541,7 +526,7 @@ const createTicket = async (
 			price: ticketPrice,
 			parentTicketId: parentTicketId,
 			remainingEntries: ticketType.entriesNumber,
-			loggedUserId: ticket.loggedUserId,
+			swimmingLoggedUserId: ticket.loggedUserId,
 			associatedSwimmerId: ticket.associatedSwimmerId,
 			profile: {
 				id: profileId,
@@ -570,10 +555,7 @@ const uploadProfilePhotos = async (ticket: any) => {
 	if (ticket.associatedSwimmerId) {
 		relatedId = ticket.associatedSwimmerId
 	} else if (ticket.loggedUserId) {
-		const loggedUser = await SwimmingLoggedUser.findOne({
-			where: { externalId: ticket.loggedUserId },
-		})
-		relatedId = loggedUser.id
+		relatedId = ticket.loggedUserId
 	}
 	const file = await File.findOne({ where: { relatedId: relatedId } })
 	if (file) {

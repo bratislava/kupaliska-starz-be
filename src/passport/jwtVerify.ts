@@ -5,6 +5,7 @@ import { Request, Response, NextFunction } from 'express'
 
 import { models } from '../db/models'
 import {
+	ICognitoAccessToken,
 	IJwtPayload,
 	IJwtQrCodePayload,
 	IJwtResetPasswordPayload,
@@ -79,8 +80,8 @@ export const jwtAdminVerify = async (
 				id: {
 					[Op.eq]: payload.uid,
 				},
-				[Op.not]: {
-					hash: {
+				hash: {
+					[Op.not]: {
 						[Op.eq]: '',
 					},
 				},
@@ -162,6 +163,17 @@ export const jwtResetPasswordVerify = async (
 		}
 
 		return done(null, user)
+	} catch (e) {
+		return done(e)
+	}
+}
+
+export const jwtCognitoUserVerify = async (
+	payload: ICognitoAccessToken,
+	done: VerifiedCallback
+) => {
+	try {
+		return done(null, payload)
 	} catch (e) {
 		return done(e)
 	}
