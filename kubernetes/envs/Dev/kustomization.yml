@@ -3,7 +3,7 @@ resources:
   - secrets/app.secret.yml
 
 generatorOptions:
-    disableNameSuffixHash: false
+    disableNameSuffixHash: true
 
 configMapGenerator:
 - name: env
