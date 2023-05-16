@@ -16,7 +16,7 @@ import { getDiscountCode } from '../../../services/discountCodeValidationService
 import { DiscountCodeModel } from '../../../db/models/discountCode'
 import { createJwt } from '../../../utils/authorization'
 import { sendOrderEmail } from '../../../utils/emailSender'
-import { getCognitoData } from '../../../utils/azureAuthentication'
+import { getCognitoDataFromToken } from '../../../utils/azureAuthentication'
 
 const {
 	SwimmingLoggedUser,
@@ -90,7 +90,7 @@ export const workflowDryRun = async (
 		let loggedUser = null
 
 		if (auth) {
-			loggedUser = await getCognitoData(req)
+			loggedUser = await getCognitoDataFromToken(req)
 		}
 
 		const pricing = await priceDryRun(req, ticketType, loggedUser, true, '')
@@ -120,7 +120,7 @@ export const workflow = async (
 		let loggedUser = null
 
 		if (auth) {
-			loggedUser = await getCognitoData(req)
+			loggedUser = await getCognitoDataFromToken(req)
 		}
 		const { body } = req
 

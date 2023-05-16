@@ -5,7 +5,7 @@ import { Op } from 'sequelize'
 import { models } from '../../../db/models'
 import { formatSwimmingLoggedUser } from '../../../utils/formatters'
 import {
-	azureGetAzureData,
+	getCognitoDataFromToken,
 	getCognitoId,
 } from '../../../utils/azureAuthentication'
 import readAsBase64 from '../../../utils/reader'
@@ -39,7 +39,7 @@ export const workflow = async (
 	next: NextFunction
 ) => {
 	try {
-		const loggedUser = await azureGetAzureData(req)
+		const loggedUser = await getCognitoDataFromToken(req)
 
 		const sub = await getCognitoId(req)
 		if (sub) {
