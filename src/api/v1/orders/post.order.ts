@@ -456,7 +456,7 @@ const getUser = async (
 		return {
 			associatedSwimmerId: null,
 			loggedUserId: swimmingLoggedUser.id,
-			email: loggedUser.emails[0],
+			email: loggedUser.emails ? loggedUser.emails[0] : undefined, //TODO missing in cognito token, need to get this info from cognito endpoint probabaly
 			name: loggedUser.given_name + ' ' + loggedUser.family_name, //TODO missing in cognito token, need to get this info from cognito endpoint probabaly
 			age: swimmingLoggedUser.age,
 			zip: swimmingLoggedUser.zip,
