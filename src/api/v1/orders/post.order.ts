@@ -17,6 +17,7 @@ import { DiscountCodeModel } from '../../../db/models/discountCode'
 import { createJwt } from '../../../utils/authorization'
 import { sendOrderEmail } from '../../../utils/emailSender'
 import { getCognitoDataFromToken } from '../../../utils/azureAuthentication'
+import { getCityAccountData } from '../../../utils/helpers'
 
 const {
 	SwimmingLoggedUser,
@@ -453,6 +454,9 @@ const getUser = async (
 		const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
 			where: { externalCognitoId: loggedUser.sub },
 		})
+
+		const cityAccountData = getCityAccountData(req.headers.authorization)
+
 		return {
 			associatedSwimmerId: null,
 			loggedUserId: swimmingLoggedUser.id,
