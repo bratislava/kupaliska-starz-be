@@ -76,12 +76,13 @@ export const jwtAdminVerify = async (
 				'createdAt',
 				'updatedAt',
 			],
+			// @ts-ignore - was originally done this way and working previous years, TODO check why the typing complains
 			where: {
 				id: {
 					[Op.eq]: payload.uid,
 				},
-				hash: {
-					[Op.not]: {
+				[Op.not]: {
+					hash: {
 						[Op.eq]: '',
 					},
 				},
