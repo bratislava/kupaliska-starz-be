@@ -44,7 +44,7 @@ export const getAllAges = (ageInterval: number, ageMinimum: number) => {
 export const getCityAccountData = async (accessToken: string) => {
 	const result = await fetch(`${process.env.CITY_ACCOUNT_BE_URL}/auth/user`, {
 		headers: {
-			Authorization: `Bearer ${accessToken}`,
+			Authorization: accessToken,
 		},
 	})
 	if (!result.ok) {
