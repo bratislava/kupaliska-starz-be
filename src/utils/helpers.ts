@@ -1,5 +1,8 @@
 import { map } from 'lodash'
 import { QueryInterface } from 'sequelize'
+import fetch from 'node-fetch'
+import { CityAccountUser } from './cityAccountDto'
+import ErrorBuilder from './ErrorBuilder'
 
 export const checkTableExists = async (
 	queryInterface: QueryInterface,
@@ -36,4 +39,20 @@ export const getAllAges = (ageInterval: number, ageMinimum: number) => {
 	allAges.push(null) // needed when age is not filled (SQL returns null value)
 
 	return allAges
+}
+
+export const getCityAccountData = async (accessToken: string) => {
+	const result = await fetch(`${process.env.CITY_ACCOUNT_BE_URL}/auth/user`, {
+		headers: {
+			Authorization: `Bearer ${accessToken}`,
+		},
+	})
+	if (!result.ok) {
+		if (result.status === 401) {
+			throw new ErrorBuilder(401, 'Unauthorized')
+		} else {
+			throw new Error('Error fetching account')
+		}
+	}
+	return result.json() as Partial<CityAccountUser>
 }
