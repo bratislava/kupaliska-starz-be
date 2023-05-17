@@ -18,6 +18,7 @@ import { createJwt } from '../../../utils/authorization'
 import { sendOrderEmail } from '../../../utils/emailSender'
 import { getCognitoDataFromToken } from '../../../utils/azureAuthentication'
 import { getCityAccountData } from '../../../utils/helpers'
+import { CityAccountUser } from '../../../utils/cityAccountDto'
 
 const {
 	SwimmingLoggedUser,
@@ -455,13 +456,16 @@ const getUser = async (
 			where: { externalCognitoId: loggedUser.sub },
 		})
 
-		const cityAccountData = getCityAccountData(req.headers.authorization)
+		const cityAccountData = await getCityAccountData(
+			req.headers.authorization
+		)
 
 		return {
 			associatedSwimmerId: null,
 			loggedUserId: swimmingLoggedUser.id,
-			email: loggedUser.emails ? loggedUser.emails[0] : undefined, //TODO missing in cognito token, need to get this info from cognito endpoint probabaly
-			name: loggedUser.given_name + ' ' + loggedUser.family_name, //TODO missing in cognito token, need to get this info from cognito endpoint probabaly
+			email: cityAccountData?.email,
+			name:
+				cityAccountData.given_name + ' ' + cityAccountData.family_name,
 			age: swimmingLoggedUser.age,
 			zip: swimmingLoggedUser.zip,
 		}
