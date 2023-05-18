@@ -1,13 +1,8 @@
 import Joi from 'joi'
 import { NextFunction, Request, Response } from 'express'
 import { Op } from 'sequelize'
-import sequelize, { models } from '../../../db/models'
-import ErrorBuilder from '../../../utils/ErrorBuilder'
-import {
-	azureGetAzureId,
-	getCognitoId,
-	isAzureAutehnticated,
-} from '../../../utils/azureAuthentication'
+import { models } from '../../../db/models'
+import { getCognitoId } from '../../../utils/azureAuthentication'
 
 export const schema = Joi.object()
 
@@ -29,17 +24,9 @@ export const workflow = async (
 			})
 
 			if (!swimmingLoggedUserExists) {
-				let transaction: any = null
-				transaction = await sequelize.transaction()
-
-				await SwimmingLoggedUser.create(
-					{
-						externalCognitoId: sub,
-					},
-					{ transaction }
-				)
-
-				await transaction.commit()
+				await SwimmingLoggedUser.create({
+					externalCognitoId: sub,
+				})
 				console.log(
 					`SwimmingLoggedUser with externalCognitoId: ${sub} created`
 				)
