@@ -45,7 +45,7 @@ export const workflow = async (
 	try {
 		const swimmingLoggedUser = await getDataAboutCurrentUser(req)
 		const tickets = await Ticket.findAll({
-			where: { loggedUserId: swimmingLoggedUser.id },
+			where: { swimmingLoggedUserId: swimmingLoggedUser.id },
 			order: [['createdAt', 'DESC']],
 			include: [
 				{
