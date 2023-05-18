@@ -1,6 +1,6 @@
 import Joi from 'joi'
 import { NextFunction, Request, Response } from 'express'
-import { Op } from 'sequelize'
+import { Op, Transaction } from 'sequelize'
 import sequelize, { models } from '../../../db/models'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { getCognitoId } from '../../../utils/azureAuthentication'
@@ -20,6 +20,7 @@ export const workflow = async (
 	res: Response,
 	next: NextFunction
 ) => {
+	let transaction: Transaction | null = null
 	try {
 		const { body } = req
 		const sub = await getCognitoId(req)
@@ -35,8 +36,6 @@ export const workflow = async (
 			if (!swimmingLoggedUser) {
 				throw new ErrorBuilder(404, req.t('error:userNotFound'))
 			}
-
-			let transaction: any = null
 			transaction = await sequelize.transaction()
 			if (!swimmingLoggedUser.age && !body.age) {
 				throw new ErrorBuilder(400, req.t('error:ageNotFound'))
@@ -94,6 +93,7 @@ export const workflow = async (
 			})
 		}
 	} catch (err) {
+		if (transaction) transaction.rollback()
 		return next(err)
 	}
 }
