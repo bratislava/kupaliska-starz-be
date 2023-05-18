@@ -10,13 +10,13 @@ let turnstile:
 	  ) => Promise<TurnstileResponse>)
 	| undefined
 
-if (!process.env.RECAPTCHA_CLIENT_SECRET) {
+if (!process.env.TURNSTILE_SECRET_KEY) {
 	console.warn(
 		'TURNSTILE_SECRET not set! Using dummy token, captcha will always pass.'
 	)
 	turnstile = Turnstile('1x0000000000000000000000000000000AA')
 } else {
-	turnstile = Turnstile(process.env.RECAPTCHA_CLIENT_SECRET)
+	turnstile = Turnstile(process.env.TURNSTILE_SECRET_KEY)
 	console.log('Successfully initialized Turnstile')
 }
 
