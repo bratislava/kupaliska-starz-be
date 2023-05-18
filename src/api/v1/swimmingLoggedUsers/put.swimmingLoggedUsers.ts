@@ -11,7 +11,19 @@ import { SwimmingLoggedUserModel } from '../../../db/models/swimmingLoggedUser'
 import readAsBase64 from '../../../utils/reader'
 
 export const swimmingLoggedUserUploadFolder = 'private/swimming-logged-user'
-export const schema = Joi.object()
+export const schema = Joi.object().keys({
+	body: Joi.object().keys({
+		age: Joi.number(),
+		zip: Joi.string(),
+		// TODO uncomment once we give feedback on error on FE
+		// .pattern(
+		// 	new RegExp('^\\s*(\\d\\s*\\d\\s*\\d\\s*\\d\\s*\\d)?\\s*$')
+		// ),
+		image: Joi.string(),
+	}),
+	query: Joi.object(),
+	params: Joi.object(),
+})
 
 const { SwimmingLoggedUser } = models
 
@@ -37,16 +49,10 @@ export const workflow = async (
 				throw new ErrorBuilder(404, req.t('error:userNotFound'))
 			}
 			transaction = await sequelize.transaction()
-			if (!swimmingLoggedUser.age && !body.age) {
-				throw new ErrorBuilder(400, req.t('error:ageNotFound'))
-			}
-			if (!swimmingLoggedUser.image && !body.image) {
-				throw new ErrorBuilder(400, req.t('error:photoNotFound'))
-			}
 			await swimmingLoggedUser.update(
 				{
 					age: body.age ? body.age : swimmingLoggedUser.age,
-					zip: body.zip,
+					zip: body.zip ? body.zip : swimmingLoggedUser.zip,
 				},
 				{ transaction }
 			)
