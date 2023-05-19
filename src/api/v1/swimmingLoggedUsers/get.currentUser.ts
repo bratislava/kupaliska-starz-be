@@ -4,11 +4,9 @@ import { Op } from 'sequelize'
 
 import { models } from '../../../db/models'
 import { formatSwimmingLoggedUser } from '../../../utils/formatters'
-import {
-	azureGetAzureData,
-	getCognitoId,
-} from '../../../utils/azureAuthentication'
+import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
 import readAsBase64 from '../../../utils/reader'
+import ErrorBuilder from '../../../utils/ErrorBuilder'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -39,9 +37,7 @@ export const workflow = async (
 	next: NextFunction
 ) => {
 	try {
-		const loggedUser = await azureGetAzureData(req)
-
-		const sub = await getCognitoId(req)
+		const sub = await getCognitoIdOfLoggedInUser(req)
 		if (sub) {
 			const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
 				attributes: [
@@ -82,7 +78,6 @@ export const workflow = async (
 
 			return res.json({
 				...swimmingLoggedUserWithImageBase64,
-				...loggedUser,
 				// pagination: {
 				// 	page: query.page,
 				// 	limit: query.limit,
@@ -90,6 +85,8 @@ export const workflow = async (
 				// 	totalCount: count,
 				// },
 			})
+		} else {
+			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
 		}
 	} catch (err) {
 		return next(err)
