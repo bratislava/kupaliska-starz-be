@@ -44,6 +44,7 @@ import {
 } from './utils/minio'
 import { readFile } from 'fs/promises'
 import { CognitoStrategy } from './types/models'
+import { httpLogger, logger } from './utils/logger'
 
 const passportConfig: IPassportConfig = config.get('passport')
 const i18NextConfig: InitOptions = config.get('i18next')
@@ -131,6 +132,8 @@ i18next
 
 const app = express()
 
+app.use(httpLogger)
+
 if (process.env.NODE_ENV !== ENV.test && process.env.SENTRY_DSN) {
 	initSentry(app)
 	app.use(Sentry.Handlers.requestHandler() as express.RequestHandler)
@@ -176,7 +179,7 @@ app.use('/api/test-download-base64', async (_req, res) => {
 })
 
 app.use('/logtest', (req, res) => {
-	console.log(req.body)
+	logger.info(req.body)
 	res.send('ok')
 })
 
