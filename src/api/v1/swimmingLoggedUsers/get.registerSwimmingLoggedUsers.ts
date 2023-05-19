@@ -1,8 +1,9 @@
 import Joi from 'joi'
 import { NextFunction, Request, Response } from 'express'
 import { Op } from 'sequelize'
+import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
+import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { models } from '../../../db/models'
-import { getCognitoId } from '../../../utils/azureAuthentication'
 
 export const schema = Joi.object()
 
@@ -14,7 +15,7 @@ export const workflow = async (
 	try {
 		const { SwimmingLoggedUser } = models
 
-		const sub = getCognitoId(req)
+		const sub = getCognitoIdOfLoggedInUser(req)
 
 		if (sub) {
 			const swimmingLoggedUserExists = await SwimmingLoggedUser.findOne({
@@ -37,6 +38,8 @@ export const workflow = async (
 				console.log('SwimmingLoggedUser already exists!')
 				return res.json(req.t('error:register.userExists'))
 			}
+		} else {
+			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
 		}
 	} catch (err) {
 		return next(err)
