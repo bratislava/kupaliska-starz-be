@@ -49,9 +49,8 @@ export const workflow = async (
 	res: Response,
 	next: NextFunction
 ) => {
+	let transaction: Transaction
 	try {
-		let transaction: Transaction
-
 		const { body }: any = req
 
 		transaction = await DB.transaction()
@@ -67,8 +66,6 @@ export const workflow = async (
 			},
 			{ transaction }
 		)
-		await transaction.commit()
-		transaction = await DB.transaction()
 		await uploadImage(
 			req,
 			body.image,
@@ -79,7 +76,6 @@ export const workflow = async (
 			associatedSwimmer.image ? associatedSwimmer.image.id : undefined
 		)
 		await transaction.commit()
-		transaction = null
 
 		return res.json({
 			data: {
@@ -96,6 +92,9 @@ export const workflow = async (
 			],
 		})
 	} catch (err) {
+		if (transaction) {
+			await transaction.rollback()
+		}
 		return next(err)
 	}
 }

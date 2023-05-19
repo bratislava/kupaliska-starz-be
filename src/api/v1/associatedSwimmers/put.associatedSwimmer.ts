@@ -25,12 +25,10 @@ export const workflow = async (
 	res: Response,
 	next: NextFunction
 ) => {
+	let transaction: Transaction
 	try {
-		let transaction: Transaction
-
 		const { body, params }: any = req
 
-		transaction = await DB.transaction()
 		const swimmingLoggedUser = await getDataAboutCurrentUser(req)
 
 		const associatedSwimmer = await AssociatedSwimmer.findByPk(
@@ -44,6 +42,7 @@ export const workflow = async (
 			)
 		}
 		if (associatedSwimmer.swimmingLoggedUserId === swimmingLoggedUser.id) {
+			transaction = await DB.transaction()
 			await associatedSwimmer.update(
 				{
 					firstname: body.firstname,
@@ -69,12 +68,11 @@ export const workflow = async (
 						: undefined
 				)
 			}
-
 			await transaction.commit()
+
 			await associatedSwimmer.reload({
 				include: [{ association: 'image' }],
 			})
-			transaction = null
 
 			let associatedSwimmersWithImageBase64 = {
 				...formatAssociatedSwimmer(associatedSwimmer),
@@ -99,6 +97,9 @@ export const workflow = async (
 			})
 		}
 	} catch (err) {
+		if (transaction) {
+			await transaction.rollback()
+		}
 		return next(err)
 	}
 }

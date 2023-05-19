@@ -1,6 +1,6 @@
 import Joi from 'joi'
 import { NextFunction, Request, Response } from 'express'
-import { Op } from 'sequelize'
+import { Op, Transaction } from 'sequelize'
 import sequelize, { models } from '../../../db/models'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
@@ -11,7 +11,19 @@ import { SwimmingLoggedUserModel } from '../../../db/models/swimmingLoggedUser'
 import readAsBase64 from '../../../utils/reader'
 
 export const swimmingLoggedUserUploadFolder = 'private/swimming-logged-user'
-export const schema = Joi.object()
+export const schema = Joi.object().keys({
+	body: Joi.object().keys({
+		age: Joi.number(),
+		zip: Joi.string(),
+		// TODO uncomment once we give feedback on error on FE
+		// .pattern(
+		// 	new RegExp('^\\s*(\\d\\s*\\d\\s*\\d\\s*\\d\\s*\\d)?\\s*$')
+		// ),
+		image: Joi.string(),
+	}),
+	query: Joi.object(),
+	params: Joi.object(),
+})
 
 const { SwimmingLoggedUser } = models
 
@@ -20,6 +32,7 @@ export const workflow = async (
 	res: Response,
 	next: NextFunction
 ) => {
+	let transaction: Transaction | null = null
 	try {
 		const { body } = req
 		const sub = await getCognitoIdOfLoggedInUser(req)
@@ -35,19 +48,11 @@ export const workflow = async (
 			if (!swimmingLoggedUser) {
 				throw new ErrorBuilder(404, req.t('error:userNotFound'))
 			}
-
-			let transaction: any = null
 			transaction = await sequelize.transaction()
-			if (!swimmingLoggedUser.age && !body.age) {
-				throw new ErrorBuilder(400, req.t('error:ageNotFound'))
-			}
-			if (!swimmingLoggedUser.image && !body.image) {
-				throw new ErrorBuilder(400, req.t('error:photoNotFound'))
-			}
 			await swimmingLoggedUser.update(
 				{
 					age: body.age ? body.age : swimmingLoggedUser.age,
-					zip: body.zip,
+					zip: body.zip ? body.zip : swimmingLoggedUser.zip,
 				},
 				{ transaction }
 			)
@@ -96,6 +101,7 @@ export const workflow = async (
 			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
 		}
 	} catch (err) {
+		if (transaction) transaction.rollback()
 		return next(err)
 	}
 }
