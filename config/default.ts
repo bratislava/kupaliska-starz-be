@@ -126,7 +126,8 @@ export = {
 			: path.join(process.cwd(), 'resources', 'keys', 'gpe.signing.pem'), // GPE public key (certificate) path
 		privateKeyPassword: process.env.GP_WEBPAY_PRIV_KEY_PASS, // Private key passphrase
 		clientAppUrl:
-			process.env.GP_WEBPAY_CLIENT_APP_URL || 'http://starz.dev.amcef.sk', // front-end URL
+			process.env.GP_WEBPAY_CLIENT_APP_URL ||
+			'http://kupaliska.bratislava.sk', // front-end URL
 		provider: process.env.GP_WEBPAY_PROVIDER || '0902', // Provider code = Global Payments s.r.o. – SK
 	},
 }
