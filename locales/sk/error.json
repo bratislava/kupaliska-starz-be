@@ -56,6 +56,7 @@
 	"uploadIncorrectSubdir": "Nie je možné nahrať súbor, cieľový adresár neexistuje",
 	"userAlreadyExists": "Používateľ už existuje",
 	"userEmailAlreadyExists": "Email už existuje",
+	"emailNotFoundOnUser": "Nepodarilo sa získať emailovú adresu z mestského konta - kontaktujte prosím podporu",
 	"userNotFound": "Používateľ sa nenašiel",
 	"wrongEmail": "Používateľ so zadaným emailom neexistuje",
 	"exceededOrderingNumber": "Prekročené maximálne poradie",

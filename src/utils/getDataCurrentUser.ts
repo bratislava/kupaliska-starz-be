@@ -1,13 +1,15 @@
 // import { models } from '../../../db/models'
 
 import { models } from '../db/models'
-import { getCognitoId } from './azureAuthentication'
+import ErrorBuilder from './ErrorBuilder'
+import { getCognitoIdOfLoggedInUser } from './azureAuthentication'
 import { Op } from 'sequelize'
 
 const { SwimmingLoggedUser } = models
 
 export const getDataAboutCurrentUser = async (req: any) => {
-	const sub = await getCognitoId(req)
+	const sub = await getCognitoIdOfLoggedInUser(req)
+	if (!sub) throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
 	const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
 		attributes: [
 			'id',

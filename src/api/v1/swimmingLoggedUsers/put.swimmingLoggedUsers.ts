@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from 'express'
 import { Op } from 'sequelize'
 import sequelize, { models } from '../../../db/models'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
-import { getCognitoId } from '../../../utils/azureAuthentication'
+import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
 import { formatSwimmingLoggedUser } from '../../../utils/formatters'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import { uploadImage } from '../../../utils/imageUpload'
@@ -22,7 +22,7 @@ export const workflow = async (
 ) => {
 	try {
 		const { body } = req
-		const sub = await getCognitoId(req)
+		const sub = await getCognitoIdOfLoggedInUser(req)
 		if (sub) {
 			const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
 				attributes: ['id', 'externalCognitoId', 'age', 'zip'],
@@ -92,6 +92,8 @@ export const workflow = async (
 					},
 				],
 			})
+		} else {
+			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
 		}
 	} catch (err) {
 		return next(err)

@@ -1,5 +1,6 @@
 import jwtDecode, { JwtPayload } from 'jwt-decode'
-import fetch from 'node-fetch'
+import { Request } from 'express'
+import { ICognitoAccessToken } from '../types/interfaces'
 
 interface keysResponse {
 	keys: [
@@ -25,10 +26,10 @@ interface JWTPayloadAzure extends JwtPayload {
 	tfp: string
 }
 
-export const getCognitoId = (req: any) => {
-	const { sub } = req.user
+export const getCognitoIdOfLoggedInUser = (req: Request): string | null => {
+	const user = req?.user ? (req.user as ICognitoAccessToken) : null
 
-	return sub
+	return typeof user?.sub === 'string' ? user.sub : null
 }
 
 export const azureGetAzureData = async (req: any) => {
@@ -43,9 +44,3 @@ export const azureGetAzureData = async (req: any) => {
 
 	return payload
 }
-
-export const getCognitoDataFromToken = async (req: any) => {
-	return req.user
-}
-
-// export const getCognitoData

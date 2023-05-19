@@ -16,9 +16,8 @@ import { getDiscountCode } from '../../../services/discountCodeValidationService
 import { DiscountCodeModel } from '../../../db/models/discountCode'
 import { createJwt } from '../../../utils/authorization'
 import { sendOrderEmail } from '../../../utils/emailSender'
-import { getCognitoDataFromToken } from '../../../utils/azureAuthentication'
+import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
 import { getCityAccountData } from '../../../utils/helpers'
-import { CityAccountUser } from '../../../utils/cityAccountDto'
 
 const {
 	SwimmingLoggedUser,
@@ -89,13 +88,15 @@ export const workflowDryRun = async (
 			)
 		}
 
-		let loggedUser = null
+		const loggedUserId = getCognitoIdOfLoggedInUser(req)
 
-		if (auth) {
-			loggedUser = await getCognitoDataFromToken(req)
-		}
-
-		const pricing = await priceDryRun(req, ticketType, loggedUser, true, '')
+		const pricing = await priceDryRun(
+			req,
+			ticketType,
+			loggedUserId,
+			true,
+			''
+		)
 		return res.json({
 			data: {
 				pricing,
@@ -119,11 +120,6 @@ export const workflow = async (
 	auth: boolean
 ) => {
 	try {
-		let loggedUser = null
-
-		if (auth) {
-			loggedUser = await getCognitoDataFromToken(req)
-		}
 		const { body } = req
 
 		// check agreement
@@ -138,6 +134,8 @@ export const workflow = async (
 				req.t('error:ticket.maxtTicketsPerOrder')
 			)
 		}
+
+		const loggedUserId = getCognitoIdOfLoggedInUser(req)
 
 		const order = await Order.create({
 			price: 0,
@@ -163,7 +161,7 @@ export const workflow = async (
 		const pricing = await priceDryRun(
 			req,
 			ticketType,
-			loggedUser,
+			loggedUserId,
 			false,
 			order.id
 		)
@@ -262,7 +260,7 @@ export const workflow = async (
 const priceDryRun = async (
 	req: Request,
 	ticketType: TicketTypeModel,
-	loggedUser: any,
+	loggedUserId: string | null,
 	dryRun: boolean,
 	orderId: string
 ) => {
@@ -284,7 +282,7 @@ const priceDryRun = async (
 	// validate number of children
 	let numberOfChildren = 0
 	for (const ticket of body.tickets) {
-		const user = await getUser(req, ticket, loggedUser, dryRun)
+		const user = await getUser(req, ticket, loggedUserId, dryRun)
 		if (
 			ticketType.childrenAllowed &&
 			user.age &&
@@ -331,7 +329,7 @@ const priceDryRun = async (
 
 	//price computation
 	for (const ticket of body.tickets) {
-		const user = await getUser(req, ticket, loggedUser, dryRun)
+		const user = await getUser(req, ticket, loggedUserId, dryRun)
 		let isChildren = false
 		if (
 			user.age &&
@@ -425,7 +423,7 @@ const saveTickets = async (
 const getUser = async (
 	req: Request,
 	ticket: any,
-	loggedUser: any,
+	loggedUserId: string | null,
 	dryRun: boolean
 ): Promise<GetUser> => {
 	const { body } = req
@@ -452,28 +450,66 @@ const getUser = async (
 			throw new ErrorBuilder(404, req.t('error:emailIsEmpty'))
 		}
 	} else if (ticket.personId === null) {
+		if (!loggedUserId)
+			throw new ErrorBuilder(
+				401,
+				req.t('error:ticket.notLoggedUserForTicket')
+			)
 		const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
-			where: { externalCognitoId: loggedUser.sub },
+			where: { externalCognitoId: loggedUserId },
 		})
+		if (!swimmingLoggedUser)
+			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
 
 		const cityAccountData = await getCityAccountData(
 			req.headers.authorization
 		)
+		if (!cityAccountData)
+			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
+		if (!cityAccountData.email)
+			throw new ErrorBuilder(
+				500,
+				req.t('error:ticket.emailNotFoundOnUser')
+			)
+		// TODO watch for this in logs
+		if (!cityAccountData.given_name || !cityAccountData.family_name)
+			console.warn(
+				'ERROR - missing given or family name in user data: ',
+				JSON.stringify(cityAccountData || {})
+			)
 
 		return {
 			associatedSwimmerId: null,
 			loggedUserId: swimmingLoggedUser.id,
-			email: cityAccountData?.email,
+			email: cityAccountData.email,
 			name:
 				cityAccountData.given_name + ' ' + cityAccountData.family_name,
 			age: swimmingLoggedUser.age,
 			zip: swimmingLoggedUser.zip,
 		}
 	} else {
-		const user = await AssociatedSwimmer.findByPk(ticket.personId)
+		if (!loggedUserId)
+			throw new ErrorBuilder(
+				401,
+				req.t('error:ticket.notLoggedUserForTicket')
+			)
 		const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
-			where: { externalCognitoId: loggedUser.sub },
+			where: { externalCognitoId: loggedUserId },
 		})
+		if (!swimmingLoggedUser)
+			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
+		const cityAccountData = await getCityAccountData(
+			req.headers.authorization
+		)
+		if (!cityAccountData)
+			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
+		if (!cityAccountData.email)
+			throw new ErrorBuilder(
+				500,
+				req.t('error:ticket.emailNotFoundOnUser')
+			)
+
+		const user = await AssociatedSwimmer.findByPk(ticket.personId)
 		if (!user) {
 			throw new ErrorBuilder(
 				404,
@@ -483,7 +519,7 @@ const getUser = async (
 			return {
 				associatedSwimmerId: user.id,
 				loggedUserId: swimmingLoggedUser.id,
-				email: loggedUser.emails[0],
+				email: cityAccountData.email,
 				name: user.firstname + ' ' + user.lastname,
 				age: user.age,
 				zip: user.zip,
