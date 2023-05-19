@@ -4,7 +4,6 @@ import i18nextBackend from 'i18next-node-fs-backend'
 import express from 'express'
 import cors from 'cors'
 import config from 'config'
-import path from 'path'
 import i18next, { InitOptions } from 'i18next'
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt'
 import { passportJwtSecret } from 'jwks-rsa'
@@ -16,7 +15,6 @@ import Sentry, { initSentry } from './services/sentryService'
 // middlewares
 import errorMiddleware from './middlewares/errorMiddleware'
 import sentryMiddleware from './middlewares/sentryMiddleware'
-import requestMiddleware from './middlewares/requestMiddleware'
 
 // passport
 import {
@@ -182,8 +180,6 @@ app.use('/logtest', (req, res) => {
 	logger.info(req.body)
 	res.send('ok')
 })
-
-app.use(requestMiddleware)
 
 if (process.env.NODE_ENV !== ENV.test && process.env.SENTRY_DSN) {
 	app.use(sentryMiddleware)
