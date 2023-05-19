@@ -316,7 +316,7 @@ const priceDryRun = async (
 		)
 		// minimum is one adult
 		if (!(numberOfChildren < body.tickets.length)) {
-			throw new ErrorBuilder(400, req.t('error:minimumIsOneAdult'))
+			throw new ErrorBuilder(400, req.t('error:ticket.minimumIsOneAdult'))
 		}
 		// if discount in seasonpass, only for one user
 		if (numberOfChildren + 1 < body.tickets.length && applyDiscount) {
