@@ -68,11 +68,7 @@ To get them, please contact Martin Pinter or Patrik Kadlcik
 
 ##### Recaptcha
 
-We're using turnstile, TODO add docs here.
-
-To make recaptcha work properly, you need to set `RECAPTCHA_CLIENT_SECRET` variable from
-[reCAPTCHA Enterprise](https://console.cloud.google.com/security/recaptcha). From there use the `kupaliska.bratislava.sk` key.
-To get the credentials to login, please contact Martin Pinter or Patrik Kadlcik
+We're using turnstile. In case that it is needed `TURNSTILE_SECRET_KEY` can be found in [Cloudflare] (https://www.cloudflare.com) page under section `Turnstile`. From there use the `kupaliska.bratislava.sk` site.
 
 ##### Mailgun
 
