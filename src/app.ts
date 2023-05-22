@@ -42,7 +42,7 @@ import {
 } from './utils/minio'
 import { readFile } from 'fs/promises'
 import { CognitoStrategy } from './types/models'
-import { httpLogger, logger } from './utils/logger'
+import { httpLogger } from './utils/logger'
 
 const passportConfig: IPassportConfig = config.get('passport')
 const i18NextConfig: InitOptions = config.get('i18next')
@@ -174,11 +174,6 @@ app.use('/api/test-download-base64', async (_req, res) => {
 	await downloadFileFromBucket(fullFilePath)
 	const base64File = await readFile(fullFilePath, { encoding: 'base64' })
 	res.json({ base64: base64File })
-})
-
-app.use('/logtest', (req, res) => {
-	logger.info(req.body)
-	res.send('ok')
 })
 
 if (process.env.NODE_ENV !== ENV.test && process.env.SENTRY_DSN) {
