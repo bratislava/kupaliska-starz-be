@@ -15,8 +15,7 @@ export default (
 	_next: NextFunction
 ) => {
 	if (req.app.get('env') === 'development') {
-		// eslint-disable-next-line no-console
-		console.log(err)
+		logger.error(err)
 	}
 
 	// if status does not exist, assign 500

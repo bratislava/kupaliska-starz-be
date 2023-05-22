@@ -4,6 +4,7 @@ import { Op } from 'sequelize'
 import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { models } from '../../../db/models'
+import { logger } from '../../../utils/logger'
 
 export const schema = Joi.object()
 
@@ -28,14 +29,13 @@ export const workflow = async (
 				await SwimmingLoggedUser.create({
 					externalCognitoId: sub,
 				})
-				console.log(
+				logger.info(
 					`SwimmingLoggedUser with externalCognitoId: ${sub} created`
 				)
 				return res.json(
 					`SwimmingLoggedUser with externalCognitoId: ${sub} created`
 				)
 			} else {
-				console.log('SwimmingLoggedUser already exists!')
 				return res.json(req.t('error:register.userExists'))
 			}
 		} else {

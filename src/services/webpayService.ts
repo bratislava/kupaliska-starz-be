@@ -13,6 +13,7 @@ import {
 import { Transaction } from 'sequelize'
 import { OrderModel } from '../db/models/order'
 import { PAYMENT_OPERATION } from '../utils/enums'
+import { logger } from '../utils/logger'
 
 const appConfig: IAppConfig = config.get('app')
 const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
@@ -39,7 +40,7 @@ export const checkPaymentKeys = () => {
 			throw new Error('Empty merchant number')
 		}
 	} catch (err) {
-		console.log(err)
+		logger.error(err)
 		return false
 	}
 	return true

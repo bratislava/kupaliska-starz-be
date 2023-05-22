@@ -46,7 +46,7 @@ export const sendEmail = async (
 	}
 
 	try {
-		console.log('SEND MAIL DATA', mailData)
+		logger.info('SEND MAIL DATA', mailData)
 		await mailer.messages().send(mailData)
 	} catch (err) {
 		logger.error(

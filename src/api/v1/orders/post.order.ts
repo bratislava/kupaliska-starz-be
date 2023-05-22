@@ -18,6 +18,7 @@ import { createJwt } from '../../../utils/authorization'
 import { sendOrderEmail } from '../../../utils/emailSender'
 import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
 import { getCityAccountData } from '../../../utils/helpers'
+import { logger } from '../../../utils/logger'
 
 const {
 	SwimmingLoggedUser,
@@ -473,7 +474,7 @@ const getUser = async (
 			)
 		// TODO watch for this in logs
 		if (!cityAccountData.given_name || !cityAccountData.family_name)
-			console.warn(
+			logger.warn(
 				'ERROR - missing given or family name in user data: ',
 				JSON.stringify(cityAccountData || {})
 			)
