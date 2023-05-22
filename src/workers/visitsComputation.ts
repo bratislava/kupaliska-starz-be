@@ -2,7 +2,7 @@ import { sequelize } from '../db/models'
 import logger from '../utils/logger'
 
 process.on('message', async () => {
-	console.log('COMPUTE VISITS')
+	logger.info('COMPUTE VISITS')
 	try {
 		await sequelize.query(
 			`
@@ -14,7 +14,7 @@ process.on('message', async () => {
 
 		return process.send({ type: 'success' })
 	} catch (err) {
-		console.log(JSON.stringify(err))
+		logger.info(JSON.stringify(err))
 		logger.info(
 			`ERROR - Visits computation worker failed - ERROR: ${JSON.stringify(
 				err

@@ -8,6 +8,7 @@ import initWorkers from './workers'
 
 import app from './app'
 import { IAppConfig } from './types/interfaces'
+import { logger } from './utils/logger'
 // utils
 const httpServer = http.createServer(app)
 const appConfig: IAppConfig = config.get('app')
@@ -35,7 +36,7 @@ httpServer
 		host: '0.0.0.0',
 	})
 	.on('listening', () => {
-		console.log(
+		logger.info(
 			`Server started in ${process.env.NODE_ENV} mode at port ${appConfig.port}`
 				.green
 		)

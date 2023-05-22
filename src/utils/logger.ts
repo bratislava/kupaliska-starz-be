@@ -1,37 +1,31 @@
-import * as winston from 'winston'
+import pino from 'pino-http'
+import decode from 'jwt-decode'
+import { ICognitoAccessToken } from '../types/interfaces'
 
-// Define levels
-const levels = {
-	error: 0,
-	warn: 1,
-	info: 2,
-	http: 3,
-	debug: 4,
-}
-
-// limit info and http logging to dev mode
-const level = () => {
-	const env = process.env.NODE_ENV || 'development'
-	const isDevelopment = env === 'development'
-	return isDevelopment ? 'debug' : 'info'
-}
-
-// format logs
-const format = winston.format.json()
-
-// set where to send logs (console is good enough because of log aggregation on loki)
-const transports = [new winston.transports.Console()]
-
-// instantiate a new Winston Logger with the settings defined above
-const logger = winston.createLogger({
-	level: level(),
-	levels,
-	format,
-	transports,
-	exitOnError: false, // do not exit on handled exceptions
+export const httpLogger = pino({
+	// use the env var below to clear up logs in development if needed
+	autoLogging:
+		process.env.DISABLE_PINO_AUTO_LOGGING === 'true' ? false : true,
+	// this logs request body as well - it's unlikely that we're sending any sensitive data, that happens on account side, but if found use the redact key to filter them out
+	serializers: {
+		req(req) {
+			req.body = req.raw.body
+			try {
+				if (typeof req?.headers?.authorization === 'string') {
+					const jwt = decode<ICognitoAccessToken>(
+						req.headers.authorization.split(' ')[1]
+					)
+					if (jwt?.sub) req.sub = jwt.sub
+				}
+			} catch (err) {
+				req.sub = err
+			}
+			return req
+		},
+	},
+	redact: ['req.headers.authorization'],
 })
 
-export default logger
+export const logger = httpLogger.logger
 
-// Different logger that adds webpay label to logs
-export const webpayLogger = logger.child({ label: 'webpay' })
+export default logger
