@@ -33,7 +33,6 @@ services:
             - SENTRY_ENV
             - SENTRY_TRACES_SAMPLE_RATE
             - SENTRY_DEBUG
-            - RECAPTCHA_CLIENT_SECRET
             - TURNSTILE_SECRET_KEY
             - GP_WEBPAY_HTTP_API_URL
             - GP_WEBPAY_MERCHANT_NUMBER
