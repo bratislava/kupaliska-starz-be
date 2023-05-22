@@ -39,6 +39,8 @@ spec:
                       - secretRef:
                             name: app-secret
                       - secretRef:
+                            name: kupaliska-starz-be-turnstile-secret
+                      - secretRef:
                             name: db
                       - configMapRef:
                             name: env
