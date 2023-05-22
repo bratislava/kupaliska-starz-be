@@ -39,7 +39,7 @@ spec:
                       - secretRef:
                             name: app-secret
                       - secretRef:
-                            name: kupaliska-starz-be-turnstile-secret
+                            name: turnstile-secret
                       - secretRef:
                             name: db
                       - configMapRef:
