@@ -80,11 +80,7 @@ export const workflow = async (
 					ticket.ticketTypeId
 				)
 				ticketResult.type = ticketType.name
-				const qrCode = await generateQrCode(
-					ticket.id,
-					'buffer',
-					ticketType.getExpiresIn()
-				)
+				const qrCode = await generateQrCode(ticket.id, 'buffer')
 				ticketResult.qrCode =
 					'data:image/png;base64, ' +
 					Buffer.from(qrCode).toString('base64')
