@@ -17,6 +17,9 @@ export const schema = Joi.object().keys({
 		swimmingPoolId: Joi.string()
 			.guid({ version: ['uuidv4'] })
 			.required(),
+		ticketId: Joi.string()
+			.guid({ version: ['uuidv4'] })
+			.required(),
 	}),
 })
 
@@ -29,13 +32,12 @@ export const workflow = async (
 
 	try {
 		const { params } = req
-		const authInfo = req.authInfo as { ticketId: string }
 		const user = req.user as UserModel
 
 		const ticket = await Ticket.findOne({
 			attributes: ['id'],
 			where: {
-				id: { [Op.eq]: authInfo.ticketId },
+				id: { [Op.eq]: params.ticketId },
 			},
 			include: [
 				{

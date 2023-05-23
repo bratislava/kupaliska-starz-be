@@ -47,9 +47,8 @@ router.post(
 )
 
 router.post(
-	'/swimmingPools/:swimmingPoolId/checkout',
+	'/swimmingPools/:swimmingPoolId/checkout/:ticketId',
 	passport.authenticate('jwt'),
-	validateTicketMiddleware('jwt-qr-code'),
 	authorizationMiddleware([
 		USER_ROLE.SWIMMING_POOL_EMPLOYEE,
 		USER_ROLE.SWIMMING_POOL_OPERATOR,
