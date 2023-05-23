@@ -66,12 +66,7 @@ export const workflow = async (
 		}
 
 		for (const ticket of order.tickets) {
-			const ticketType = ticket.ticketType
-			ticket.qrCode = await generateQrCode(
-				ticket.id,
-				'datauri',
-				ticketType.getExpiresIn()
-			)
+			ticket.qrCode = await generateQrCode(ticket.id, 'datauri')
 		}
 
 		const pdfBase64 = await generatePdf(order.tickets)
