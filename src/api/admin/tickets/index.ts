@@ -19,9 +19,8 @@ const router: Router = Router()
 export default () => router
 
 router.get(
-	'/swimmingPools/:swimmingPoolId/scan',
+	'/swimmingPools/:swimmingPoolId/scan/:ticketId',
 	passport.authenticate('jwt'),
-	validateTicketMiddleware('jwt-qr-code'),
 	authorizationMiddleware([
 		USER_ROLE.SWIMMING_POOL_EMPLOYEE,
 		USER_ROLE.SWIMMING_POOL_OPERATOR,
