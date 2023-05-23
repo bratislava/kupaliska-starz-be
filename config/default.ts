@@ -76,12 +76,6 @@ export = {
 			setPassword: {
 				exp: '2d',
 			},
-			qrCode: {
-				audience: 'jwt-qr-code',
-				jwtFromRequest: ExtractJwt.fromExtractors([
-					ExtractJwt.fromHeader('qr-code-authorization'),
-				]),
-			},
 			orderResponse: {
 				audience: 'jwt-order-response',
 				exp: '10m',

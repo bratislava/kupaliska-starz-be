@@ -12,7 +12,6 @@ import * as PostTicketCheckin from './post.ticket.checkin'
 import * as PostTicketCheckout from './post.ticket.checkout'
 
 import swimmingPoolAuthorizationMiddleware from '../../../middlewares/swimmingPoolAuthorizationMiddleware'
-import { validateTicketMiddleware } from '../../../passport/jwtVerify'
 
 const router: Router = Router()
 

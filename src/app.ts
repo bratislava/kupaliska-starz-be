@@ -77,17 +77,6 @@ passport.use(
 	)
 )
 passport.use(
-	'jwt-qr-code',
-	new JwtStrategy(
-		{
-			...passportConfig.jwt.qrCode,
-			secretOrKey: passportConfig.jwt.secretOrKey,
-			passReqToCallback: true,
-		},
-		jwtQrCodeVerify
-	)
-)
-passport.use(
 	'jwt-order-response',
 	new JwtStrategy(
 		{
