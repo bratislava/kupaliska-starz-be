@@ -44,6 +44,7 @@
 		"@sentry/node": "6.5.1",
 		"@sentry/tracing": "6.5.1",
 		"@types/request": "2.48.5",
+		"@walletpass/pass-js": "6.9.1",
 		"base64-img": "1.0.4",
 		"base64-stream": "1.0.0",
 		"bcryptjs": "2.4.3",
