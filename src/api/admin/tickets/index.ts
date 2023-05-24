@@ -12,16 +12,14 @@ import * as PostTicketCheckin from './post.ticket.checkin'
 import * as PostTicketCheckout from './post.ticket.checkout'
 
 import swimmingPoolAuthorizationMiddleware from '../../../middlewares/swimmingPoolAuthorizationMiddleware'
-import { validateTicketMiddleware } from '../../../passport/jwtVerify'
 
 const router: Router = Router()
 
 export default () => router
 
 router.get(
-	'/swimmingPools/:swimmingPoolId/scan',
+	'/swimmingPools/:swimmingPoolId/scan/:ticketId',
 	passport.authenticate('jwt'),
-	validateTicketMiddleware('jwt-qr-code'),
 	authorizationMiddleware([
 		USER_ROLE.SWIMMING_POOL_EMPLOYEE,
 		USER_ROLE.SWIMMING_POOL_OPERATOR,
@@ -34,9 +32,8 @@ router.get(
 )
 
 router.post(
-	'/swimmingPools/:swimmingPoolId/checkin',
+	'/swimmingPools/:swimmingPoolId/checkin/:ticketId',
 	passport.authenticate('jwt'),
-	validateTicketMiddleware('jwt-qr-code'),
 	authorizationMiddleware([
 		USER_ROLE.SWIMMING_POOL_EMPLOYEE,
 		USER_ROLE.SWIMMING_POOL_OPERATOR,
@@ -49,9 +46,8 @@ router.post(
 )
 
 router.post(
-	'/swimmingPools/:swimmingPoolId/checkout',
+	'/swimmingPools/:swimmingPoolId/checkout/:ticketId',
 	passport.authenticate('jwt'),
-	validateTicketMiddleware('jwt-qr-code'),
 	authorizationMiddleware([
 		USER_ROLE.SWIMMING_POOL_EMPLOYEE,
 		USER_ROLE.SWIMMING_POOL_OPERATOR,
