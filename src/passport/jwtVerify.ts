@@ -39,26 +39,6 @@ export const optionalAuthenticationMiddleware = (
 	})(req, res, next)
 }
 
-export const validateTicketMiddleware =
-	(strategy: string) => (req: Request, res: Response, next: NextFunction) => {
-		passport.authenticate(strategy, (err, user, info) => {
-			if (err) {
-				return next(err)
-			}
-			if (!user) {
-				throw new ErrorBuilder(404, req.t('error:ticketNotFound'))
-			}
-
-			req.logIn(user, {}, function (logInErr) {
-				if (logInErr) {
-					return next(logInErr)
-				}
-				req.authInfo = info
-				return next()
-			})
-		})(req, res, next)
-	}
-
 export const jwtAdminVerify = async (
 	payload: IJwtPayload,
 	done: VerifiedCallback

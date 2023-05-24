@@ -42,12 +42,7 @@ const getOrderEmailInlineAttachments = async (
 ): Promise<Attachment[]> => {
 	return await Promise.all(
 		map(tickets, async (ticket, index) => {
-			const ticketType = ticket.ticketType
-			ticket.qrCode = await generateQrCode(
-				ticket.id,
-				'buffer',
-				ticketType.getExpiresIn()
-			)
+			ticket.qrCode = await generateQrCode(ticket.id, 'buffer')
 			return createAttachment({
 				data: ticket.qrCode,
 				filename: `qr-code-${index + 1}.png`,
