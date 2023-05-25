@@ -99,7 +99,7 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 		})
 
 		const name = ticket.isChildren
-			? getChildrenTicketName(ticket.ticketType.name)
+			? getChildrenTicketName()
 			: ticket.ticketType.name
 
 		doc.fontSize(18)
@@ -118,7 +118,7 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 			doc.fontSize(12)
 				.font('resources/fonts/WorkSans-Medium.ttf')
 				.text(
-					`${ticket.profile.age} ${i18next.t('year', {
+					`${i18next.t('year', {
 						count: ticket.profile.age,
 					})}`,
 					{ align: 'center' }

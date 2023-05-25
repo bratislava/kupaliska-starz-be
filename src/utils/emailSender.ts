@@ -13,6 +13,7 @@ import { OrderModel } from '../db/models/order'
 import { Request } from 'express'
 import { generatePdf } from './pdfGenerator'
 import i18next from 'i18next'
+import { textColorsMap } from './enums'
 
 const mailgunConfig: IMailgunserviceConfig = config.get('mailgunService')
 const orderTemplate = mailgunConfig.templates.order
@@ -89,26 +90,45 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 		emailItems.push(items.discount)
 	}
 
+	const summaryItems = [
+		{
+			name: items.adults.name, // ticket name
+			amount: items.adults.amount,
+			price: items.adults.price,
+		},
+	]
+	if (items.children.amount > 0) {
+		summaryItems.push({
+			name: items.children.name, // ticket name for children is always same
+			amount: items.children.amount,
+			price: items.children.price,
+		})
+	}
+
 	return {
-		name: parentTicket.profile.name,
-		descriptionText: getTicketNameTranslation(
-			parentTicket.ticketType,
-			items.adults.amount,
-			'a'
-		),
-		headingText: getTicketNameTranslation(
-			parentTicket.ticketType,
-			items.adults.amount,
-			'g'
-		),
+		firstName: parentTicket.profile.name,
+		type: parentTicket.ticketType.type,
 		tickets: map(order.tickets, (ticket, index) => ({
-			name: ticket.isChildren
-				? getChildrenTicketName(ticket.ticketType.name)
+			heading: ticket.isChildren
+				? getChildrenTicketName()
 				: ticket.ticketType.name,
-			imgSrc: `cid:qr-code-${index + 1}.png`,
-			type: ticket.getCategory(),
+			subheading:
+				ticket.profile.name +
+				`, ${i18next.t('year', {
+					count: ticket.profile.age,
+				})}`,
+			qrCode: `cid:qr-code-${index + 1}.png`,
+			backgroundColor: textColorsMap[ticket.getCategory()].background,
+			textColor: textColorsMap[ticket.getCategory()].text,
+			// 		appleWalletUrl: 'test_appleWalletUrl',
+			// 		googleWalletUrl: 'test_googleWalletUrl',
 		})),
-		items: emailItems,
-		price: order.price.toFixed(2),
+		summary: {
+			items: [
+				// sorted by adult/children condition
+				summaryItems,
+			],
+			totalPrice: order.price.toFixed(2), // could be omitted
+		},
 	}
 }
