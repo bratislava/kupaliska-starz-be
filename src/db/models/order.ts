@@ -60,7 +60,7 @@ export class OrderModel extends DatabaseModel {
 			(obj: OrderItem, ticket: TicketModel) => {
 				return ticket.isChildren
 					? {
-							name: getChildrenTicketName(ticket.ticketType.name),
+							name: getChildrenTicketName(),
 							amount: obj.amount + 1,
 							accPrice: obj.accPrice + ticket.price,
 							price: (obj.accPrice + ticket.price).toFixed(2),

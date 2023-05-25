@@ -19,6 +19,6 @@ export const getTicketNameTranslation = (
 	}
 }
 
-export const getChildrenTicketName = (name: string) => {
-	return `${i18next.t('childish')} ${name.toLowerCase()}`
+export const getChildrenTicketName = () => {
+	return `${i18next.t('childishSeasonTicket')}`
 }

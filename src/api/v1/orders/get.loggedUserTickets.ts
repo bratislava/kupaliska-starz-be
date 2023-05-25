@@ -51,6 +51,9 @@ export const workflow = async (
 				{
 					association: 'profile',
 				},
+				{
+					association: 'ticketType',
+				},
 			],
 		})
 
@@ -93,33 +96,7 @@ export const workflow = async (
 					ticketResult.ownerId = ticket.swimmingLoggedUserId
 				}
 
-				if (
-					ticketType.childrenAgeFrom &&
-					ticketType.childrenAgeTo &&
-					ticketType.childrenAgeToWithAdult
-				) {
-					if (
-						ticketResult.age >= ticketType.childrenAgeFrom &&
-						ticketResult.age <= ticketType.childrenAgeToWithAdult
-					) {
-						ticketResult.ticketColor =
-							textColorsMap[TICKET_CATEGORY.CHILDREN_WITH_ADULT]
-					} else if (
-						ticketResult.age > ticketType.childrenAgeToWithAdult &&
-						ticketResult.age <= ticketType.childrenAgeTo
-					) {
-						ticketResult.ticketColor =
-							textColorsMap[
-								TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT
-							]
-					} else {
-						ticketResult.ticketColor =
-							textColorsMap[TICKET_CATEGORY.ADULT]
-					}
-				} else {
-					ticketResult.ticketColor =
-						textColorsMap[TICKET_CATEGORY.ADULT]
-				}
+				ticketResult.ticketColor = textColorsMap[ticket.getCategory()]
 
 				ticketResult.entries = await getEntries(ticket.id)
 				result.push(ticketResult)
