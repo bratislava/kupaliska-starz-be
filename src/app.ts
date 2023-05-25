@@ -156,6 +156,9 @@ app.use('/api/admin', routerAdmin())
 // 'staticly-serves' the entire 'files/public' portion of the kupaliska-starz bucket
 app.use('/files/public', minioStaticServeMiddleware('/files/public'))
 
+// used mainly to expose static assets for wallet passes
+app.use('/public', express.static('files/public'))
+
 // TODO only for testing, remove
 app.use('/api/test-download-base64', async (_req, res) => {
 	const fullFilePath =

@@ -52,6 +52,8 @@ export const createPass = async (
 	ownerName?: string
 ) => {
 	const pass = template.createPass({
+		// TODO override here if multiple colors for different passes
+		// backgroundColor: 'rgb(124, 206, 242)',
 		/**
 		 * Brief description of the pass, used by the iOS accessibility technologies.
 		 * Don’t try to include all of the data on the pass in its description,
