@@ -106,7 +106,7 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 	}
 
 	return {
-		firstName: parentTicket.profile.name,
+		name: parentTicket.profile.name,
 		type: parentTicket.ticketType.type,
 		tickets: map(order.tickets, (ticket, index) => ({
 			heading: ticket.isChildren
