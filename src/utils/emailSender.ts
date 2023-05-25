@@ -124,10 +124,7 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 			// 		googleWalletUrl: 'test_googleWalletUrl',
 		})),
 		summary: {
-			items: [
-				// sorted by adult/children condition
-				summaryItems,
-			],
+			items: summaryItems, // sorted by adult/children condition
 			totalPrice: order.price.toFixed(2), // could be omitted
 		},
 	}
