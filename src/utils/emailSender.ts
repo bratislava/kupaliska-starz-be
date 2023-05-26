@@ -109,21 +109,27 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 	return {
 		name: parentTicket.profile.name,
 		type: parentTicket.ticketType.type,
-		tickets: map(order.tickets, (ticket, index) => ({
-			heading: ticket.isChildren
-				? getChildrenTicketName()
-				: ticket.ticketType.name,
-			subheading:
-				ticket.profile.name +
-				`, ${i18next.t('year', {
-					count: ticket.profile.age,
-				})}`,
-			qrCode: `cid:qr-code-${index + 1}.png`,
-			backgroundColor: textColorsMap[ticket.getCategory()].background,
-			textColor: textColorsMap[ticket.getCategory()].text,
-			appleWalletUrl: `${appConfig.host}/api/v1/orders/appleWallet/${ticket.id}`,
-			googleWalletUrl: `${appConfig.host}/api/v1/orders/googlePay/${ticket.id}`,
-		})),
+		tickets: map(order.tickets, (ticket, index) => {
+			const appleWalletUrl = `${appConfig.host}/api/v1/orders/appleWallet/${ticket.id}`
+			const googleWalletUrl = `${appConfig.host}/api/v1/orders/googlePay/${ticket.id}`
+			return {
+				heading: ticket.isChildren
+					? getChildrenTicketName()
+					: ticket.ticketType.name,
+				subheading:
+					ticket.profile.name +
+					`, ${i18next.t('year', {
+						count: ticket.profile.age,
+					})}`,
+				qrCode: `cid:qr-code-${index + 1}.png`,
+				backgroundColor: textColorsMap[ticket.getCategory()].background,
+				textColor: textColorsMap[ticket.getCategory()].text,
+				appleWalletUrl: appleWalletUrl,
+				googleWalletUrl: googleWalletUrl,
+				hasWalletTicket:
+					appleWalletUrl || googleWalletUrl ? true : false,
+			}
+		}),
 		summary: {
 			items: summaryItems, // sorted by adult/children condition
 			totalPrice: order.price.toFixed(2), // could be omitted
