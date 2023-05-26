@@ -2,7 +2,7 @@ import { concat, map } from 'lodash'
 import { Attachment } from 'mailgun-js'
 import { TicketModel } from '../db/models/ticket'
 import { createAttachment, sendEmail } from '../services/mailerService'
-import { IMailgunserviceConfig } from '../types/interfaces'
+import { IAppConfig, IMailgunserviceConfig } from '../types/interfaces'
 import { generateQrCode } from './qrCodeGenerator'
 import {
 	getChildrenTicketName,
@@ -15,6 +15,7 @@ import { generatePdf } from './pdfGenerator'
 import i18next from 'i18next'
 import { textColorsMap } from './enums'
 
+const appConfig: IAppConfig = config.get('app')
 const mailgunConfig: IMailgunserviceConfig = config.get('mailgunService')
 const orderTemplate = mailgunConfig.templates.order
 
@@ -108,21 +109,27 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 	return {
 		name: parentTicket.profile.name,
 		type: parentTicket.ticketType.type,
-		tickets: map(order.tickets, (ticket, index) => ({
-			heading: ticket.isChildren
-				? getChildrenTicketName()
-				: ticket.ticketType.name,
-			subheading:
-				ticket.profile.name +
-				`, ${i18next.t('year', {
-					count: ticket.profile.age,
-				})}`,
-			qrCode: `cid:qr-code-${index + 1}.png`,
-			backgroundColor: textColorsMap[ticket.getCategory()].background,
-			textColor: textColorsMap[ticket.getCategory()].text,
-			// 		appleWalletUrl: 'test_appleWalletUrl',
-			// 		googleWalletUrl: 'test_googleWalletUrl',
-		})),
+		tickets: map(order.tickets, (ticket, index) => {
+			const appleWalletUrl = `${appConfig.host}/api/v1/orders/appleWallet/${ticket.id}`
+			const googleWalletUrl = `${appConfig.host}/api/v1/orders/googlePay/${ticket.id}`
+			return {
+				heading: ticket.isChildren
+					? getChildrenTicketName()
+					: ticket.ticketType.name,
+				subheading:
+					ticket.profile.name +
+					`, ${i18next.t('year', {
+						count: ticket.profile.age,
+					})}`,
+				qrCode: `cid:qr-code-${index + 1}.png`,
+				backgroundColor: textColorsMap[ticket.getCategory()].background,
+				textColor: textColorsMap[ticket.getCategory()].text,
+				appleWalletUrl: appleWalletUrl,
+				googleWalletUrl: googleWalletUrl,
+				hasWalletTicket:
+					appleWalletUrl || googleWalletUrl ? true : false,
+			}
+		}),
 		summary: {
 			items: summaryItems, // sorted by adult/children condition
 			totalPrice: order.price.toFixed(2), // could be omitted
