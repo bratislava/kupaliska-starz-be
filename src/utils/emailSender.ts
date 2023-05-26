@@ -2,7 +2,7 @@ import { concat, map } from 'lodash'
 import { Attachment } from 'mailgun-js'
 import { TicketModel } from '../db/models/ticket'
 import { createAttachment, sendEmail } from '../services/mailerService'
-import { IMailgunserviceConfig } from '../types/interfaces'
+import { IAppConfig, IMailgunserviceConfig } from '../types/interfaces'
 import { generateQrCode } from './qrCodeGenerator'
 import {
 	getChildrenTicketName,
@@ -15,6 +15,7 @@ import { generatePdf } from './pdfGenerator'
 import i18next from 'i18next'
 import { textColorsMap } from './enums'
 
+const appConfig: IAppConfig = config.get('app')
 const mailgunConfig: IMailgunserviceConfig = config.get('mailgunService')
 const orderTemplate = mailgunConfig.templates.order
 
@@ -120,8 +121,8 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 			qrCode: `cid:qr-code-${index + 1}.png`,
 			backgroundColor: textColorsMap[ticket.getCategory()].background,
 			textColor: textColorsMap[ticket.getCategory()].text,
-			// 		appleWalletUrl: 'test_appleWalletUrl',
-			// 		googleWalletUrl: 'test_googleWalletUrl',
+			appleWalletUrl: `${appConfig.host}/api/v1/orders/appleWallet/${ticket.id}`,
+			googleWalletUrl: `${appConfig.host}/api/v1/orders/googlePay/${ticket.id}`,
 		})),
 		summary: {
 			items: summaryItems, // sorted by adult/children condition
