@@ -5,6 +5,8 @@ import * as GetDiscountCode from './get.discountCode'
 import * as GetSuccessfulOrder from './get.successfulOrder'
 import * as GetPostPaymentResponse from './get.post.paymentResponse'
 import * as GetLoggedUserTickets from './get.loggedUserTickets'
+import * as GetAppleWallet from './get.appleWallet'
+import * as GetGooglePay from './get.googlePay'
 import passport from 'passport'
 import schemaMiddleware from '../../../middlewares/schemaMiddleware'
 import recaptchaMiddleware from '../../../middlewares/recaptchaMiddleware'
@@ -78,6 +80,10 @@ export default () => {
 		schemaMiddleware(GetPostPaymentResponse.schema),
 		GetPostPaymentResponse.workflow
 	)
+
+	// didn't find a better place to put this (/tickets ?), therefore under /orders
+	router.get('/appleWallet/:ticketId', GetAppleWallet.workflow)
+	router.get('/googlePay/:ticketId', GetGooglePay.workflow)
 
 	return router
 }
