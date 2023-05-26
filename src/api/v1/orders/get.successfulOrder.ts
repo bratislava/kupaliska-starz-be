@@ -1,5 +1,5 @@
 import { formatTicket } from './../../../utils/formatters'
-import { generateQrCode } from '../../../utils/qrCodeGenerator'
+import { generateQrCodeDataUrl } from '../../../utils/qrCodeGenerator'
 import Joi from 'joi'
 import { Op } from 'sequelize'
 import { NextFunction, Request, Response } from 'express'
@@ -66,7 +66,7 @@ export const workflow = async (
 		}
 
 		for (const ticket of order.tickets) {
-			ticket.qrCode = await generateQrCode(ticket.id, 'datauri')
+			ticket.qrCode = await generateQrCodeDataUrl(ticket.id, { width: 400, margin: 0 })
 		}
 
 		const pdfBase64 = await generatePdf(order.tickets)

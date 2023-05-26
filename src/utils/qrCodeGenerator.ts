@@ -1,26 +1,25 @@
-import QRCode from 'qrcode'
-import config from 'config'
-import { IPassportConfig } from '../types/interfaces'
-import { createJwt } from './authorization'
+import QRCode, { QRCodeToBufferOptions, QRCodeToDataURLOptions } from 'qrcode'
 
-const passwordConfig: IPassportConfig = config.get('passport')
+// Legacy code
+// const passwordConfig: IPassportConfig = config.get('passport')
+// ONLY FOR TESTING PURPOSE
+// console.log(accessToken.length)
+// console.log(await QRCode.toString(accessToken, { type: 'terminal', errorCorrectionLevel: 'H' }))
 
-// eslint-disable-next-line
-export const generateQrCode = async (
+export const generateQrCodeBuffer = (
 	data: string,
-	exportType: 'datauri' | 'buffer'
-): Promise<string | Buffer> => {
-	// ONLY FOR TESTING PURPOSE
-	// console.log(accessToken.length)
-	// console.log(await QRCode.toString(accessToken, { type: 'terminal', errorCorrectionLevel: 'H' }))
+	options?: QRCodeToBufferOptions,
+) =>
+	QRCode.toBuffer(data, {
+		errorCorrectionLevel: 'H',
+		...(options ?? {}),
+	})
 
-	if (exportType === 'datauri') {
-		return await QRCode.toDataURL(data, {
-			errorCorrectionLevel: 'H',
-		})
-	}
-	if (exportType === 'buffer') {
-		return await QRCode.toBuffer(data, { errorCorrectionLevel: 'H' })
-	}
-	return ''
-}
+export const generateQrCodeDataUrl = (
+	data: string,
+	options?: QRCodeToDataURLOptions,
+) =>
+	QRCode.toDataURL(data, {
+		errorCorrectionLevel: 'H',
+		...(options ?? {}),
+	})
