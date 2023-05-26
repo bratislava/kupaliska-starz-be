@@ -57,7 +57,7 @@ export const formatTicket = (ticket: TicketModel) => {
 		name: ticket.profile.name,
 		zip: ticket.profile.zip,
 		parentTicketId: ticket.parentTicketId,
-		ticketTypeId: ticket.ticketTypeId,
+		ticketTypeId: ticket.ticketType.id,
 		qrCode: ticket.qrCode,
 	}
 }
