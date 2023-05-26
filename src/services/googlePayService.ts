@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken'
+// TODO remove credentials form git
+import credentials from '../../resources/google-pay/credentials.json'
 
 // the pass was created using this guide: https://codelabs.developers.google.com/add-to-wallet-web
 // github repo of the guide: https://github.com/google-pay/wallet-web-codelab
 
-// TODO remove credentials form git
-const credentials = require('../../resources/google-pay/credentials.json')
 // issuer ID can be found in Google Pay console - https://pay.google.com/business/console, use innovations gmail to log in
 const issuerId = '3388000000022225089'
 // this class was created using the tutorial mentioned above
