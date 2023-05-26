@@ -65,7 +65,7 @@ export const getPassUrl = async (
 	const claims = {
 		iss: credentials.client_email,
 		aud: 'google',
-		origins: [],
+		origins: [] as any,
 		typ: 'savetowallet',
 		payload: {
 			genericObjects: [genericObject],
