@@ -56,3 +56,16 @@ export const getCityAccountData = async (accessToken: string) => {
 	}
 	return result.json() as Partial<CityAccountUser>
 }
+
+// https://stackoverflow.com/a/39077686
+export const hexToRgbString = (hex: string) => {
+	const arr = hex
+		.replace(
+			/^#?([a-f\d])([a-f\d])([a-f\d])$/i,
+			(m, r, g, b) => '#' + r + r + g + g + b + b
+		)
+		.substring(1)
+		.match(/.{2}/g)
+		.map((x: string) => parseInt(x, 16))
+	return `rgb(${arr[0]}, ${arr[1]}, ${arr[2]})`
+}

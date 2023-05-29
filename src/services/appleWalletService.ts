@@ -1,7 +1,7 @@
-import hexRgb from 'hex-rgb'
 import { Template } from '@walletpass/pass-js'
 import logger from '../utils/logger'
 import { TICKET_CATEGORY, textColorsMap } from '../utils/enums'
+import { hexToRgbString } from '../utils/helpers'
 
 const template = new Template('eventTicket', {
 	passTypeIdentifier: 'pass.sk.bratislava.kupaliska.v2',
@@ -55,12 +55,10 @@ export const createPass = async (
 	ownerName?: string
 ) => {
 	const pass = template.createPass({
-		backgroundColor: hexRgb(textColorsMap[ticketCategory].background, {
-			format: 'css',
-		}),
-		foregroundColor: hexRgb(textColorsMap[ticketCategory].text, {
-			format: 'css',
-		}),
+		backgroundColor: hexToRgbString(
+			textColorsMap[ticketCategory].background
+		),
+		foregroundColor: hexToRgbString(textColorsMap[ticketCategory].text),
 		/**
 		 * Brief description of the pass, used by the iOS accessibility technologies.
 		 * Don’t try to include all of the data on the pass in its description,
