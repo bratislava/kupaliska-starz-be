@@ -67,6 +67,7 @@ export const workflow = async (
 				'ticketDuration',
 				'validFrom',
 				'validTo',
+				'isSeniorIsDisabled',
 			],
 			where,
 			limit,
