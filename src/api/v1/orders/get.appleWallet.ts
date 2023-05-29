@@ -50,6 +50,7 @@ export const workflow = async (
 			await createPass(
 				ticket.id,
 				ticket.ticketType.name,
+				ticket.getCategory(),
 				// ticket.ticketType.isDisposable is unreliable in multi-entry tickets for the following
 				ticket.remainingEntries != null
 					? undefined
