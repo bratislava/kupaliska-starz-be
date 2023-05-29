@@ -3,7 +3,7 @@ import { Attachment } from 'mailgun-js'
 import { TicketModel } from '../db/models/ticket'
 import { createAttachment, sendEmail } from '../services/mailerService'
 import { IAppConfig, IMailgunserviceConfig } from '../types/interfaces'
-import { generateQrCode } from './qrCodeGenerator'
+import { generateQrCodeBuffer } from './qrCodeGenerator'
 import {
 	getChildrenTicketName,
 	getTicketNameTranslation,
@@ -44,7 +44,7 @@ const getOrderEmailInlineAttachments = async (
 ): Promise<Attachment[]> => {
 	return await Promise.all(
 		map(tickets, async (ticket, index) => {
-			ticket.qrCode = await generateQrCode(ticket.id, 'buffer')
+			ticket.qrCode = await generateQrCodeBuffer(ticket.id, { width: 264, margin: 0 })
 			return createAttachment({
 				data: ticket.qrCode,
 				filename: `qr-code-${index + 1}.png`,
