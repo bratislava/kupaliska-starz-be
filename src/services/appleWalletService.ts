@@ -1,5 +1,7 @@
+import hexRgb from 'hex-rgb'
 import { Template } from '@walletpass/pass-js'
 import logger from '../utils/logger'
+import { TICKET_CATEGORY, textColorsMap } from '../utils/enums'
 
 const template = new Template('eventTicket', {
 	passTypeIdentifier: 'pass.sk.bratislava.kupaliska.v2',
@@ -7,15 +9,15 @@ const template = new Template('eventTicket', {
 	backgroundColor: 'rgb(124, 206, 242)',
 	organizationName: 'STARZ Bratislava',
 	// this should suggest the ticket on users screen when they are near any of the swimming pools
-	// TODO test this
-	locations: [
-		{
-			latitude: 48.1499994,
-			longitude: 17.1424423,
-			relevantText: 'Delfín',
-		},
-	],
-	maxDistance: 100,
+	// TODO add correct coordinates and captions
+	// locations: [
+	// 	{
+	// 		latitude: 48.1499994,
+	// 		longitude: 17.1424423,
+	// 		relevantText: 'Delfín',
+	// 	},
+	// ],
+	// maxDistance: 100,
 	// sharingProhibited: true,
 })
 
@@ -49,11 +51,16 @@ template.images
 export const createPass = async (
 	ticketId: string,
 	ticketTypeName: string,
+	ticketCategory: TICKET_CATEGORY,
 	ownerName?: string
 ) => {
 	const pass = template.createPass({
-		// TODO override here if multiple colors for different passes
-		// backgroundColor: 'rgb(124, 206, 242)',
+		backgroundColor: hexRgb(textColorsMap[ticketCategory].background, {
+			format: 'css',
+		}),
+		foregroundColor: hexRgb(textColorsMap[ticketCategory].text, {
+			format: 'css',
+		}),
 		/**
 		 * Brief description of the pass, used by the iOS accessibility technologies.
 		 * Don’t try to include all of the data on the pass in its description,

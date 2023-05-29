@@ -48,7 +48,10 @@ export const workflow = async (
 			await getPassUrl(
 				ticket.id,
 				ticket.ticketType.name,
-				ticket.profile.name
+				ticket.getCategory(),
+				ticket.remainingEntries != null
+					? undefined
+					: ticket.profile.name
 			)
 		)
 	} catch (err) {

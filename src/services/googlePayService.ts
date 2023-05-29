@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 // TODO remove credentials form git
 import credentials from '../../resources/google-pay/credentials.json'
+import { TICKET_CATEGORY, textColorsMap } from '../utils/enums'
 
 // the pass was created using this guide: https://codelabs.developers.google.com/add-to-wallet-web
 // github repo of the guide: https://github.com/google-pay/wallet-web-codelab
@@ -13,6 +14,7 @@ const classId = `${issuerId}.sk.bratislava.kupaliska.v2`
 export const getPassUrl = async (
 	ticketId: string,
 	ticketTypeName: string,
+	ticketCategory: TICKET_CATEGORY,
 	ownerName?: string
 ) => {
 	const objectId = `${issuerId}.${ticketId}`
@@ -23,39 +25,44 @@ export const getPassUrl = async (
 		id: objectId,
 		classId: classId,
 		genericType: 'GENERIC_TYPE_UNSPECIFIED',
-		// TODO override here if multiple colors for different passes
-		hexBackgroundColor: '#7CCEF2',
-		logo: {
-			sourceUri: {
-				uri: 'https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/pass_google_logo.jpg',
-				// TODO replace the logo with one with suitable format / dimensions - current one is not accepted
-				// uri: 'https://api.kupaliska.bratislava.sk/public/wallet-pass/logo.png',
-			},
-		},
+		// can't choose foreground/text color, hopefully reasonable color is inferred on google's side
+		hexBackgroundColor: textColorsMap[ticketCategory].background,
+		// logo: {
+		// 	sourceUri: {
+		// 		uri: 'https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/pass_google_logo.jpg',
+		// 		// TODO replace the logo with one with suitable format / dimensions - current one is not accepted
+		// 		// uri: 'https://api.kupaliska.bratislava.sk/public/wallet-pass/logo.png',
+		// 	},
+		// },
 		cardTitle: {
 			defaultValue: {
 				language: 'en',
-				value: ticketTypeName,
+				value: 'Kúpaliská Bratislava',
 			},
 		},
-		// subheader can be emptu (TODO use if needed for disposable tickets - presently ownerName is always passed in)
+		// subheader can be empty
 		subheader: ownerName
 			? {
 					defaultValue: {
 						language: 'en',
-						value: 'Držiteľ',
+						value: ticketTypeName,
 					},
 			  }
-			: undefined,
-		// header seeems to be mandatory - but the space is limited, the text must be short
-		header: {
-			defaultValue: {
-				language: 'en',
-				value:
-					ownerName ||
-					'Týmto QR kódom sa prosím preukážte pri vstupe.',
-			},
-		},
+			: null,
+		// header seems to be mandatory - but the space is limited, the text must be short
+		header: ownerName
+			? {
+					defaultValue: {
+						language: 'en',
+						value: ownerName,
+					},
+			  }
+			: {
+					defaultValue: {
+						language: 'en',
+						value: ticketTypeName,
+					},
+			  },
 		barcode: {
 			type: 'QR_CODE',
 			value: ticketId,
