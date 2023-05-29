@@ -136,6 +136,7 @@ export const formatTicketType = (ticketType: TicketTypeModel) => {
 		ticketDuration: ticketType.ticketDuration,
 		validFrom: ticketType.validFrom,
 		validTo: ticketType.validTo,
+		isSeniorIsDisabled: ticketType.isSeniorIsDisabled,
 		swimmingPools: ticketType.swimmingPools
 			? map(ticketType.swimmingPools, (pool) => ({
 					id: pool.id,

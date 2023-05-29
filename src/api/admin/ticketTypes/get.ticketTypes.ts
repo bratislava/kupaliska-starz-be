@@ -60,6 +60,7 @@ export const workflow = async (
 				'ticketDuration',
 				'validFrom',
 				'validTo',
+				'isSeniorIsDisabled',
 				'childrenAllowed',
 				'childrenPrice',
 				'photoRequired',

@@ -65,6 +65,7 @@ export const ticketTypeAddSchema = {
 	}),
 	validFrom: Joi.date().required(),
 	validTo: Joi.date().min(Joi.ref('validFrom')).required(),
+	isSeniorIsDisabled: Joi.boolean(),
 	entriesNumber: Joi.number()
 		.min(0)
 		.max(1000)
