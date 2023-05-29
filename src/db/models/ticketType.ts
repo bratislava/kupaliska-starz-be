@@ -23,6 +23,7 @@ export class TicketTypeModel extends DatabaseModel {
 	childrenPhotoRequired: boolean
 	validFrom: Date
 	validTo: Date
+	isSeniorIsDisabled: boolean
 	hasEntranceConstraints: boolean
 	entranceFrom: string
 	entranceTo: string
@@ -122,6 +123,10 @@ export default (sequelize: Sequelize) => {
 			},
 			validTo: {
 				type: DataTypes.DATEONLY,
+				allowNull: false,
+			},
+			isSeniorIsDisabled: {
+				type: DataTypes.BOOLEAN,
 				allowNull: false,
 			},
 			hasTicketDuration: {

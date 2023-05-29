@@ -15,6 +15,7 @@ export const ticketTypePutSchema = {
 	photoRequired: Joi.boolean().required(),
 	validFrom: Joi.date().required(),
 	validTo: Joi.date().min(Joi.ref('validFrom')).required(),
+	isSeniorIsDisabled: Joi.boolean().required(),
 	swimmingPools: Joi.array()
 		.min(1)
 		.items(
