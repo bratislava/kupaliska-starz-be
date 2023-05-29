@@ -6,7 +6,7 @@ import {
 	textColorsMap,
 	TICKET_CATEGORY,
 } from '../../../utils/enums'
-import { generateQrCode } from '../../../utils/qrCodeGenerator'
+import { generateQrCodeBuffer } from '../../../utils/qrCodeGenerator'
 import { getDataAboutCurrentUser } from '../../../utils/getDataCurrentUser'
 
 const { Ticket, Order, TicketType, Entry, SwimmingPool } = models
@@ -83,7 +83,7 @@ export const workflow = async (
 					ticket.ticketTypeId
 				)
 				ticketResult.type = ticketType.name
-				const qrCode = await generateQrCode(ticket.id, 'buffer')
+				const qrCode = await generateQrCodeBuffer(ticket.id)
 				ticketResult.qrCode =
 					'data:image/png;base64, ' +
 					Buffer.from(qrCode).toString('base64')
