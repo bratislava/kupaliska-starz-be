@@ -11,14 +11,20 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 	let numberOfChildren = 0
 	let numberOfAdults = 0
 	let numberOfChildrenWithAdult = 0
+	let numberOfSeniorOrDisabled = 0
 	for (const ticket of ticketsForPdf) {
 		if (ticket.isChildren) {
 			numberOfChildren++
 			numberOfChildrenWithAdult += ticket.withAdult() ? 1 : 0
 		} else {
+			if (ticket.getCategory() === TICKET_CATEGORY.SENIOR_OR_DISABLED) {
+				numberOfSeniorOrDisabled++
+			}
 			numberOfAdults++
 		}
 	}
+	let numberOfChildrenWithoutAdult =
+		numberOfChildren - numberOfChildrenWithAdult
 
 	ticketsForPdf = sortTickets(ticketsForPdf)
 
@@ -26,14 +32,16 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 	let endPadding = 1
 
 	const rowPadding = 130
-	const rowPaddingChildren = 190
+	const rowPaddingWithExtraText = 190
 	const qrCodeHeight = 240
 	const qrCodeLeftPadding = 56.25
 
 	const pageHeight =
 		startPadding +
-		numberOfChildren * (rowPaddingChildren + qrCodeHeight) +
-		numberOfAdults * (rowPadding + qrCodeHeight) +
+		numberOfChildren * (rowPaddingWithExtraText + qrCodeHeight) +
+		numberOfSeniorOrDisabled * (rowPaddingWithExtraText + qrCodeHeight) +
+		(numberOfAdults - numberOfSeniorOrDisabled) *
+			(rowPadding + qrCodeHeight) +
 		endPadding
 
 	const doc = new PDFDocument({
@@ -53,13 +61,33 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 	const stream = doc.pipe(new Base64Encode())
 
 	let adultsBackgroundHeight = 0
-	if (numberOfAdults > 0) {
+	if (numberOfAdults - numberOfSeniorOrDisabled > 0) {
 		adultsBackgroundHeight =
 			startPadding +
-			numberOfAdults * (rowPadding + qrCodeHeight) +
-			(ticketsForPdf.length === numberOfAdults ? endPadding : -20)
+			numberOfAdults -
+			numberOfSeniorOrDisabled * (rowPadding + qrCodeHeight) +
+			(ticketsForPdf.length === numberOfAdults - numberOfSeniorOrDisabled
+				? endPadding
+				: -20)
 		doc.rect(0, 0, 352.5, adultsBackgroundHeight).fillAndStroke(
 			textColorsMap[TICKET_CATEGORY.ADULT].background
+		)
+
+		endPadding += 20
+	}
+
+	let seniorOrDisabledBackgroundHeight = 0
+	if (numberOfSeniorOrDisabled > 0) {
+		seniorOrDisabledBackgroundHeight =
+			startPadding +
+			numberOfSeniorOrDisabled *
+				(rowPaddingWithExtraText + qrCodeHeight) +
+			(ticketsForPdf.length === numberOfSeniorOrDisabled
+				? endPadding
+				: -20)
+
+		doc.rect(0, 0, 352.5, seniorOrDisabledBackgroundHeight).fillAndStroke(
+			textColorsMap[TICKET_CATEGORY.SENIOR_OR_DISABLED].background
 		)
 
 		endPadding += 20
@@ -69,16 +97,42 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 	if (numberOfChildrenWithAdult > 0) {
 		childrenWithAdultBackgroundHeight =
 			(numberOfAdults === 0 ? startPadding : 0) +
-			numberOfChildrenWithAdult * (rowPaddingChildren + qrCodeHeight) +
+			numberOfChildrenWithAdult *
+				(rowPaddingWithExtraText + qrCodeHeight) +
 			(ticketsForPdf.length === numberOfAdults + numberOfChildrenWithAdult
 				? endPadding
 				: 0)
 
 		doc.rect(
 			0,
-			adultsBackgroundHeight,
+			adultsBackgroundHeight + seniorOrDisabledBackgroundHeight,
 			352.5,
 			childrenWithAdultBackgroundHeight
+		).fillAndStroke(
+			textColorsMap[TICKET_CATEGORY.CHILDREN_WITH_ADULT].background
+		)
+	}
+
+	let childrenWithoutAdultBackgroundHeight = 0
+	if (numberOfChildrenWithoutAdult > 0) {
+		childrenWithoutAdultBackgroundHeight =
+			(numberOfAdults === 0 ? startPadding : 0) +
+			numberOfChildrenWithoutAdult *
+				(rowPaddingWithExtraText + qrCodeHeight) +
+			(ticketsForPdf.length ===
+			numberOfAdults +
+				numberOfChildrenWithAdult +
+				numberOfChildrenWithoutAdult
+				? endPadding
+				: 0)
+
+		doc.rect(
+			0,
+			adultsBackgroundHeight +
+				seniorOrDisabledBackgroundHeight +
+				childrenWithAdultBackgroundHeight,
+			352.5,
+			childrenWithoutAdultBackgroundHeight
 		).fillAndStroke(
 			textColorsMap[TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT].background
 		)
@@ -142,9 +196,29 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 						: i18next.t('translation:withoutEscort') + '.',
 					{ align: 'center' }
 				)
-			startPadding += qrCodeHeight + rowPaddingChildren
+			startPadding += qrCodeHeight + rowPaddingWithExtraText
 		} else {
-			startPadding += qrCodeHeight + rowPadding
+			if (ticket.getCategory() === TICKET_CATEGORY.SENIOR_OR_DISABLED) {
+				doc.moveDown(0.12)
+				doc.fontSize(12)
+					.font('resources/fonts/WorkSans-Medium.ttf')
+					.text(
+						`${i18next.t('year', {
+							count: ticket.profile.age,
+						})}`,
+						{ align: 'center' }
+					)
+
+				doc.moveDown(1)
+				doc.fontSize(12)
+					.font('resources/fonts/WorkSans-Medium.ttf')
+					.text(i18next.t('translation:seniorOrDisabled'), {
+						align: 'center',
+					})
+				startPadding += qrCodeHeight + rowPaddingWithExtraText
+			} else {
+				startPadding += qrCodeHeight + rowPadding
+			}
 		}
 	}
 
