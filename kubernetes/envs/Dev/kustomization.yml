@@ -1,10 +1,10 @@
 resources:
   - ../../base
   - secrets/app.secret.yml
-
+  - scaler.yml
 configMapGenerator:
-- name: env
-  namespace: ${NAMESPACE}
-  behavior: merge
-  envs:
-  - .env
+  - name: env
+    namespace: ${NAMESPACE}
+    behavior: merge
+    envs:
+      - .env
