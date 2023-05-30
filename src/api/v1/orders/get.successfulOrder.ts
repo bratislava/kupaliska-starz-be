@@ -50,6 +50,7 @@ export const workflow = async (
 								'validTo',
 								'name',
 								'childrenAgeToWithAdult',
+								'isSeniorIsDisabled',
 							],
 						},
 						{
@@ -66,7 +67,10 @@ export const workflow = async (
 		}
 
 		for (const ticket of order.tickets) {
-			ticket.qrCode = await generateQrCodeDataUrl(ticket.id, { width: 400, margin: 0 })
+			ticket.qrCode = await generateQrCodeDataUrl(ticket.id, {
+				width: 400,
+				margin: 0,
+			})
 		}
 
 		const pdfBase64 = await generatePdf(order.tickets)
