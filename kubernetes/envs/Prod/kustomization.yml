@@ -1,22 +1,16 @@
 resources:
   - ../../base
   - secrets/app.secret.yml
-
+  - scaler.yml
 configMapGenerator:
-- name: env
-  namespace: ${NAMESPACE}
-  behavior: merge
-  envs:
-  - .env
-
+  - name: env
+    namespace: ${NAMESPACE}
+    behavior: merge
+    envs:
+      - .env
 patches:
   - target:
       name: ingress
       kind: Ingress
-    patch: |-
-      - op: replace
-        path: /spec/rules/0/host
-        value: api.kupaliska.bratislava.sk
-      - op: replace
-        path: /spec/tls/0/hosts/0
-        value: api.kupaliska.bratislava.sk
+    patch: "- op: replace\n  path: /spec/rules/0/host\n  value: api.kupaliska.bratislava.sk\n\
+      - op: replace\n  path: /spec/tls/0/hosts/0\n  value: api.kupaliska.bratislava.sk"
