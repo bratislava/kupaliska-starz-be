@@ -50,6 +50,7 @@ export const workflow = async (
 								'validTo',
 								'name',
 								'childrenAgeToWithAdult',
+								'isSeniorIsDisabled',
 							],
 						},
 						{
