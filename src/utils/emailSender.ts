@@ -44,7 +44,10 @@ const getOrderEmailInlineAttachments = async (
 ): Promise<Attachment[]> => {
 	return await Promise.all(
 		map(tickets, async (ticket, index) => {
-			ticket.qrCode = await generateQrCodeBuffer(ticket.id, { width: 264, margin: 0 })
+			ticket.qrCode = await generateQrCodeBuffer(ticket.id, {
+				width: 264,
+				margin: 0,
+			})
 			return createAttachment({
 				data: ticket.qrCode,
 				filename: `qr-code-${index + 1}.png`,
@@ -105,6 +108,8 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 			price: items.children.price,
 		})
 	}
+	const isDisposableTicket = (ticket: TicketModel) =>
+		ticket.remainingEntries == null
 
 	return {
 		name: parentTicket.profile.name,
@@ -116,11 +121,12 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 				heading: ticket.isChildren
 					? getChildrenTicketName()
 					: ticket.ticketType.name,
-				subheading:
-					ticket.profile.name +
-					`, ${i18next.t('year', {
-						count: ticket.profile.age,
-					})}`,
+				subheading: isDisposableTicket(ticket)
+					? ticket.profile.name +
+					  `, ${i18next.t('year', {
+							count: ticket.profile.age,
+					  })}`
+					: null,
 				qrCode: `cid:qr-code-${index + 1}.png`,
 				backgroundColor: textColorsMap[ticket.getCategory()].background,
 				textColor: textColorsMap[ticket.getCategory()].text,
