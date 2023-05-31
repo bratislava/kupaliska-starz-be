@@ -23,6 +23,8 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 			numberOfAdults++
 		}
 	}
+	const numberOfChildrenWithoutAdult =
+		numberOfChildren - numberOfChildrenWithAdult
 
 	ticketsForPdf = sortTickets(ticketsForPdf)
 
@@ -85,6 +87,22 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 		doc.rect(
 			0,
 			adultsBackgroundHeight,
+			352.5,
+			childrenWithAdultBackgroundHeight
+		).fillAndStroke(
+			textColorsMap[TICKET_CATEGORY.CHILDREN_WITH_ADULT].background
+		)
+	}
+
+	let childrenWithoutAdultBackgroundHeight = 0
+	if (numberOfChildrenWithoutAdult > 0) {
+		childrenWithoutAdultBackgroundHeight =
+			numberOfChildrenWithoutAdult * (rowPaddingChildren + qrCodeHeight) +
+			endPadding
+
+		doc.rect(
+			0,
+			adultsBackgroundHeight + childrenWithAdultBackgroundHeight,
 			352.5,
 			childrenWithAdultBackgroundHeight
 		).fillAndStroke(
