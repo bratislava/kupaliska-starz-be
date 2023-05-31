@@ -1,24 +1,30 @@
 import { Template } from '@walletpass/pass-js'
 import logger from '../utils/logger'
 import { TICKET_CATEGORY, textColorsMap } from '../utils/enums'
-import { hexToRgbString } from '../utils/helpers'
+import {
+	getWalletPassTicketDescription,
+	getWalletPassTicketName,
+	hexToRgbString,
+} from '../utils/helpers'
+import { TicketModel } from '../db/models/ticket'
 
-const template = new Template('eventTicket', {
+const template = new Template('generic', {
 	passTypeIdentifier: 'pass.sk.bratislava.kupaliska.v2',
 	teamIdentifier: '2P6QC78LFR',
-	backgroundColor: 'rgb(124, 206, 242)',
 	organizationName: 'STARZ Bratislava',
+	backgroundColor: hexToRgbString(
+		textColorsMap[TICKET_CATEGORY.SENIOR_OR_DISABLED].background
+	),
 	// this should suggest the ticket on users screen when they are near any of the swimming pools
-	// TODO add correct coordinates and captions
+	// TODO test locations
 	// locations: [
 	// 	{
 	// 		latitude: 48.1499994,
 	// 		longitude: 17.1424423,
-	// 		relevantText: 'Delfín',
+	// 		relevantText: 'Kúpalisko Delfín',
 	// 	},
 	// ],
-	// maxDistance: 100,
-	// sharingProhibited: true,
+	// maxDistance: 50,
 })
 
 // all of these are async, should be ok not to wait on them when they happen on startup, we just need to watch for error logs
@@ -35,41 +41,45 @@ template
 	})
 
 template.images
-	.add('icon', './files/public/wallet-pass/logo.png')
+	.add('icon', './files/public/wallet-pass/logo-starz-small.png')
 	.catch((err) => {
 		logger.error('Error Apple Wallet init! Problem loading icon')
 		logger.error(err)
 	})
 
 template.images
-	.add('logo', './files/public/wallet-pass/logo.png')
+	.add('logo', './files/public/wallet-pass/logo-starz-small.png')
 	.catch((err) => {
 		logger.error('Error Apple Wallet init! Problem loading logo')
 		logger.error(err)
 	})
 
-export const createPass = async (
-	ticketId: string,
-	ticketTypeName: string,
-	ticketCategory: TICKET_CATEGORY,
-	ownerName?: string
-) => {
+export const createPass = async (ticket: TicketModel) => {
+	const ticketId = ticket.id
+	const ticketName = getWalletPassTicketName(ticket)
+	const ticketDescription = getWalletPassTicketDescription(ticket)
+	// ticket.ticketType.isDisposable is unreliable in multi-entry tickets for the following
+	const ownerName =
+		ticket.remainingEntries != null ? undefined : ticket.profile.name
+
 	const pass = template.createPass({
 		backgroundColor: hexToRgbString(
-			textColorsMap[ticketCategory].background
+			textColorsMap[ticket.getCategory()].background
 		),
-		foregroundColor: hexToRgbString(textColorsMap[ticketCategory].text),
+		foregroundColor: hexToRgbString(
+			textColorsMap[ticket.getCategory()].text
+		),
 		/**
 		 * Brief description of the pass, used by the iOS accessibility technologies.
 		 * Don’t try to include all of the data on the pass in its description,
 		 * just include enough detail to distinguish passes of the same type.
 		 */
-		description: `Kúpaliská Bratislava ${ticketTypeName}${
+		description: `Kúpaliská Bratislava ${ticketName}${
 			ownerName ? ` ${ownerName}` : ''
 		}`,
 		serialNumber: ticketId,
 		expirationDate: '2023-09-31T10:00-05:00',
-		eventTicket: {
+		generic: {
 			headerFields: [
 				{
 					key: 'title',
@@ -80,7 +90,7 @@ export const createPass = async (
 			primaryFields: [
 				{
 					key: 'type',
-					value: ticketTypeName,
+					value: ticketName,
 				},
 			],
 			/**
@@ -91,7 +101,6 @@ export const createPass = async (
 						{
 							key: 'owner',
 							value: ownerName,
-							label: 'Držiteľ',
 						},
 				  ]
 				: undefined,
@@ -101,7 +110,7 @@ export const createPass = async (
 			auxiliaryFields: [
 				{
 					key: 'instructions',
-					value: 'Týmto QR kódom sa prosím preukážte pri vstupe.',
+					value: ticketDescription,
 				},
 			],
 		},

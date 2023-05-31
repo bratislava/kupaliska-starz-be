@@ -1,4 +1,11 @@
 {
+	"walletPass": {
+		"seniorOrDisabledTicket": "Sezónna permanentka pre seniorov a ŤZP",
+		"seniorOrDisabledText": "62 a viac rokov alebo ŤZP/ŤZP-S preukaz",
+		"childrenSeasonTicket": "Detská sezónna permanentka",
+		"childrenWithAdultText": "Vstup povolený iba v sprievode dospelej osoby",
+		"childrenWithoutAdultText": "Vstup povolený aj bez sprievodu dospelej osoby"
+	},
 	"allTickets": "Všetky lístky",
 	"allowedAlsoWith": "Vstup povolený aj bez",
 	"allowedOnly": "Vstup povolený iba v",

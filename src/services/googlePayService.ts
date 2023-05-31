@@ -1,7 +1,12 @@
 import jwt from 'jsonwebtoken'
 // TODO remove credentials form git
 import credentials from '../../resources/google-pay/credentials.json'
-import { TICKET_CATEGORY, textColorsMap } from '../utils/enums'
+import { textColorsMap } from '../utils/enums'
+import { TicketModel } from '../db/models/ticket'
+import {
+	getWalletPassTicketDescription,
+	getWalletPassTicketName,
+} from '../utils/helpers'
 
 // the pass was created using this guide: https://codelabs.developers.google.com/add-to-wallet-web
 // github repo of the guide: https://github.com/google-pay/wallet-web-codelab
@@ -11,13 +16,13 @@ const issuerId = '3388000000022225089'
 // this class was created using the tutorial mentioned above
 const classId = `${issuerId}.sk.bratislava.kupaliska.v2`
 
-export const getPassUrl = async (
-	ticketId: string,
-	ticketTypeName: string,
-	ticketCategory: TICKET_CATEGORY,
-	ownerName?: string
-) => {
-	const objectId = `${issuerId}.${ticketId}`
+export const getPassUrl = async (ticket: TicketModel) => {
+	const objectId = `${issuerId}.${ticket.id}`
+	const ticketName = getWalletPassTicketName(ticket)
+	const ticketDescription = getWalletPassTicketDescription(ticket)
+	// ticket.ticketType.isDisposable is unreliable in multi-entry tickets for the following
+	const ownerName =
+		ticket.remainingEntries != null ? undefined : ticket.profile.name
 
 	// TODO we can probably change the language to sk, but it might require tweaking the class as well - check in google pay console & test before trying in the wild
 	// presently, no harm doen when this is presented as "en" and english being the only language in which the pass is available
@@ -25,27 +30,25 @@ export const getPassUrl = async (
 		id: objectId,
 		classId: classId,
 		genericType: 'GENERIC_TYPE_UNSPECIFIED',
-		// can't choose foreground/text color, hopefully reasonable color is inferred on google's side
-		hexBackgroundColor: textColorsMap[ticketCategory].background,
+		hexBackgroundColor: textColorsMap[ticket.getCategory()].background,
+		// TODO replace the logo after first deploy
 		// logo: {
 		// 	sourceUri: {
-		// 		uri: 'https://storage.googleapis.com/wallet-lab-tools-codelab-artifacts-public/pass_google_logo.jpg',
-		// 		// TODO replace the logo with one with suitable format / dimensions - current one is not accepted
-		// 		// uri: 'https://api.kupaliska.bratislava.sk/public/wallet-pass/logo.png',
+		// 		uri: 'https://api.kupaliska.bratislava.sk/public/wallet-pass/logo-starz.png',
 		// 	},
 		// },
 		cardTitle: {
 			defaultValue: {
 				language: 'en',
-				value: 'Kúpaliská Bratislava',
+				value: ownerName ? ticketName : 'Kúpaliská Bratislava',
 			},
 		},
 		// subheader can be empty
-		subheader: ownerName
+		subheader: ticketDescription
 			? {
 					defaultValue: {
 						language: 'en',
-						value: ticketTypeName,
+						value: ticketDescription,
 					},
 			  }
 			: null,
@@ -60,12 +63,13 @@ export const getPassUrl = async (
 			: {
 					defaultValue: {
 						language: 'en',
-						value: ticketTypeName,
+						value: ticketName,
 					},
 			  },
+
 		barcode: {
 			type: 'QR_CODE',
-			value: ticketId,
+			value: ticket.id,
 		},
 	}
 
