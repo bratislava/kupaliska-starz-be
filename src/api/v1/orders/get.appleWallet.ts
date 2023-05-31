@@ -26,7 +26,6 @@ export const workflow = async (
 	try {
 		const { params } = req
 		const ticket = await Ticket.findOne({
-			attributes: ['id', 'remainingEntries'],
 			where: {
 				id: { [Op.eq]: params.ticketId },
 			},
@@ -46,17 +45,7 @@ export const workflow = async (
 		}
 		res.header('Content-Type', 'application/vnd.apple.pkpass')
 		res.attachment('ticket.pkpass')
-		return res.send(
-			await createPass(
-				ticket.id,
-				ticket.ticketType.name,
-				ticket.getCategory(),
-				// ticket.ticketType.isDisposable is unreliable in multi-entry tickets for the following
-				ticket.remainingEntries != null
-					? undefined
-					: ticket.profile.name
-			)
-		)
+		return res.send(await createPass(ticket))
 	} catch (err) {
 		// extra logging just in case
 		logger.error('Error Apple Wallet request failed')

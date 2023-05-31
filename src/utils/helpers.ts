@@ -3,6 +3,9 @@ import { QueryInterface } from 'sequelize'
 import fetch from 'node-fetch'
 import { CityAccountUser } from './cityAccountDto'
 import ErrorBuilder from './ErrorBuilder'
+import i18next from 'i18next'
+import { TICKET_CATEGORY } from './enums'
+import { TicketModel } from '../db/models/ticket'
 
 export const checkTableExists = async (
 	queryInterface: QueryInterface,
@@ -67,5 +70,24 @@ export const hexToRgbString = (hex: string) => {
 		.substring(1)
 		.match(/.{2}/g)
 		.map((x: string) => parseInt(x, 16))
-	return `rgb(${arr[0]}, ${arr[1]}, ${arr[2]})`
+	return `rgb(${arr[0]},${arr[1]},${arr[2]})`
 }
+
+// separate walletPass translation keys even for reused strings
+// wallets have very limited space and could be easy to miss when the text changes in the future
+export const getWalletPassTicketName = (ticket: TicketModel) =>
+	ticket.isChildren
+		? i18next.t('translation:walletPass.childrenSeasonTicket')
+		: ticket.getCategory() === TICKET_CATEGORY.SENIOR_OR_DISABLED
+		? i18next.t('translation:walletPass.seniorOrDisabledTicket')
+		: ticket.ticketType.name
+
+export const getWalletPassTicketDescription = (ticket: TicketModel) =>
+	ticket.isChildren
+		? ticket.withAdult()
+			? i18next.t('translation:walletPass.childrenWithAdultText')
+			: i18next.t('translation:walletPass.childrenWithoutAdultText')
+		: ticket.getCategory() === TICKET_CATEGORY.SENIOR_OR_DISABLED
+		? i18next.t('translation:walletPass.seniorOrDisabledText')
+		: // no description text for adult ticket
+		  ''
