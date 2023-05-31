@@ -105,7 +105,7 @@ export const textColorsMap = {
 	},
 	[TICKET_CATEGORY.CHILDREN_WITH_ADULT]: {
 		text: '#07038C',
-		background: '#D0ECF8',
+		background: '#7CCEF2',
 	},
 	[TICKET_CATEGORY.SENIOR_OR_DISABLED]: {
 		text: '#07038C',

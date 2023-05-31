@@ -26,7 +26,6 @@ export const workflow = async (
 	try {
 		const { params } = req
 		const ticket = await Ticket.findOne({
-			attributes: ['id', 'remainingEntries'],
 			where: {
 				id: { [Op.eq]: params.ticketId },
 			},
@@ -44,16 +43,7 @@ export const workflow = async (
 		if (!ticket) {
 			throw new ErrorBuilder(404, req.t('error:ticketNotFound'))
 		}
-		return res.redirect(
-			await getPassUrl(
-				ticket.id,
-				ticket.ticketType.name,
-				ticket.getCategory(),
-				ticket.remainingEntries != null
-					? undefined
-					: ticket.profile.name
-			)
-		)
+		return res.redirect(await getPassUrl(ticket))
 	} catch (err) {
 		// extra logging just in case
 		logger.error('Error Apple Wallet request failed')
