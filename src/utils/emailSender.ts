@@ -65,6 +65,7 @@ const getOrderEmailAttachments = async (
 				const ticketProfileName = ticket.profile.name
 					? `${ticket.profile.name}_`
 					: ''
+				ticket.qrCode = await generateQrCodeBuffer(ticket.id)
 				return createAttachment({
 					data: Buffer.from(await generatePdf([ticket]), 'base64'),
 					filename: `${ticketProfileName}${
