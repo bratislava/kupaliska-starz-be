@@ -11,13 +11,13 @@ on:
 jobs:
   conditions:
     name: Check for cluster conditions
-    uses: bratislava/github-actions/.github/workflows/cluster-deploy-conditions.yml@stable
+    uses: bratislava/github-actions/.github/workflows/cluster-deploy-conditions-inhouse.yml@stable
 
   deploy-dev:
     name: Deploy 'kupaliska' to DEV
     if: needs.conditions.outputs.dev == 'true'
     needs: [conditions]
-    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli.yml@stable
+    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli-inhouse.yml@stable
     with:
       directory: '.'
       cluster: tkg-innov-dev
@@ -32,7 +32,7 @@ jobs:
     name: Deploy 'kupaliska' to STAGING
     if: needs.conditions.outputs.staging == 'true'
     needs: [conditions]
-    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli.yml@stable
+    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli-inhouse.yml@stable
     with:
       directory: '.'
       cluster: tkg-innov-staging
@@ -47,7 +47,7 @@ jobs:
     name: Deploy 'kupaliska' to PROD
     if: needs.conditions.outputs.prod == 'true'
     needs: [conditions]
-    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli.yml@stable
+    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli-inhouse.yml@stable
     with:
       directory: '.'
       cluster: tkg-innov-prod
