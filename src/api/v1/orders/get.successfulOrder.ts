@@ -5,7 +5,7 @@ import { Op } from 'sequelize'
 import { NextFunction, Request, Response } from 'express'
 import { models } from '../../../db/models'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
-import { map } from 'lodash'
+import { clone, map } from 'lodash'
 import { generatePdf } from '../../../utils/pdfGenerator'
 
 const { Order } = models
@@ -66,17 +66,23 @@ export const workflow = async (
 			throw new ErrorBuilder(404, req.t('error:orderNotFound'))
 		}
 
-		for (const ticket of order.tickets) {
+		const pdfTickets = clone(order.tickets)
+		for (const ticket of pdfTickets) {
+			ticket.qrCode = await generateQrCodeDataUrl(ticket.id)
+		}
+
+		const pdfBase64 = await generatePdf(pdfTickets)
+
+		const responseTickets = clone(order.tickets)
+		for (const ticket of responseTickets) {
 			ticket.qrCode = await generateQrCodeDataUrl(ticket.id, {
 				width: 400,
 				margin: 0,
 			})
 		}
 
-		const pdfBase64 = await generatePdf(order.tickets)
-
 		return res.json({
-			tickets: map(order.tickets, (ticket) => formatTicket(ticket)),
+			tickets: map(responseTickets, (ticket) => formatTicket(ticket)),
 			pdf: `data:application/pdf;base64,${pdfBase64}`,
 		})
 	} catch (err) {
