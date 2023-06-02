@@ -6,6 +6,8 @@ import ErrorBuilder from './ErrorBuilder'
 import i18next from 'i18next'
 import { TICKET_CATEGORY } from './enums'
 import { TicketModel } from '../db/models/ticket'
+import '@js-joda/timezone'
+import { ChronoUnit, ZoneId, ZonedDateTime } from '@js-joda/core'
 
 export const checkTableExists = async (
 	queryInterface: QueryInterface,
@@ -15,12 +17,11 @@ export const checkTableExists = async (
 	return tables.find((item: string) => item === table)
 }
 
-export const getActualTime = (): string => {
-	const now = new Date()
-	return `${('0' + now.getHours()).slice(-2)}:${(
-		'0' + now.getMinutes()
-	).slice(-2)}`
-}
+export const getLocalTimezoneTime = (): string =>
+	ZonedDateTime.now(ZoneId.of('Europe/Bratislava'))
+		.toLocalTime()
+		.truncatedTo(ChronoUnit.MINUTES)
+		.toString()
 
 export const getHours = (time: string): number => {
 	return Number(time.substr(0, 2))

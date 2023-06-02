@@ -3,7 +3,7 @@ import { getHours, getMinutes } from './../../utils/helpers'
 import { Sequelize, DataTypes, literal, UUIDV4 } from 'sequelize'
 
 import { DatabaseModel } from '../../types/models'
-import { getActualTime } from '../../utils/helpers'
+import { getLocalTimezoneTime } from '../../utils/helpers'
 import { EntryModel } from './entry'
 import { OrderModel } from './order'
 import { ProfileModel } from './profile'
@@ -64,7 +64,10 @@ export class TicketModel extends DatabaseModel {
 	}
 	checkEntranceContraints() {
 		if (this.ticketType.hasEntranceConstraints) {
-			const timeNow = getActualTime()
+			// previously the UTC time of container was shifted to fit Bratislava local time
+			// now that we are big boys and don't do that this should be the only place where we need to count with local time
+			// everything else is still stored and communicated in UTC
+			const timeNow = getLocalTimezoneTime()
 			return Boolean(
 				this.ticketType.entranceFrom &&
 					timeNow.localeCompare(this.ticketType.entranceFrom) !==
