@@ -19,6 +19,7 @@ import { sendOrderEmail } from '../../../utils/emailSender'
 import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
 import { getCityAccountData } from '../../../utils/helpers'
 import { logger } from '../../../utils/logger'
+import { TicketModel } from '../../../db/models/ticket'
 
 const {
 	SwimmingLoggedUser,
@@ -385,7 +386,7 @@ const priceDryRun = async (
 
 // for each instance add unique ticket
 const saveTickets = async (
-	ticket: any,
+	user: GetUser,
 	ticketType: TicketTypeModel,
 	orderId: string,
 	dryRun: boolean,
@@ -404,8 +405,8 @@ const saveTickets = async (
 	// 		ticketType.price +
 	// 		(ticketType.childrenPrice || 0) * numberOfChildren;
 	if (!dryRun) {
-		const createdTicket = await createTicket(
-			ticket,
+		const createdTicket = await createTicketWithProfile(
+			user,
 			ticketType,
 			orderId,
 			isChildren,
@@ -553,8 +554,8 @@ const getDiscount = async (
 /**
  * Persist ticket with profile and his children. Also save profile IDs to the ticket object for later use when uploading profile photos.
  */
-const createTicket = async (
-	ticket: any,
+const createTicketWithProfile = async (
+	ticket: GetUser,
 	ticketType: TicketTypeModel,
 	orderId: string,
 	isChildren: boolean,
@@ -562,7 +563,8 @@ const createTicket = async (
 	parentTicketId: null | string
 ) => {
 	const profileId = uuidv4()
-	;(ticket.modelIds || (ticket.modelIds = [])).push(profileId)
+	// this was used in the now commented out uploadProfilePhotos - since that one was kept in code keeping this as well
+	// ;(ticket.modelIds || (ticket.modelIds = [])).push(profileId)
 	return await Ticket.create(
 		{
 			isChildren: isChildren,
@@ -595,12 +597,12 @@ const createTicket = async (
  * Upload profile photo for every ticket and children
  */
 
-const uploadProfilePhotos = async (ticket: any) => {
+const uploadProfilePhotos = async (ticket: TicketModel) => {
 	let relatedId = null
 	if (ticket.associatedSwimmerId) {
 		relatedId = ticket.associatedSwimmerId
-	} else if (ticket.loggedUserId) {
-		relatedId = ticket.loggedUserId
+	} else if (ticket.swimmingLoggedUserId) {
+		relatedId = ticket.swimmingLoggedUserId
 	}
 	const file = await File.findOne({ where: { relatedId: relatedId } })
 	if (file) {
