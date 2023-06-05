@@ -17,14 +17,44 @@ const template = new Template('generic', {
 	),
 	// this should suggest the ticket on users screen when they are near any of the swimming pools
 	// TODO test locations
-	// locations: [
-	// 	{
-	// 		latitude: 48.1499994,
-	// 		longitude: 17.1424423,
-	// 		relevantText: 'Kúpalisko Delfín',
-	// 	},
-	// ],
-	// maxDistance: 50,
+	locations: [
+		{
+			latitude: 48.1878005969888,
+			longitude: 17.1857867249402,
+			relevantText: 'Areál zdravia Zlaté piesky',
+		},
+		{
+			latitude: 48.172792,
+			longitude: 17.051565,
+			relevantText: 'Kúpalisko Rosnička',
+		},
+		{
+			latitude: 48.18726,
+			longitude: 17.05017,
+			relevantText: 'Kúpalisko Lamač',
+		},
+		{
+			latitude: 48.160879,
+			longitude: 17.135568,
+			relevantText: 'Kúpalisko Tehelné pole',
+		},
+		{
+			latitude: 48.149768,
+			longitude: 17.141951,
+			relevantText: 'Kúpalisko Delfín',
+		},
+		{
+			latitude: 48.201787,
+			longitude: 17.14532,
+			relevantText: 'Kúpalisko Krasňany',
+		},
+		{
+			latitude: 48.213609687683,
+			longitude: 17.146377606091,
+			relevantText: 'Kúpalisko Rača',
+		},
+	],
+	maxDistance: 50,
 })
 
 // all of these are async, should be ok not to wait on them when they happen on startup, we just need to watch for error logs
