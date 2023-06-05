@@ -8,6 +8,7 @@ import {
 } from '../../../utils/enums'
 import { generateQrCodeBuffer } from '../../../utils/qrCodeGenerator'
 import { getDataAboutCurrentUser } from '../../../utils/getDataCurrentUser'
+import { TicketTypeModel } from '../../../db/models/ticketType'
 
 const { Ticket, Order, TicketType, Entry, SwimmingPool } = models
 
@@ -82,13 +83,15 @@ export const workflow = async (
 				const ticketType = await TicketType.findByPk(
 					ticket.ticketTypeId
 				)
-				ticketResult.type = ticketType.name
+				// ?. for cases when the ticketType has been removed
+				ticketResult.type = ticketType?.name
 				const qrCode = await generateQrCodeBuffer(ticket.id)
 				ticketResult.qrCode =
 					'data:image/png;base64, ' +
 					Buffer.from(qrCode).toString('base64')
 
-				ticketResult.ownerName = ticket.profile.name
+				// ?. operator just in case
+				ticketResult.ownerName = ticket.profile?.name
 				ticketResult.age = ticket.profile.age
 				if (ticket.associatedSwimmerId) {
 					ticketResult.ownerId = ticket.associatedSwimmerId
