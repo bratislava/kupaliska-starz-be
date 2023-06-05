@@ -104,7 +104,7 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 			0,
 			adultsBackgroundHeight + childrenWithAdultBackgroundHeight,
 			352.5,
-			childrenWithAdultBackgroundHeight
+			childrenWithoutAdultBackgroundHeight
 		).fillAndStroke(
 			textColorsMap[TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT].background
 		)
