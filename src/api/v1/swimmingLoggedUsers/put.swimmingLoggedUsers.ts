@@ -14,7 +14,7 @@ export const swimmingLoggedUserUploadFolder = 'private/swimming-logged-user'
 export const schema = Joi.object().keys({
 	body: Joi.object().keys({
 		age: Joi.number(),
-		zip: Joi.string(),
+		zip: Joi.string().allow(null, ''),
 		// TODO uncomment once we give feedback on error on FE
 		// .pattern(
 		// 	new RegExp('^\\s*(\\d\\s*\\d\\s*\\d\\s*\\d\\s*\\d)?\\s*$')
