@@ -112,6 +112,7 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 	return {
 		name: parentTicket.profile.name,
 		type: parentTicket.ticketType.type,
+		disposable: parentTicket.ticketType.isDisposable,
 		tickets: map(order.tickets, (ticket, index) => {
 			const appleWalletUrl = `${appConfig.host}/api/v1/orders/appleWallet/${ticket.id}`
 			const googleWalletUrl = `${appConfig.host}/api/v1/orders/googlePay/${ticket.id}`
