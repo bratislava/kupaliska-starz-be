@@ -88,9 +88,9 @@ export const createPass = async (ticket: TicketModel) => {
 	const ticketId = ticket.id
 	const ticketName = getWalletPassTicketName(ticket)
 	const ticketDescription = getWalletPassTicketDescription(ticket)
-	// ticket.ticketType.isDisposable is unreliable in multi-entry tickets for the following
-	const ownerName =
-		ticket.remainingEntries != null ? undefined : ticket.profile.name
+	const ownerName = ticket.ticketType.isDisposable
+		? undefined
+		: ticket.profile.name
 
 	const pass = template.createPass({
 		backgroundColor: hexToRgbString(
