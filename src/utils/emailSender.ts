@@ -109,9 +109,6 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 			price: items.children.price,
 		})
 	}
-	const isDisposableTicket = (ticket: TicketModel) =>
-		ticket.remainingEntries == null
-
 	return {
 		name: parentTicket.profile.name,
 		type: parentTicket.ticketType.type,
@@ -122,7 +119,7 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 				heading: ticket.isChildren
 					? getChildrenTicketName()
 					: ticket.ticketType.name,
-				subheading: isDisposableTicket(ticket)
+				subheading: ticket.ticketType.isDisposable
 					? ticket.profile.name +
 					  `, ${i18next.t('year', {
 							count: ticket.profile.age,

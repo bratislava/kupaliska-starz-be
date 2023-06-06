@@ -20,9 +20,9 @@ export const getPassUrl = async (ticket: TicketModel) => {
 	const objectId = `${issuerId}.${ticket.id}`
 	const ticketName = getWalletPassTicketName(ticket)
 	const ticketDescription = getWalletPassTicketDescription(ticket)
-	// ticket.ticketType.isDisposable is unreliable in multi-entry tickets for the following
-	const ownerName =
-		ticket.remainingEntries != null ? undefined : ticket.profile.name
+	const ownerName = ticket.ticketType.isDisposable
+		? undefined
+		: ticket.profile.name
 
 	// TODO we can probably change the language to sk, but it might require tweaking the class as well - check in google pay console & test before trying in the wild
 	// presently, no harm doen when this is presented as "en" and english being the only language in which the pass is available
