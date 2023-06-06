@@ -102,7 +102,7 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 
 		doc.rect(
 			0,
-			adultsBackgroundHeight + childrenWithAdultBackgroundHeight,
+			adultsBackgroundHeight + childrenWithoutAdultBackgroundHeight,
 			352.5,
 			childrenWithoutAdultBackgroundHeight
 		).fillAndStroke(
