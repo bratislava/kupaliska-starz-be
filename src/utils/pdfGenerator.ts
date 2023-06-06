@@ -29,7 +29,7 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 	ticketsForPdf = sortTickets(ticketsForPdf)
 
 	let startPadding = 79.5
-	let endPadding = 20
+	let endPadding = 1
 
 	const rowPadding = isSeniorOrDisabledTicket ? 220 : 130
 	const rowPaddingChildren = 190
@@ -63,7 +63,7 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 		adultsBackgroundHeight =
 			startPadding +
 			numberOfAdults * (rowPadding + qrCodeHeight) +
-			(ticketsForPdf.length === numberOfAdults ? endPadding : 0)
+			(ticketsForPdf.length === numberOfAdults ? endPadding : -20)
 		doc.rect(0, 0, 352.5, adultsBackgroundHeight).fillAndStroke(
 			textColorsMap[
 				isSeniorOrDisabledTicket
@@ -71,6 +71,8 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 					: TICKET_CATEGORY.ADULT
 			].background
 		)
+
+		endPadding += 20
 	}
 
 	let childrenWithAdultBackgroundHeight = 0
@@ -95,6 +97,9 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 	let childrenWithoutAdultBackgroundHeight = 0
 	if (numberOfChildrenWithoutAdult > 0) {
 		childrenWithoutAdultBackgroundHeight =
+			(numberOfAdults === 0 && numberOfChildrenWithAdult === 0
+				? startPadding
+				: 0) +
 			numberOfChildrenWithoutAdult * (rowPaddingChildren + qrCodeHeight) +
 			endPadding
 
