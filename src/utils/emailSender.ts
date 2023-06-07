@@ -120,7 +120,7 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 				heading: ticket.isChildren
 					? getChildrenTicketName()
 					: ticket.ticketType.name,
-				subheading: ticket.ticketType.isDisposable
+				subheading: !ticket.ticketType.isDisposable
 					? ticket.profile.name +
 					  `, ${i18next.t('year', {
 							count: ticket.profile.age,
