@@ -114,7 +114,8 @@ export class TicketModel extends DatabaseModel {
 			} else {
 				return TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT
 			}
-		} else if (this.ticketType.isSeniorIsDisabled) {
+			// optionals because of older tickets
+		} else if (this?.ticketType?.isSeniorIsDisabled) {
 			return TICKET_CATEGORY.SENIOR_OR_DISABLED
 		} else {
 			return TICKET_CATEGORY.ADULT
