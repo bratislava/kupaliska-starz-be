@@ -71,9 +71,9 @@ const getOrderEmailAttachments = async (
 					// when filename contains "/" it will be deleted with everything before it therefore we need to replace it with something else
 					filename: `${ticketProfileName
 						.toString()
-						.replace('/', '-')}${ticket.ticketType.name
+						.replace('/', ', ')}${ticket.ticketType.name
 						.toString()
-						.replace('/', '-')}_${ticket.id.substr(
+						.replace('/', ', ')}_${ticket.id.substr(
 						ticket.id.length - 8
 					)}.pdf`,
 				})
