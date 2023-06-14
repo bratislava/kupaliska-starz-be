@@ -68,9 +68,14 @@ const getOrderEmailAttachments = async (
 				ticket.qrCode = await generateQrCodeBuffer(ticket.id)
 				return createAttachment({
 					data: Buffer.from(await generatePdf([ticket]), 'base64'),
-					filename: `${ticketProfileName}${
-						ticket.ticketType.name
-					}_${ticket.id.substr(ticket.id.length - 8)}.pdf`,
+					// when filename contains "/" it will be deleted with everything before it therefore we need to replace it with something else
+					filename: `${ticketProfileName
+						.toString()
+						.replace('/', ', ')}${ticket.ticketType.name
+						.toString()
+						.replace('/', ', ')}_${ticket.id.substr(
+						ticket.id.length - 8
+					)}.pdf`,
 				})
 			})
 		),
