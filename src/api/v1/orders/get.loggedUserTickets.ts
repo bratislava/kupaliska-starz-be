@@ -54,6 +54,7 @@ export const workflow = async (
 				},
 				{
 					association: 'ticketType',
+					paranoid: false,
 				},
 			],
 		})
