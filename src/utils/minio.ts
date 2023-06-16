@@ -3,13 +3,11 @@ import { Client } from 'minio'
 import { logger } from './logger'
 
 export const minioClient = new Client({
-	endPoint: 'cdn-api.bratislava.sk',
+	endPoint: 'assets-api.bratislava.sk',
 	port: 443,
 	useSSL: true,
-	// TODO these are mine (@mpinter), freshly generated credentials - ok to use, but should ultimately be removed from code & disabled in admin console
-	// this should be replaced by MINIO_ACCESS_KEY and MINIO_SECRET_KEY, which both exist as secrets in all of our kbs envs
-	accessKey: 'kyUXBuyU4fV2zEoQ',
-	secretKey: 'k8LRst9Mz5nbJIZwlcVLonRD6WgJYcQZ',
+	accessKey: 'khwpmmJS4kl1290wRMdm',
+	secretKey: 'KDfPkpJY0UVe254x2GhbZgJfRvs0cM3WQ9NEqldE',
 })
 
 // uploads a file stored on filesystem
