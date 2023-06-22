@@ -119,8 +119,6 @@ i18next
 
 const app = express()
 
-app.use(httpLogger)
-
 if (process.env.NODE_ENV !== ENV.test && process.env.SENTRY_DSN) {
 	initSentry(app)
 	app.use(Sentry.Handlers.requestHandler() as express.RequestHandler)
@@ -131,6 +129,7 @@ app.use(helmet())
 app.use(cors({ origin: appConfig.corsOrigins, credentials: true }))
 app.use(express.urlencoded({ extended: true, limit: '40mb' }))
 app.use(express.json({ limit: '40mb' }))
+app.use(httpLogger)
 
 if (process.env.NODE_ENV !== ENV.production) {
 	app.use((req, res, next) => {
