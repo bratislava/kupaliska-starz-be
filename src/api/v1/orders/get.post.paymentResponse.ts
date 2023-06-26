@@ -137,7 +137,13 @@ export const workflow = async (
 				)} - ${req.method} - ${req.ip}`
 			)
 			captureMessage('PAYMENT - was not successful', req.ip)
-			await order.update({ state: ORDER_STATE.FAILED })
+			if (
+				// PRCODE 14 means "RESULTTEXT":"Duplicate order number" and in this case we should not update order state beacause if it is already paid we don't want to change it
+				parseInt(data.PRCODE, 10) !== 14 ||
+				parseInt(data.SRCODE, 10) !== 0
+			) {
+				await order.update({ state: ORDER_STATE.FAILED })
+			}
 			return res.redirect(
 				`${webpayConfig.clientAppUrl}/order-result?success=false`
 			)
