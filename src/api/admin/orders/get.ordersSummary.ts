@@ -3,33 +3,52 @@ import { QueryTypes } from 'sequelize'
 import { NextFunction, Request, Response } from 'express'
 import sequelize, { models } from '../../../db/models'
 import { concat, filter, map, reduce } from 'lodash'
-import { getFilters, } from '../../../utils/dbFilters'
+import { getFilters } from '../../../utils/dbFilters'
 import { filtersSchema } from './get.orders'
 
 export const schema = Joi.object().keys({
 	body: Joi.object(),
 	query: Joi.object().keys({
-		filters: filtersSchema
+		filters: filtersSchema,
 	}),
-	params: Joi.object()
+	params: Joi.object(),
 })
 
-const {
-	TicketType
-} = models
+const { TicketType } = models
 
-
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { query }: any = req
-		const { swimmingPools, ticketTypes, email, ...otherFilters } = query.filters || {}
-		
-		const [ordersFilterVariables, ordersFilterSQL] = getFilters(otherFilters || {}, "orders")
-		const [profilesFilterVariables, profilesFilterSQL] = getFilters(email ? { email } : {}, "profiles")
-		const [ticketTypesFilterVariables, ticketTypesFilterSQL] = getFilters(ticketTypes ? { id: ticketTypes} : {}, "ticketTypes")
-		const [swimmingPoolsFilterVariables, swimmingPoolsFilterSQL] = getFilters(swimmingPools ? { swimmingPoolId: swimmingPools} : {}, "swimmingPoolTicketType")
+		const { swimmingPools, ticketTypes, email, ...otherFilters } =
+			query.filters || {}
 
-		const ticketTypesSales = await sequelize.query<{ ticketTypeId: string, amount: string}>(`
+		const [ordersFilterVariables, ordersFilterSQL] = getFilters(
+			otherFilters || {},
+			'orders'
+		)
+		const [profilesFilterVariables, profilesFilterSQL] = getFilters(
+			email ? { email } : {},
+			'profiles'
+		)
+		const [ticketTypesFilterVariables, ticketTypesFilterSQL] = getFilters(
+			ticketTypes ? { id: ticketTypes } : {},
+			'ticketTypes'
+		)
+		const [swimmingPoolsFilterVariables, swimmingPoolsFilterSQL] =
+			getFilters(
+				swimmingPools ? { swimmingPoolId: swimmingPools } : {},
+				'swimmingPoolTicketType'
+			)
+
+		const ticketTypesSales = await sequelize.query<{
+			ticketTypeId: string
+			amount: string
+		}>(
+			`
 			SELECT
 				subq.ttid as "ticketTypeId", ROUND(SUM(subq.price), 2) as "amount"
 			FROM (
@@ -47,34 +66,48 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 					...ordersFilterVariables,
 					...profilesFilterVariables,
 					...ticketTypesFilterVariables,
-					...swimmingPoolsFilterVariables
+					...swimmingPoolsFilterVariables,
 				},
 				raw: true,
-				type: QueryTypes.SELECT
+				type: QueryTypes.SELECT,
 			}
 		)
 
 		const allTicketTypes = await TicketType.findAll({
-			paranoid: false
+			paranoid: false,
 		})
 
 		return res.json({
 			summary: concat(
 				map(allTicketTypes, (ticketType) => {
-
-					const ticketTypesSale = filter(ticketTypesSales, (sale) => (sale.ticketTypeId === ticketType.id))
+					const ticketTypesSale = filter(
+						ticketTypesSales,
+						(sale) => sale.ticketTypeId === ticketType.id
+					)
 					return {
 						name: ticketType.name,
-						amount: ticketTypesSale.length > 0 && ticketTypesSale[0].amount ? Number(ticketTypesSale[0].amount) : 0.00 
+						amount:
+							ticketTypesSale.length > 0 &&
+							ticketTypesSale[0].amount
+								? Number(ticketTypesSale[0].amount)
+								: 0.0,
 					}
 				}),
-				[{ 
-					name: req.t('totalAmount'),
-					amount: reduce(ticketTypesSales, (sum, sale) => {
-						return sale.amount ? Number(sale.amount) + sum : sum
-					}, 0)
-				}]
-			)
+				[
+					{
+						name: req.t('totalAmount'),
+						amount: reduce(
+							ticketTypesSales,
+							(sum, sale) => {
+								return sale.amount
+									? Number(sale.amount) + sum
+									: sum
+							},
+							0
+						),
+					},
+				]
+			),
 		})
 	} catch (err) {
 		return next(err)

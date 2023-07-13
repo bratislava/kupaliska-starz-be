@@ -1,11 +1,11 @@
-import { formatTicketType } from './../../../utils/formatters';
+import { formatTicketType } from './../../../utils/formatters'
 import Joi from 'joi'
 import { NextFunction, Request, Response } from 'express'
 import DB, { models } from '../../../db/models'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
-import { map } from 'lodash';
-import { Op, Transaction } from 'sequelize';
+import { map } from 'lodash'
+import { Op, Transaction } from 'sequelize'
 
 export const ticketTypePutSchema = {
 	name: Joi.string().max(255).required(),
@@ -15,35 +15,41 @@ export const ticketTypePutSchema = {
 	photoRequired: Joi.boolean().required(),
 	validFrom: Joi.date().required(),
 	validTo: Joi.date().min(Joi.ref('validFrom')).required(),
-	swimmingPools: Joi.array().min(1).items(
-		Joi.string().guid({ version: ['uuidv4'] }).required()
-	).required()
+	isSeniorIsDisabled: Joi.boolean().required(),
+	swimmingPools: Joi.array()
+		.min(1)
+		.items(
+			Joi.string()
+				.guid({ version: ['uuidv4'] })
+				.required()
+		)
+		.required(),
 }
 
 export const schema = Joi.object().keys({
 	body: Joi.object().keys(ticketTypePutSchema),
 	query: Joi.object(),
 	params: Joi.object().keys({
-		ticketTypeId: Joi.string().guid({ version: ['uuidv4'] }).required()
-	})
+		ticketTypeId: Joi.string()
+			.guid({ version: ['uuidv4'] })
+			.required(),
+	}),
 })
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
-
-	const {
-		TicketType,
-		SwimmingPool,
-		SwimmingPoolTicketType
-	} = models
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	const { TicketType, SwimmingPool, SwimmingPoolTicketType } = models
 
 	let transaction: Transaction
 	try {
 		const { body, params } = req
 
-		const ticketType = await TicketType.findByPk(params.ticketTypeId,
-			{
-				include: { association: 'swimmingPools' }
-			})
+		const ticketType = await TicketType.findByPk(params.ticketTypeId, {
+			include: { association: 'swimmingPools' },
+		})
 		if (!ticketType) {
 			throw new ErrorBuilder(404, req.t('error:ticketTypeNotFound'))
 		}
@@ -51,9 +57,9 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		const swimmingPools = await SwimmingPool.findAll({
 			where: {
 				id: {
-					[Op.in]: body.swimmingPools
-				}
-			}
+					[Op.in]: body.swimmingPools,
+				},
+			},
 		})
 		if (swimmingPools.length !== body.swimmingPools.length) {
 			throw new ErrorBuilder(400, req.t('error:incorrectSwimmingPools'))
@@ -66,15 +72,18 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		await SwimmingPoolTicketType.destroy({
 			where: {
 				ticketTypeId: {
-					[Op.eq]: ticketType.id
-				}
+					[Op.eq]: ticketType.id,
+				},
 			},
-			transaction
+			transaction,
 		})
-		await SwimmingPoolTicketType.bulkCreate(map(body.swimmingPools, (poolId) => ({
-			swimmingPoolId: poolId,
-			ticketTypeId: ticketType.id
-		})), { transaction })
+		await SwimmingPoolTicketType.bulkCreate(
+			map(body.swimmingPools, (poolId) => ({
+				swimmingPoolId: poolId,
+				ticketTypeId: ticketType.id,
+			})),
+			{ transaction }
+		)
 
 		await transaction.commit()
 		transaction = null
@@ -84,14 +93,15 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		return res.json({
 			data: {
 				id: ticketType.id,
-				ticketType: formatTicketType(ticketType)
+				ticketType: formatTicketType(ticketType),
 			},
-			messages: [{
-				type: MESSAGE_TYPE.SUCCESS,
-				message: req.t('success:admin.ticketTypes.updated')
-			}]
+			messages: [
+				{
+					type: MESSAGE_TYPE.SUCCESS,
+					message: req.t('success:admin.ticketTypes.updated'),
+				},
+			],
 		})
-
 	} catch (err) {
 		if (transaction) {
 			await transaction.rollback()

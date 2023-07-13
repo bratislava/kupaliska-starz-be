@@ -11,6 +11,10 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 	let numberOfChildren = 0
 	let numberOfAdults = 0
 	let numberOfChildrenWithAdult = 0
+	// adult tickets are either all for seniors/ztp or all for "regular" adults - so one senior/ztp is all we need to look for
+	const isSeniorOrDisabledTicket = ticketsForPdf.some(
+		(t) => t.getCategory() === TICKET_CATEGORY.SENIOR_OR_DISABLED
+	)
 	for (const ticket of ticketsForPdf) {
 		if (ticket.isChildren) {
 			numberOfChildren++
@@ -19,13 +23,15 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 			numberOfAdults++
 		}
 	}
+	const numberOfChildrenWithoutAdult =
+		numberOfChildren - numberOfChildrenWithAdult
 
 	ticketsForPdf = sortTickets(ticketsForPdf)
 
 	let startPadding = 79.5
 	let endPadding = 1
 
-	const rowPadding = 130
+	const rowPadding = isSeniorOrDisabledTicket ? 220 : 130
 	const rowPaddingChildren = 190
 	const qrCodeHeight = 240
 	const qrCodeLeftPadding = 56.25
@@ -59,7 +65,11 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 			numberOfAdults * (rowPadding + qrCodeHeight) +
 			(ticketsForPdf.length === numberOfAdults ? endPadding : -20)
 		doc.rect(0, 0, 352.5, adultsBackgroundHeight).fillAndStroke(
-			textColorsMap[TICKET_CATEGORY.ADULT].background
+			textColorsMap[
+				isSeniorOrDisabledTicket
+					? TICKET_CATEGORY.SENIOR_OR_DISABLED
+					: TICKET_CATEGORY.ADULT
+			].background
 		)
 
 		endPadding += 20
@@ -80,6 +90,25 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 			352.5,
 			childrenWithAdultBackgroundHeight
 		).fillAndStroke(
+			textColorsMap[TICKET_CATEGORY.CHILDREN_WITH_ADULT].background
+		)
+	}
+
+	let childrenWithoutAdultBackgroundHeight = 0
+	if (numberOfChildrenWithoutAdult > 0) {
+		childrenWithoutAdultBackgroundHeight =
+			(numberOfAdults === 0 && numberOfChildrenWithAdult === 0
+				? startPadding
+				: 0) +
+			numberOfChildrenWithoutAdult * (rowPaddingChildren + qrCodeHeight) +
+			endPadding
+
+		doc.rect(
+			0,
+			adultsBackgroundHeight + childrenWithAdultBackgroundHeight,
+			352.5,
+			childrenWithoutAdultBackgroundHeight
+		).fillAndStroke(
 			textColorsMap[TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT].background
 		)
 	}
@@ -99,7 +128,9 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 		})
 
 		const name = ticket.isChildren
-			? getChildrenTicketName(ticket.ticketType.name)
+			? getChildrenTicketName()
+			: isSeniorOrDisabledTicket
+			? i18next.t('translation:seniorOrDisabledTicket')
 			: ticket.ticketType.name
 
 		doc.fontSize(18)
@@ -118,7 +149,7 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 			doc.fontSize(12)
 				.font('resources/fonts/WorkSans-Medium.ttf')
 				.text(
-					`${ticket.profile.age} ${i18next.t('year', {
+					`${i18next.t('year', {
 						count: ticket.profile.age,
 					})}`,
 					{ align: 'center' }
@@ -143,6 +174,24 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 					{ align: 'center' }
 				)
 			startPadding += qrCodeHeight + rowPaddingChildren
+		} else if (isSeniorOrDisabledTicket) {
+			doc.moveDown(0.12)
+			doc.fontSize(12)
+				.font('resources/fonts/WorkSans-Medium.ttf')
+				.text(
+					`${i18next.t('year', {
+						count: ticket.profile.age,
+					})}`,
+					{ align: 'center' }
+				)
+
+			doc.moveDown(1)
+			doc.fontSize(12)
+				.font('resources/fonts/WorkSans-Medium.ttf')
+				.text(i18next.t('translation:seniorOrDisabledText'), {
+					align: 'center',
+				})
+			startPadding += qrCodeHeight + rowPadding
 		} else {
 			startPadding += qrCodeHeight + rowPadding
 		}
@@ -161,11 +210,20 @@ const getTicketTextColor = (ticket: TicketModel) => {
 }
 
 /**
- * Sort tickets by adults, children with adult, children
+ * Sort tickets by adults, ZTP, children with adult, children
  */
 const sortTickets = (ticketsForPdf: TicketModel[]) => {
 	ticketsForPdf.sort((a, b) => {
 		if (a.isChildren === false && b.isChildren === false) {
+			if (a.getCategory() === b.getCategory()) {
+				return 0
+			}
+			if (a.getCategory() === TICKET_CATEGORY.SENIOR_OR_DISABLED) {
+				return -1
+			} else if (b.getCategory() === TICKET_CATEGORY.SENIOR_OR_DISABLED) {
+				return 1
+			}
+			// shouldn't happen in 2023, but in case more categories are added we will not sort by them presently
 			return 0
 		}
 		if (a.isChildren === false) {

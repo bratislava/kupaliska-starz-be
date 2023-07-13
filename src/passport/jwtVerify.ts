@@ -4,10 +4,19 @@ import passport from 'passport'
 import { Request, Response, NextFunction } from 'express'
 
 import { models } from '../db/models'
-import { IJwtPayload, IJwtQrCodePayload, IJwtResetPasswordPayload } from '../types/interfaces'
+import {
+	ICognitoAccessToken,
+	IJwtPayload,
+	IJwtQrCodePayload,
+	IJwtResetPasswordPayload,
+} from '../types/interfaces'
 import ErrorBuilder from '../utils/ErrorBuilder'
 
-export const checkTokenFirstAuthentication = (req: Request, res: Response, next: NextFunction) => {
+export const checkTokenFirstAuthentication = (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	passport.authenticate(['jwt-forgotten-password'], (_err, user) => {
 		if (user) {
 			req.user = user
@@ -17,7 +26,11 @@ export const checkTokenFirstAuthentication = (req: Request, res: Response, next:
 	})(req, res, next)
 }
 
-export const optionalAuthenticationMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const optionalAuthenticationMiddleware = (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	passport.authenticate(['jwt-api'], (_err, user) => {
 		if (user) {
 			req.user = user
@@ -26,52 +39,43 @@ export const optionalAuthenticationMiddleware = (req: Request, res: Response, ne
 	})(req, res, next)
 }
 
-export const validateTicketMiddleware = (strategy: string) => (req: Request, res: Response, next: NextFunction) => {
-
-	passport.authenticate(strategy, (err, user, info) => {
-
-		if (err) {
-			return next(err)
-		}
-		if (!user) {
-			throw new ErrorBuilder(404, req.t('error:ticketNotFound'))
-		}
-
-		req.logIn(user, {}, function (logInErr) {
-			if (logInErr) { 
-				return next(logInErr) 
-			}
-			req.authInfo = info
-			return next();
-		});
-
-	})(req, res, next)
-}
-
-export const jwtAdminVerify = async (payload: IJwtPayload, done: VerifiedCallback) => {
+export const jwtAdminVerify = async (
+	payload: IJwtPayload,
+	done: VerifiedCallback
+) => {
 	try {
 		const { User } = models
 		const user = await User.findOne({
-			attributes: ['id', 'email', 'name', 'role', 'lastLoginAt', 'isConfirmed', 'createdAt', 'updatedAt'],
+			attributes: [
+				'id',
+				'email',
+				'name',
+				'role',
+				'lastLoginAt',
+				'isConfirmed',
+				'createdAt',
+				'updatedAt',
+			],
+			// @ts-ignore - was originally done this way and working previous years, TODO check why the typing complains
 			where: {
 				id: {
-					[Op.eq]: payload.uid
+					[Op.eq]: payload.uid,
 				},
 				[Op.not]: {
 					hash: {
-						[Op.eq]: ''
-					}
+						[Op.eq]: '',
+					},
 				},
 				tokenValidFromNumber: {
-					[Op.lte]: payload.s
+					[Op.lte]: payload.s,
 				},
 				issuedTokens: {
-					[Op.gte]: payload.s
+					[Op.gte]: payload.s,
 				},
 				isConfirmed: {
-					[Op.eq]: true
-				}
-			}
+					[Op.eq]: true,
+				},
+			},
 		})
 
 		if (!user) {
@@ -84,7 +88,11 @@ export const jwtAdminVerify = async (payload: IJwtPayload, done: VerifiedCallbac
 	}
 }
 
-export const jwtQrCodeVerify = async (req: Request, payload: IJwtQrCodePayload, done: VerifiedCallback) => {
+export const jwtQrCodeVerify = async (
+	req: Request,
+	payload: IJwtQrCodePayload,
+	done: VerifiedCallback
+) => {
 	try {
 		return done(null, req.user, { ticketId: payload.tid })
 	} catch (e) {
@@ -92,7 +100,11 @@ export const jwtQrCodeVerify = async (req: Request, payload: IJwtQrCodePayload, 
 	}
 }
 
-export const jwtOrderResponseVerify = async (req: Request, payload: IJwtPayload, done: VerifiedCallback) => {
+export const jwtOrderResponseVerify = async (
+	req: Request,
+	payload: IJwtPayload,
+	done: VerifiedCallback
+) => {
 	try {
 		return done(null, req.user || {}, { orderId: payload.uid })
 	} catch (e) {
@@ -100,19 +112,31 @@ export const jwtOrderResponseVerify = async (req: Request, payload: IJwtPayload,
 	}
 }
 
-export const jwtResetPasswordVerify = async (payload: IJwtResetPasswordPayload, done: VerifiedCallback) => {
+export const jwtResetPasswordVerify = async (
+	payload: IJwtResetPasswordPayload,
+	done: VerifiedCallback
+) => {
 	try {
 		const { User } = models
 		const user = await User.findOne({
-			attributes: ['id', 'email', 'name', 'role', 'lastLoginAt', 'isConfirmed', 'createdAt', 'updatedAt'],
+			attributes: [
+				'id',
+				'email',
+				'name',
+				'role',
+				'lastLoginAt',
+				'isConfirmed',
+				'createdAt',
+				'updatedAt',
+			],
 			where: {
 				id: {
-					[Op.eq]: payload.uid
+					[Op.eq]: payload.uid,
 				},
 				isConfirmed: {
-					[Op.eq]: true
-				}
-			}
+					[Op.eq]: true,
+				},
+			},
 		})
 
 		if (!user) {
@@ -125,3 +149,13 @@ export const jwtResetPasswordVerify = async (payload: IJwtResetPasswordPayload, 
 	}
 }
 
+export const jwtCognitoUserVerify = async (
+	payload: ICognitoAccessToken,
+	done: VerifiedCallback
+) => {
+	try {
+		return done(null, payload)
+	} catch (e) {
+		return done(e)
+	}
+}

@@ -2,9 +2,13 @@ resources:
   - ../../base
   - secrets/app.secret.yml
   - scaler.yml
+
+generatorOptions:
+    disableNameSuffixHash: false
+
 configMapGenerator:
-  - name: env
-    namespace: ${NAMESPACE}
-    behavior: merge
-    envs:
-      - .env
+- name: env
+  namespace: ${NAMESPACE}
+  behavior: merge
+  envs:
+    - .env

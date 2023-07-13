@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { Client } from 'minio'
+import { logger } from './logger'
 
 export const minioClient = new Client({
 	endPoint: 'cdn-api.bratislava.sk',
@@ -21,7 +22,7 @@ export const uploadFileToBucket = (fullPath: string) =>
 			fullPath,
 			function (e: any) {
 				if (e) {
-					console.log(e)
+					logger.error(e)
 					reject(e)
 				}
 				resolve(fullPath)
@@ -39,7 +40,7 @@ export const downloadFileFromBucket = (fullPath: string) =>
 			fullPath,
 			function (e) {
 				if (e) {
-					console.log(e)
+					logger.error(e)
 					reject(e)
 				}
 				resolve(fullPath)
@@ -59,7 +60,7 @@ export const minioStaticServeMiddleware =
 				`${path}${req.url}`,
 				(err, stream) => {
 					if (err) {
-						console.error(err)
+						logger.error(err)
 						return reject(err)
 					}
 					stream.on('data', (chunk: any) => res.write(chunk))
@@ -75,7 +76,7 @@ export const minioStaticServeMiddleware =
 // async (req, res) => {
 //   await new Promise((resolve, reject) => minioClient.getObject('kupaliska-starz', `files/public${req.url}`, (err, stream) => {
 //     if (err) {
-//       console.error(err)
+//       logger.error(err)
 //       return reject(err)
 //     }
 //     stream.on('data', (chunk: any) => res.write(chunk))

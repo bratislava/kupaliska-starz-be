@@ -1,12 +1,10 @@
 import Joi from 'joi'
 import { NextFunction, Request, Response } from 'express'
 import { Op } from 'sequelize'
-import sequelize, { models } from '../../../db/models'
+import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
-import {
-	azureGetAzureId,
-	isAzureAutehnticated,
-} from '../../../utils/azureAuthentication'
+import { models } from '../../../db/models'
+import { logger } from '../../../utils/logger'
 
 export const schema = Joi.object()
 
@@ -17,46 +15,31 @@ export const workflow = async (
 ) => {
 	try {
 		const { SwimmingLoggedUser } = models
-		if (await isAzureAutehnticated(req)) {
-			const oid = await azureGetAzureId(req)
-			if (oid) {
-				const swimmingLoggedUserExists =
-					await SwimmingLoggedUser.findOne({
-						where: {
-							externalId: { [Op.eq]: oid },
-						},
-					})
 
-				console.log(
-					'swimmingLoggedUserExists: ',
-					swimmingLoggedUserExists
+		const sub = getCognitoIdOfLoggedInUser(req)
+
+		if (sub) {
+			const swimmingLoggedUserExists = await SwimmingLoggedUser.findOne({
+				where: {
+					externalCognitoId: { [Op.eq]: sub },
+				},
+			})
+
+			if (!swimmingLoggedUserExists) {
+				await SwimmingLoggedUser.create({
+					externalCognitoId: sub,
+				})
+				logger.info(
+					`SwimmingLoggedUser with externalCognitoId: ${sub} created`
 				)
-
-				if (!swimmingLoggedUserExists) {
-					let transaction: any = null
-					transaction = await sequelize.transaction()
-
-					const order = await SwimmingLoggedUser.create(
-						{
-							externalId: oid,
-						},
-						{ transaction }
-					)
-
-					await transaction.commit()
-					console.log(
-						`SwimmingLoggedUser with externalId: ${oid} created`
-					)
-					return res.json(
-						`SwimmingLoggedUser with externalId: ${oid} created`
-					)
-				} else {
-					console.log('SwimmingLoggedUser already exists!')
-					return res.json(req.t('error:register.userExists'))
-				}
+				return res.json(
+					`SwimmingLoggedUser with externalCognitoId: ${sub} created`
+				)
+			} else {
+				return res.json(req.t('error:register.userExists'))
 			}
 		} else {
-			throw new ErrorBuilder(401, req.t('error:userNotAuthenticated'))
+			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
 		}
 	} catch (err) {
 		return next(err)

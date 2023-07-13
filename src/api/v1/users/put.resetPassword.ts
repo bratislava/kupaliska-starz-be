@@ -1,15 +1,17 @@
-import { UserModel } from '../../../db/models/user';
+import { UserModel } from '../../../db/models/user'
 import Joi from 'joi'
 import { NextFunction, Request, Response } from 'express'
 import DB, { models } from '../../../db/models'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
-import { hashPassword } from '../../../utils/authorization';
-import { Transaction } from 'sequelize';
+import { hashPassword } from '../../../utils/authorization'
+import { Transaction } from 'sequelize'
 import passwordComplexity, { ComplexityOptions } from 'joi-password-complexity'
 import config from 'config'
 
-const complexityOptions: ComplexityOptions  = config.get('passwordComplexityOptions')
+const complexityOptions: ComplexityOptions = config.get(
+	'passwordComplexityOptions'
+)
 
 export const userResetPasswordSchema = {
 	password: passwordComplexity(complexityOptions).required(),
@@ -19,13 +21,15 @@ export const userResetPasswordSchema = {
 export const schema = Joi.object().keys({
 	body: Joi.object().keys(userResetPasswordSchema),
 	query: Joi.object(),
-	params: Joi.object()
+	params: Joi.object(),
 })
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
-	const {
-		User,
-	} = models
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	const { User } = models
 
 	let transaction: Transaction
 	try {
@@ -45,15 +49,19 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		await user.update(
 			{
 				hash: hashedPassword,
-			}, { transaction })
+			},
+			{ transaction }
+		)
 
 		await transaction.commit()
 		return res.json({
 			data: {},
-			messages: [{
-				type: MESSAGE_TYPE.SUCCESS,
-				message: req.t('success:admin.users.passwordHasBeenReset')
-			}]
+			messages: [
+				{
+					type: MESSAGE_TYPE.SUCCESS,
+					message: req.t('success:admin.users.passwordHasBeenReset'),
+				},
+			],
 		})
 	} catch (err) {
 		if (transaction) {

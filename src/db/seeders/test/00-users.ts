@@ -18,7 +18,7 @@ export async function up(queryInterface: QueryInterface) {
 			isConfirmed: true,
 			hash: 'hashedPassword',
 			issuedTokens: 1,
-			tokenValidFromNumber: 0
+			tokenValidFromNumber: 0,
 		},
 		{
 			id: operator,
@@ -28,7 +28,7 @@ export async function up(queryInterface: QueryInterface) {
 			isConfirmed: true,
 			hash: hashPassword('amcefPass132', 10),
 			issuedTokens: 1,
-			tokenValidFromNumber: 0
+			tokenValidFromNumber: 0,
 		},
 
 		{
@@ -39,7 +39,7 @@ export async function up(queryInterface: QueryInterface) {
 			isConfirmed: true,
 			hash: hashPassword('amcefPass132', 10),
 			issuedTokens: 1,
-			tokenValidFromNumber: 0
+			tokenValidFromNumber: 0,
 		},
 		{
 			id: swimmingPoolOperator,
@@ -49,7 +49,7 @@ export async function up(queryInterface: QueryInterface) {
 			isConfirmed: true,
 			hash: 'hashedPassword',
 			issuedTokens: 1,
-			tokenValidFromNumber: 0
+			tokenValidFromNumber: 0,
 		},
 		{
 			id: swimmingPoolEmployee,
@@ -59,10 +59,9 @@ export async function up(queryInterface: QueryInterface) {
 			isConfirmed: true,
 			hash: 'hashedPassword',
 			issuedTokens: 1,
-			tokenValidFromNumber: 0
+			tokenValidFromNumber: 0,
 		},
 	])
-
 }
 
 export async function down(queryInterface: QueryInterface) {

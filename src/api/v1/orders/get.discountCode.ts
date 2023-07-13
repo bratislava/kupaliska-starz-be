@@ -7,16 +7,25 @@ export const schema = Joi.object().keys({
 	body: Joi.object(),
 	query: Joi.object(),
 	params: Joi.object().keys({
-		ticketTypeId: Joi.string().guid({ version: ['uuidv4'] }).required(),
-		code: Joi.string().required().min(5).max(20)
-	})
+		ticketTypeId: Joi.string()
+			.guid({ version: ['uuidv4'] })
+			.required(),
+		code: Joi.string().required().min(5).max(20),
+	}),
 })
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { params } = req
 
-		const discountCode = await getDiscountCode( params.code, params.ticketTypeId)
+		const discountCode = await getDiscountCode(
+			params.code,
+			params.ticketTypeId
+		)
 
 		if (!discountCode) {
 			throw new ErrorBuilder(404, req.t('error:discountCodeNotValid'))
@@ -25,12 +34,10 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		return res.json({
 			discountCode: {
 				code: discountCode.code,
-				amount: discountCode.amount
-			}
+				amount: discountCode.amount,
+			},
 		})
 	} catch (err) {
 		return next(err)
 	}
 }
-
-

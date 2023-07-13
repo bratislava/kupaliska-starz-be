@@ -1,7 +1,6 @@
 import { QueryInterface } from 'sequelize'
 export async function up(queryInterface: QueryInterface) {
 	try {
-
 		await queryInterface.sequelize.query(`
 			CREATE MATERIALIZED VIEW customers AS
 			SELECT
@@ -29,19 +28,16 @@ export async function up(queryInterface: QueryInterface) {
 					LEFT JOIN "orders" AS "order" ON "ticket"."orderId" = "order"."id" AND ("order"."deletedAt" IS NULL)
 					WHERE "profile"."deletedAt" IS NULL and "ticket"."deletedAt" IS null
 				) as subq
-			GROUP BY "subq"."email"`
-		);
+			GROUP BY "subq"."email"`)
 
 		return Promise.resolve()
-
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
 	await queryInterface.sequelize.query(`
-		DROP MATERIALIZED VIEW customers;`
-	);
+		DROP MATERIALIZED VIEW customers;`)
 	return Promise.resolve()
 }

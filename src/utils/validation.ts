@@ -1,15 +1,20 @@
-
 import { Schema } from 'joi'
 import ErrorBuilder from './ErrorBuilder'
-import validator from 'validator';
+import validator from 'validator'
 import mime from 'mime-types'
-import sanitizeHtml from 'sanitize-html';
+import sanitizeHtml from 'sanitize-html'
 
 const options = {
-	abortEarly: false
+	abortEarly: false,
 }
 
-export const validate = (condition: boolean, obj: any, schema: Schema, message?: string, key?: string) => {
+export const validate = (
+	condition: boolean,
+	obj: any,
+	schema: Schema,
+	message?: string,
+	key?: string
+) => {
 	if (!schema) {
 		throw new Error('Validation schema is not provided')
 	}
@@ -22,78 +27,77 @@ export const validate = (condition: boolean, obj: any, schema: Schema, message?:
 	}
 }
 
-export const validBase64 = (maxFileSize: number, validExtensions: string[]) => (value: any, helpers: any) => {
+export const validBase64 =
+	(maxFileSize: number, validExtensions: string[]) =>
+	(value: any, helpers: any) => {
+		// validate data uri
+		if (validator.isDataURI(value) === false) {
+			return helpers.error('base64.invalid')
+		}
 
-	// validate data uri
-	if (validator.isDataURI(value) === false) {
-		return helpers.error('base64.invalid');
+		var matches = value.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
+		if (!matches || matches.length !== 3) {
+			return helpers.error('base64.invalid')
+		}
+		const mimeType = matches[1]
+		const data = matches[2]
+
+		// validate extension
+		const type = mime.extension(mimeType)
+		if (type === false || validExtensions.includes(type) === false) {
+			return helpers.error('base64.extensions')
+		}
+
+		// validate base64
+		if (data === '' || validator.isBase64(data) === false) {
+			return helpers.error('base64.invalid')
+		}
+
+		// validate size
+		const size = Buffer.byteLength(data, 'base64')
+		if (size > maxFileSize) {
+			return helpers.error('base64.size')
+		}
+
+		// Return the value unchanged
+		return value
 	}
-
-	var matches = value.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/)
-	if (!matches || matches.length !== 3) {
-		return helpers.error('base64.invalid');
-	}
-	const mimeType = matches[1]
-	const data = matches[2]
-
-	// validate extension
-	const type = mime.extension(mimeType)
-	if (type === false || validExtensions.includes(type) === false) {
-		return helpers.error('base64.extensions');
-	}
-
-	// validate base64
-	if (data === '' || validator.isBase64(data) === false) {
-		return helpers.error('base64.invalid');
-	}
-
-	// validate size
-	const size = Buffer.byteLength(data, 'base64')
-	if (size > maxFileSize) {
-		return helpers.error('base64.size');
-	}
-
-	// Return the value unchanged
-	return value;
-};
 
 export const joiCustomTimeRules = () => (joi: any) => {
 	return {
 		type: 'time',
 		base: joi.string().regex(/^([0-2][0-9]):([0-5][0-9])$/),
 		messages: {
-			'time.minTime': '{{#label}} must be greather than {{#q}}'
+			'time.minTime': '{{#label}} must be greather than {{#q}}',
 		},
 		rules: {
 			minTime: {
 				method(q: any) {
-
-					return this.$_addRule({ name: 'minTime', args: { q } });
+					return this.$_addRule({ name: 'minTime', args: { q } })
 				},
 				args: [
 					{
 						name: 'q',
 						ref: true,
 						assert: (value: string) => typeof value === 'string',
-						message: 'must be a string'
-					}
+						message: 'must be a string',
+					},
 				],
 				validate(value: string, helpers: any, args: any, _: any) {
-
-					if (Number(value.substr(0, 2)) > 23 ) {
-						return helpers.error('time');
+					if (Number(value.substr(0, 2)) > 23) {
+						return helpers.error('time')
 					}
 
 					if (args.q.localeCompare(value) !== -1) {
-						return helpers.error('time.minTime', { q: args.q });
+						return helpers.error('time.minTime', { q: args.q })
 					}
 
 					return value
-				}
+				},
 			},
-		}
-	};
-};
+		},
+	}
+}
 
 export const joiCustomSanitizeRules = () => (joi: any) => {
 	return {
@@ -102,13 +106,12 @@ export const joiCustomSanitizeRules = () => (joi: any) => {
 		rules: {
 			htmlStrip: {
 				validate(value: string) {
-
 					return sanitizeHtml(value, {
-                        allowedTags: [],
-                        allowedAttributes: {},
-                    });
-				}
+						allowedTags: [],
+						allowedAttributes: {},
+					})
+				},
 			},
-		}
-	};
-};
+		},
+	}
+}

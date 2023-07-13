@@ -45,7 +45,7 @@
 		"maxtTicketsPerOrder": "Maximálny počet lístkov na objednávke je 10",
 		"notLoggedUserForTicket": "Pre kúpu tohoto lístku musíte byť prihlásený",
 		"notFoundTicketType": "Typ lístka nenájdený",
-		"minimumIsOneAdult": "Musí byť aspoň 1 dospelácky",
+		"minimumIsOneAdult": "Súčasťou lístka musí byť aspoň 1 dospelý",
 		"discountOnlyForOneUser": "Zľavový kód môže byť uplatnený iba pre jednu dospelú osobu, odstránte prosím ostatné dospelé osoby z objednávky."
 	},
 	"ticketNotFound": "Lístok sa nenašiel",
@@ -56,6 +56,7 @@
 	"uploadIncorrectSubdir": "Nie je možné nahrať súbor, cieľový adresár neexistuje",
 	"userAlreadyExists": "Používateľ už existuje",
 	"userEmailAlreadyExists": "Email už existuje",
+	"emailNotFoundOnUser": "Nepodarilo sa získať emailovú adresu z mestského konta - kontaktujte prosím podporu",
 	"userNotFound": "Používateľ sa nenašiel",
 	"wrongEmail": "Používateľ so zadaným emailom neexistuje",
 	"exceededOrderingNumber": "Prekročené maximálne poradie",

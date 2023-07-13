@@ -7,7 +7,7 @@ export async function up(queryInterface: QueryInterface) {
 				timestamp TIMESTAMPtz,
 				summary integer
 			);
-		`);
+		`)
 
 		await queryInterface.sequelize.query(`
 			CREATE or replace FUNCTION calculate_visit_duration
@@ -27,7 +27,7 @@ export async function up(queryInterface: QueryInterface) {
 				end;
 				$BODY$
 				LANGUAGE plpgsql;
-		`);
+		`)
 
 		await queryInterface.sequelize.query(`
 			CREATE FUNCTION visit_duration_final_function (ENTRY)
@@ -36,7 +36,7 @@ export async function up(queryInterface: QueryInterface) {
 				AS $$
 					SELECT ($1.summary);
 				$$;
-		`);
+		`)
 
 		await queryInterface.sequelize.query(`
 			CREATE AGGREGATE visit_duration (timestamptz, varchar(3)) (
@@ -45,17 +45,16 @@ export async function up(queryInterface: QueryInterface) {
 				sfunc = calculate_visit_duration, -- this is the function that knows how to compute sum from existing sum and new element.
 				finalfunc = visit_duration_final_function -- returns the result for the aggregate function.
 			);
-		`);
+		`)
 
 		return Promise.resolve()
-
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-	await queryInterface.sequelize.query('DROP TYPE ENTRY CASCADE');
+	await queryInterface.sequelize.query('DROP TYPE ENTRY CASCADE')
 
 	return Promise.resolve()
 }

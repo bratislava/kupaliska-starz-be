@@ -10,33 +10,32 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			paymentAmount: {
 				type: DataTypes.DECIMAL(10, 2),
-				allowNull: false
+				allowNull: false,
 			},
 			orderId: {
 				type: DataTypes.UUID,
 				references: {
-					model: "orders",
-					key: "id"
+					model: 'orders',
+					key: 'id',
 				},
-				allowNull: false
+				allowNull: false,
 			},
 			createdAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			updatedAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
-		});
-
+		})
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-	await queryInterface.dropTable('paymentOrders');
+	await queryInterface.dropTable('paymentOrders')
 }

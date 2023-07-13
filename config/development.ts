@@ -4,5 +4,5 @@ export = {
 	app: {
 		filesPath: 'files',
 		logsPath: 'logs',
-	}
+	},
 }

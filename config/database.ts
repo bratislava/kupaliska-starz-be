@@ -1,7 +1,6 @@
 import 'dotenv/config'
 import { Options } from 'sequelize'
 
-
 const postgresqlUrl = `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}/${process.env.POSTGRES_DB}`
 
 export const development = {
@@ -10,12 +9,12 @@ export const development = {
 		minifyAliases: false,
 		logging: false,
 		pool: {
-			max: 4
+			max: 4,
 		},
-		dialect: 'postgres'
+		dialect: 'postgres',
 	},
 	seederStorage: 'sequelize',
-	seederStorageTableName: 'SequelizeMetaSeeders'
+	seederStorageTableName: 'SequelizeMetaSeeders',
 }
 
 export const test = {
@@ -24,10 +23,10 @@ export const test = {
 		minifyAliases: false,
 		logging: false,
 		pool: {
-			max: 10
+			max: 10,
 		},
-		dialect: 'postgres'
-	}
+		dialect: 'postgres',
+	},
 }
 
 export const production = {
@@ -36,10 +35,10 @@ export const production = {
 		minifyAliases: false,
 		logging: false,
 		pool: {
-			max: 20
+			max: 20,
 		},
-		dialect: 'postgres'
+		dialect: 'postgres',
 	},
 	seederStorage: 'sequelize',
-	seederStorageTableName: 'SequelizeMetaSeeders'
+	seederStorageTableName: 'SequelizeMetaSeeders',
 }

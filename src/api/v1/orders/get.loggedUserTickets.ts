@@ -1,9 +1,4 @@
 import { Request, Response, NextFunction } from 'express'
-import {
-	azureGetAzureData,
-	isAzureAutehnticated,
-} from '../../../utils/azureAuthentication'
-import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { models } from '../../../db/models'
 import {
 	ENTRY_TYPE,
@@ -11,7 +6,9 @@ import {
 	textColorsMap,
 	TICKET_CATEGORY,
 } from '../../../utils/enums'
-import { generateQrCode } from '../../../utils/qrCodeGenerator'
+import { generateQrCodeBuffer } from '../../../utils/qrCodeGenerator'
+import { getDataAboutCurrentUser } from '../../../utils/getDataCurrentUser'
+import { TicketTypeModel } from '../../../db/models/ticketType'
 
 const { Ticket, Order, TicketType, Entry, SwimmingPool } = models
 
@@ -47,25 +44,17 @@ export const workflow = async (
 	next: NextFunction
 ) => {
 	try {
-		let authTest = false
-		try {
-			authTest = await isAzureAutehnticated(req)
-		} catch (err) {
-			throw new ErrorBuilder(401, req.t('error:notAuthenticated'))
-		}
-		let loggedUser = null
-		if (authTest) {
-			loggedUser = await azureGetAzureData(req)
-		} else {
-			throw new ErrorBuilder(401, req.t('error:notAuthenticated'))
-		}
-
+		const swimmingLoggedUser = await getDataAboutCurrentUser(req)
 		const tickets = await Ticket.findAll({
-			where: { loggedUserId: loggedUser.oid },
+			where: { swimmingLoggedUserId: swimmingLoggedUser.id },
 			order: [['createdAt', 'DESC']],
 			include: [
 				{
 					association: 'profile',
+				},
+				{
+					association: 'ticketType',
+					paranoid: false,
 				},
 			],
 		})
@@ -95,51 +84,23 @@ export const workflow = async (
 				const ticketType = await TicketType.findByPk(
 					ticket.ticketTypeId
 				)
-				ticketResult.type = ticketType.name
-				const qrCode = await generateQrCode(
-					ticket.id,
-					'buffer',
-					ticketType.getExpiresIn()
-				)
+				// ?. for cases when the ticketType has been removed
+				ticketResult.type = ticketType?.name
+				const qrCode = await generateQrCodeBuffer(ticket.id)
 				ticketResult.qrCode =
 					'data:image/png;base64, ' +
 					Buffer.from(qrCode).toString('base64')
 
-				ticketResult.ownerName = ticket.profile.name
+				// ?. operator just in case
+				ticketResult.ownerName = ticket.profile?.name
 				ticketResult.age = ticket.profile.age
 				if (ticket.associatedSwimmerId) {
 					ticketResult.ownerId = ticket.associatedSwimmerId
 				} else {
-					ticketResult.ownerId = ticket.loggedUserId
+					ticketResult.ownerId = ticket.swimmingLoggedUserId
 				}
 
-				if (
-					ticketType.childrenAgeFrom &&
-					ticketType.childrenAgeTo &&
-					ticketType.childrenAgeToWithAdult
-				) {
-					if (
-						ticketResult.age >= ticketType.childrenAgeFrom &&
-						ticketResult.age <= ticketType.childrenAgeToWithAdult
-					) {
-						ticketResult.ticketColor =
-							textColorsMap[TICKET_CATEGORY.CHILDREN_WITH_ADULT]
-					} else if (
-						ticketResult.age > ticketType.childrenAgeToWithAdult &&
-						ticketResult.age <= ticketType.childrenAgeTo
-					) {
-						ticketResult.ticketColor =
-							textColorsMap[
-								TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT
-							]
-					} else {
-						ticketResult.ticketColor =
-							textColorsMap[TICKET_CATEGORY.ADULT]
-					}
-				} else {
-					ticketResult.ticketColor =
-						textColorsMap[TICKET_CATEGORY.ADULT]
-				}
+				ticketResult.ticketColor = textColorsMap[ticket.getCategory()]
 
 				ticketResult.entries = await getEntries(ticket.id)
 				result.push(ticketResult)

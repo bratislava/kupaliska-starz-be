@@ -1,57 +1,57 @@
-version: "3.8"
+version: '3.8'
 services:
-  app:
-    image: ${IMAGE}:${IMAGE_TAG}
-    restart: unless-stopped
-    ports:
-      - "${APP_HOST_OUT}:${PORT}"
-    volumes:
-      - app_files:/app/files
-      - app_logs:/app/logs
-    depends_on:
-      - postgres
-    environment: 
-      - HOST
-      - PORT
-      - CORS_ORIGINS
-      - JWT_SECRET
-      - CONTACT_EMAIL
-      - MAILGUN_API_KEY
-      - MAILGUN_DOMAIN
-      - MAILGUN_HOST
-      - MAILGUN_EMAIL_FROM
-      - MAILGUN_TEMPLATE_RESET_PASSWORD
-      - MAILGUN_TEMPLATE_ORDER
-      - MAILGUN_TEMPLATE_SET_PASSWORD
-      - FE_RESET_PASSWORD_URL
-      - POSTGRES_USER
-      - POSTGRES_DB
-      - POSTGRES_PASSWORD
-      - POSTGRES_HOST
-      - MAX_TICKET_PURCHASE_LIMIT
-      - SENTRY_DSN
-      - SENTRY_ENV
-      - SENTRY_TRACES_SAMPLE_RATE
-      - SENTRY_DEBUG
-      - RECAPTCHA_CLIENT_SECRET
-      - GP_WEBPAY_HTTP_API_URL
-      - GP_WEBPAY_MERCHANT_NUMBER
-      - GP_WEBPAY_CURRENCY
-      - GP_WEBPAY_KEYS_PATH
-      - GP_WEBPAY_PRIV_KEY_PASS
-      - GP_WEBPAY_CLIENT_APP_URL
-      - GP_WEBPAY_PROVIDER
+    app:
+        image: ${IMAGE}:${IMAGE_TAG}
+        restart: unless-stopped
+        ports:
+            - '${APP_HOST_OUT}:${PORT}'
+        volumes:
+            - app_files:/app/files
+            - app_logs:/app/logs
+        depends_on:
+            - postgres
+        environment:
+            - HOST
+            - PORT
+            - CORS_ORIGINS
+            - JWT_SECRET
+            - CONTACT_EMAIL
+            - MAILGUN_API_KEY
+            - MAILGUN_DOMAIN
+            - MAILGUN_HOST
+            - MAILGUN_EMAIL_FROM
+            - MAILGUN_TEMPLATE_RESET_PASSWORD
+            - MAILGUN_TEMPLATE_ORDER
+            - MAILGUN_TEMPLATE_SET_PASSWORD
+            - FE_RESET_PASSWORD_URL
+            - POSTGRES_USER
+            - POSTGRES_DB
+            - POSTGRES_PASSWORD
+            - POSTGRES_HOST
+            - MAX_TICKET_PURCHASE_LIMIT
+            - SENTRY_DSN
+            - SENTRY_ENV
+            - SENTRY_TRACES_SAMPLE_RATE
+            - SENTRY_DEBUG
+            - TURNSTILE_SECRET_KEY
+            - GP_WEBPAY_HTTP_API_URL
+            - GP_WEBPAY_MERCHANT_NUMBER
+            - GP_WEBPAY_CURRENCY
+            - GP_WEBPAY_KEYS_PATH
+            - GP_WEBPAY_PRIV_KEY_PASS
+            - GP_WEBPAY_CLIENT_APP_URL
+            - GP_WEBPAY_PROVIDER
 
-  postgres:
-    image: postgres:13-alpine
-    restart: unless-stopped
-    environment:
-      - POSTGRES_USER
-      - POSTGRES_DB
-      - POSTGRES_PASSWORD
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+    postgres:
+        image: postgres:13-alpine
+        restart: unless-stopped
+        environment:
+            - POSTGRES_USER
+            - POSTGRES_DB
+            - POSTGRES_PASSWORD
+        volumes:
+            - pgdata:/var/lib/postgresql/data
 volumes:
-  app_files:
-  app_logs:
-  pgdata:
+    app_files:
+    app_logs:
+    pgdata:

@@ -6,7 +6,7 @@ Based on Conventional Changelog's [angular preset](https://github.com/convention
 
 ### Commit Message Format
 
-A commit message consists of a **header**, **body** and **footer**.  The header has a **type**, **scope** and **subject**:
+A commit message consists of a **header**, **body** and **footer**. The header has a **type**, **scope** and **subject**:
 
 ```
 <type>(<scope>): <subject>
@@ -26,15 +26,15 @@ If the commit reverts a previous commit, it should begin with `revert: `, follow
 
 Must be one of the following:
 
-* **build**: Changes that affect the build system or external dependencies (example scopes: npm, PyPI, Docker, Helm)
-* **ci**: Changes to our CI configuration files and scripts (example scopes: GitLab, semantic-release)
-* **docs**: Documentation only changes
-* **feat**: A new feature
-* **fix**: A bug fix
-* **perf**: A code change that improves performance
-* **refactor**: A code change that neither fixes a bug nor adds a feature
-* **test**: Adding missing tests or correcting existing tests
-* **style**: Miscellaneous styling changes
+-   **build**: Changes that affect the build system or external dependencies (example scopes: npm, PyPI, Docker, Helm)
+-   **ci**: Changes to our CI configuration files and scripts (example scopes: GitLab, semantic-release)
+-   **docs**: Documentation only changes
+-   **feat**: A new feature
+-   **fix**: A bug fix
+-   **perf**: A code change that improves performance
+-   **refactor**: A code change that neither fixes a bug nor adds a feature
+-   **test**: Adding missing tests or correcting existing tests
+-   **style**: Miscellaneous styling changes
 
 If the prefix is `feat`, `fix` or `perf`, it will appear in the changelog. However if there is any [BREAKING CHANGE](#footer), the commit will always appear in the changelog.
 
@@ -50,9 +50,9 @@ The scope does not necessarily need to be defined which can be useful for `test`
 
 The subject contains succinct description of the change:
 
-* use the imperative, present tense: "change" not "changed" nor "changes"
-* don't capitalize first letter
-* no dot (.) at the end
+-   use the imperative, present tense: "change" not "changed" nor "changes"
+-   don't capitalize first letter
+-   no dot (.) at the end
 
 ### Body
 
