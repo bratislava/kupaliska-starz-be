@@ -56,7 +56,7 @@ export const schema = Joi.object({
 			.required()
 			.items({
 				personId: Joi.string().allow(null),
-				age: Joi.number().min(0).max(150).allow(null),
+				age: Joi.number().integer().min(0).max(150).allow(null),
 				zip: Joi.string().min(0).max(10).allow(null, ''),
 			}),
 		email: Joi.string().email().max(255),
