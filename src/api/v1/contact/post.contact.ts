@@ -1,10 +1,8 @@
-import { joiCustomSanitizeRules } from './../../../utils/validation';
+import { joiCustomSanitizeRules } from './../../../utils/validation'
 import Joi from 'joi'
 
 import { NextFunction, Request, Response } from 'express'
-import {
-	MESSAGE_TYPE
-} from '../../../utils/enums'
+import { MESSAGE_TYPE } from '../../../utils/enums'
 import { sendRawEmail } from '../../../services/mailerService'
 import { IAppConfig } from '../../../types/interfaces'
 import config from 'config'
@@ -17,16 +15,20 @@ export const contactSchema = {
 	email: JoiExtended.string().email().max(255).required().htmlStrip(),
 	message: JoiExtended.string().required().max(5000).htmlStrip(),
 	agreement: Joi.boolean().valid(true).required(),
-	recaptcha: Joi.string().required(),
+	token: Joi.string().required(),
 }
 
 export const schema = Joi.object().keys({
 	body: Joi.object().keys(contactSchema),
 	query: Joi.object(),
-	params: Joi.object()
+	params: Joi.object(),
 })
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { body } = req
 
@@ -41,12 +43,13 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		)
 
 		return res.json({
-			data: {
-			},
-			messages: [{
-				type: MESSAGE_TYPE.SUCCESS,
-				message: req.t('success:contactSent')
-			}]
+			data: {},
+			messages: [
+				{
+					type: MESSAGE_TYPE.SUCCESS,
+					message: req.t('success:contactSent'),
+				},
+			],
 		})
 	} catch (err) {
 		return next(err)

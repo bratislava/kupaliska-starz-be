@@ -1,4 +1,4 @@
-import { ENTRY_TYPE } from '../../../utils/enums';
+import { ENTRY_TYPE } from '../../../utils/enums'
 import Joi from 'joi'
 import { QueryTypes } from 'sequelize'
 import { NextFunction, Request, Response } from 'express'
@@ -8,15 +8,22 @@ export const schema = Joi.object().keys({
 	body: Joi.object(),
 	query: Joi.object(),
 	params: Joi.object().keys({
-		swimmingPoolId: Joi.string().guid({ version: ['uuidv4'] }).required()
-	})
+		swimmingPoolId: Joi.string()
+			.guid({ version: ['uuidv4'] })
+			.required(),
+	}),
 })
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { params } = req
 
-		const currentVisits = await sequelize.query<{ count: number }>(`
+		const currentVisits = await sequelize.query<{ count: number }>(
+			`
 			SELECT COUNT(*)
 			FROM tickets
 			WHERE EXISTS
@@ -40,7 +47,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			{
 				bind: {
 					swimmingPoolId: params.swimmingPoolId,
-					entryType: ENTRY_TYPE.CHECKIN
+					entryType: ENTRY_TYPE.CHECKIN,
 				},
 				raw: true,
 				plain: true,
@@ -49,9 +56,8 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		)
 
 		return res.json({
-			numberOfCurrentVisits: currentVisits.count
+			numberOfCurrentVisits: currentVisits.count,
 		})
-
 	} catch (err) {
 		return next(err)
 	}

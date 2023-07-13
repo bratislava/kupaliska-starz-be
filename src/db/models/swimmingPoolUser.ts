@@ -1,8 +1,4 @@
-import {
-	Sequelize,
-	DataTypes,
-	literal,
-} from 'sequelize'
+import { Sequelize, DataTypes, literal } from 'sequelize'
 
 import { DatabaseModel } from '../../types/models'
 
@@ -14,33 +10,36 @@ export class SwimmingPoolUserModel extends DatabaseModel {
 }
 
 export default (sequelize: Sequelize) => {
-	SwimmingPoolUserModel.init({
-		userId: {
-			type: DataTypes.UUID,
-			primaryKey: true,
-			allowNull: false,
+	SwimmingPoolUserModel.init(
+		{
+			userId: {
+				type: DataTypes.UUID,
+				primaryKey: true,
+				allowNull: false,
+			},
+			swimmingPoolId: {
+				type: DataTypes.UUID,
+				primaryKey: true,
+				allowNull: false,
+			},
+			createdAt: {
+				type: DataTypes.DATE,
+				allowNull: false,
+				defaultValue: literal('NOW()'),
+			},
+			updatedAt: {
+				type: DataTypes.DATE,
+				allowNull: false,
+				defaultValue: literal('NOW()'),
+			},
 		},
-		swimmingPoolId: {
-			type: DataTypes.UUID,
-			primaryKey: true,
-			allowNull: false,
-		},
-		createdAt: {
-			type: DataTypes.DATE,
-			allowNull: false,
-			defaultValue: literal('NOW()')
-		},
-		updatedAt: {
-			type: DataTypes.DATE,
-			allowNull: false,
-			defaultValue: literal('NOW()')
+		{
+			freezeTableName: true,
+			timestamps: true,
+			sequelize,
+			modelName: 'swimmingPoolUser',
 		}
-	}, {
-		freezeTableName: true,
-		timestamps: true,
-		sequelize,
-		modelName: 'swimmingPoolUser',
-	})
+	)
 
 	return SwimmingPoolUserModel
 }

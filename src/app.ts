@@ -4,9 +4,9 @@ import i18nextBackend from 'i18next-node-fs-backend'
 import express from 'express'
 import cors from 'cors'
 import config from 'config'
-import path from 'path'
 import i18next, { InitOptions } from 'i18next'
-import { Strategy as JwtStrategy } from 'passport-jwt'
+import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt'
+import { passportJwtSecret } from 'jwks-rsa'
 import helmet from 'helmet'
 
 // services
@@ -15,11 +15,14 @@ import Sentry, { initSentry } from './services/sentryService'
 // middlewares
 import errorMiddleware from './middlewares/errorMiddleware'
 import sentryMiddleware from './middlewares/sentryMiddleware'
-import requestMiddleware from './middlewares/requestMiddleware'
 
 // passport
 import {
-	jwtAdminVerify, jwtQrCodeVerify, jwtOrderResponseVerify, jwtResetPasswordVerify
+	jwtAdminVerify,
+	jwtQrCodeVerify,
+	jwtOrderResponseVerify,
+	jwtResetPasswordVerify,
+	jwtCognitoUserVerify,
 } from './passport/jwtVerify'
 
 // utils
@@ -33,8 +36,13 @@ import { IAppConfig, IPassportConfig } from './types/interfaces'
 import { checkPaymentKeys } from './services/webpayService'
 
 import routerAdmin from './api/admin'
-import { downloadFileFromBucket, minioStaticServeMiddleware } from './utils/minio'
+import {
+	downloadFileFromBucket,
+	minioStaticServeMiddleware,
+} from './utils/minio'
 import { readFile } from 'fs/promises'
+import { CognitoStrategy } from './types/models'
+import { httpLogger } from './utils/logger'
 
 const passportConfig: IPassportConfig = config.get('passport')
 const i18NextConfig: InitOptions = config.get('i18next')
@@ -48,11 +56,57 @@ if (process.env.NODE_ENV !== ENV.test) {
 }
 
 // Passport configuration
-passport.use('jwt', new JwtStrategy({ ...passportConfig.jwt.user, secretOrKey: passportConfig.jwt.secretOrKey }, jwtAdminVerify))
-passport.use('jwt-reset-password', new JwtStrategy({ ...passportConfig.jwt.resetPassword, secretOrKey: passportConfig.jwt.secretOrKey }, jwtResetPasswordVerify))
-passport.use('jwt-qr-code', new JwtStrategy({ ...passportConfig.jwt.qrCode, secretOrKey: passportConfig.jwt.secretOrKey, passReqToCallback: true }, jwtQrCodeVerify))
-passport.use('jwt-order-response',
-	new JwtStrategy({ ...passportConfig.jwt.orderResponse, secretOrKey: passportConfig.jwt.secretOrKey, passReqToCallback: true }, jwtOrderResponseVerify))
+passport.use(
+	'jwt',
+	new JwtStrategy(
+		{
+			...passportConfig.jwt.user,
+			secretOrKey: passportConfig.jwt.secretOrKey,
+		},
+		jwtAdminVerify
+	)
+)
+passport.use(
+	'jwt-reset-password',
+	new JwtStrategy(
+		{
+			...passportConfig.jwt.resetPassword,
+			secretOrKey: passportConfig.jwt.secretOrKey,
+		},
+		jwtResetPasswordVerify
+	)
+)
+passport.use(
+	'jwt-order-response',
+	new JwtStrategy(
+		{
+			...passportConfig.jwt.orderResponse,
+			secretOrKey: passportConfig.jwt.secretOrKey,
+			passReqToCallback: true,
+		},
+		jwtOrderResponseVerify
+	)
+)
+
+passport.use(
+	'jwt-cognito',
+	new CognitoStrategy(
+		{
+			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+			ignoreExpiration: false,
+			_audience: process.env.AWS_COGNITO_COGNITO_CLIENT_ID,
+			issuer: `https://cognito-idp.${process.env.AWS_COGNITO_REGION}.amazonaws.com/${process.env.AWS_COGNITO_USERPOOL_ID}`,
+			algorithms: ['RS256'],
+			secretOrKeyProvider: passportJwtSecret({
+				cache: true,
+				rateLimit: true,
+				jwksRequestsPerMinute: 5,
+				jwksUri: `https://cognito-idp.${process.env.AWS_COGNITO_REGION}.amazonaws.com/${process.env.AWS_COGNITO_USERPOOL_ID}/.well-known/jwks.json`,
+			}),
+		},
+		jwtCognitoUserVerify
+	)
+)
 
 passport.serializeUser((user, done) => done(null, user))
 passport.deserializeUser((user, done) => done(null, user))
@@ -75,12 +129,15 @@ app.use(helmet())
 app.use(cors({ origin: appConfig.corsOrigins, credentials: true }))
 app.use(express.urlencoded({ extended: true, limit: '40mb' }))
 app.use(express.json({ limit: '40mb' }))
+app.use(httpLogger)
 
 if (process.env.NODE_ENV !== ENV.production) {
 	app.use((req, res, next) => {
 		// used for correctly showing documentation in dev, dont use on production!
-		res.set('Content-Security-Policy',
-			"default-src *; style-src 'self' http://* 'unsafe-inline'; script-src 'self' http://* 'unsafe-inline' 'unsafe-eval'")
+		res.set(
+			'Content-Security-Policy',
+			"default-src *; style-src 'self' http://* 'unsafe-inline'; script-src 'self' http://* 'unsafe-inline' 'unsafe-eval'"
+		)
 		next()
 	})
 	app.use('/apidoc', express.static('apidoc'))
@@ -98,20 +155,17 @@ app.use('/api/admin', routerAdmin())
 // 'staticly-serves' the entire 'files/public' portion of the kupaliska-starz bucket
 app.use('/files/public', minioStaticServeMiddleware('/files/public'))
 
+// used mainly to expose static assets for wallet passes
+app.use('/public', express.static('files/public'))
+
 // TODO only for testing, remove
 app.use('/api/test-download-base64', async (_req, res) => {
-	const fullFilePath = 'files/private/swimming-logged-user/file-1654531467171.jpeg'
+	const fullFilePath =
+		'files/private/swimming-logged-user/file-1654531467171.jpeg'
 	await downloadFileFromBucket(fullFilePath)
-	const base64File = await readFile(fullFilePath, { encoding: 'base64' });
-	res.json({base64: base64File})
+	const base64File = await readFile(fullFilePath, { encoding: 'base64' })
+	res.json({ base64: base64File })
 })
-
-app.use('/logtest', (req, res) => {
-	console.log(req.body)
-	res.send('ok')
-})
-
-app.use(requestMiddleware)
 
 if (process.env.NODE_ENV !== ENV.test && process.env.SENTRY_DSN) {
 	app.use(sentryMiddleware)

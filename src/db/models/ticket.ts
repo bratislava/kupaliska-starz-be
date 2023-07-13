@@ -1,20 +1,15 @@
-import { getHours, getMinutes } from './../../utils/helpers';
+import { getHours, getMinutes } from './../../utils/helpers'
 /* eslint import/no-cycle: 0 */
-import {
-	Sequelize,
-	DataTypes,
-	literal,
-	UUIDV4
-} from 'sequelize'
+import { Sequelize, DataTypes, literal, UUIDV4 } from 'sequelize'
 
 import { DatabaseModel } from '../../types/models'
-import { getActualTime } from '../../utils/helpers'
+import { getLocalTimezoneTime } from '../../utils/helpers'
 import { EntryModel } from './entry'
 import { OrderModel } from './order'
 import { ProfileModel } from './profile'
 import { TicketTypeModel } from './ticketType'
-import { TICKET_CATEGORY } from '../../utils/enums';
-import { HookReturn } from 'sequelize/types/lib/hooks';
+import { TICKET_CATEGORY } from '../../utils/enums'
+import { HookReturn } from 'sequelize/types/lib/hooks'
 
 export class TicketModel extends DatabaseModel {
 	id: string
@@ -35,7 +30,8 @@ export class TicketModel extends DatabaseModel {
 	entries: EntryModel[]
 	todaysEntries: EntryModel[]
 	numberOfVisits: number
-	loggedUserId: string
+	externalAzureId: string
+	swimmingLoggedUserId: string
 	associatedSwimmerId: string
 	// meta
 	createdAt: Date
@@ -60,7 +56,7 @@ export class TicketModel extends DatabaseModel {
 
 		return now >= validFrom && now <= validTo
 	}
-	enoughRemainingEntries(firstEntry: EntryModel ) {
+	enoughRemainingEntries(firstEntry: EntryModel) {
 		if (this.ticketType.isEntries && !firstEntry) {
 			return Boolean(this.remainingEntries && this.remainingEntries > 0)
 		}
@@ -68,9 +64,17 @@ export class TicketModel extends DatabaseModel {
 	}
 	checkEntranceContraints() {
 		if (this.ticketType.hasEntranceConstraints) {
-			const timeNow = getActualTime()
-			return Boolean(this.ticketType.entranceFrom && timeNow.localeCompare(this.ticketType.entranceFrom) !== -1 &&
-				this.ticketType.entranceTo && timeNow.localeCompare(this.ticketType.entranceTo) !== 1)
+			// previously the UTC time of container was shifted to fit Bratislava local time
+			// now that we are big boys and don't do that this should be the only place where we need to count with local time
+			// everything else is still stored and communicated in UTC
+			const timeNow = getLocalTimezoneTime()
+			return Boolean(
+				this.ticketType.entranceFrom &&
+					timeNow.localeCompare(this.ticketType.entranceFrom) !==
+						-1 &&
+					this.ticketType.entranceTo &&
+					timeNow.localeCompare(this.ticketType.entranceTo) !== 1
+			)
 		}
 		return true
 	}
@@ -78,8 +82,13 @@ export class TicketModel extends DatabaseModel {
 		if (this.ticketType.hasTicketDuration && firstEntry) {
 			const entryTime = new Date(firstEntry.timestamp)
 
-			entryTime.setHours(entryTime.getHours() + getHours(this.ticketType.ticketDuration));
-			entryTime.setMinutes(entryTime.getMinutes() + getMinutes(this.ticketType.ticketDuration));
+			entryTime.setHours(
+				entryTime.getHours() + getHours(this.ticketType.ticketDuration)
+			)
+			entryTime.setMinutes(
+				entryTime.getMinutes() +
+					getMinutes(this.ticketType.ticketDuration)
+			)
 
 			const now = new Date()
 			return now <= entryTime
@@ -93,7 +102,10 @@ export class TicketModel extends DatabaseModel {
 		return Boolean(!lastEntry || lastEntry.isCheckOut())
 	}
 	withAdult() {
-		return this.isChildren && this.profile.age <= this.ticketType.childrenAgeToWithAdult
+		return (
+			this.isChildren &&
+			this.profile.age <= this.ticketType.childrenAgeToWithAdult
+		)
 	}
 	getCategory() {
 		if (this.isChildren) {
@@ -102,6 +114,9 @@ export class TicketModel extends DatabaseModel {
 			} else {
 				return TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT
 			}
+			// optionals because of older tickets
+		} else if (this?.ticketType?.isSeniorIsDisabled) {
+			return TICKET_CATEGORY.SENIOR_OR_DISABLED
 		} else {
 			return TICKET_CATEGORY.ADULT
 		}
@@ -109,105 +124,113 @@ export class TicketModel extends DatabaseModel {
 }
 
 export default (sequelize: Sequelize) => {
-	TicketModel.init({
-		id: {
-			type: DataTypes.UUID,
-			primaryKey: true,
-			allowNull: false,
-			defaultValue: UUIDV4,
+	TicketModel.init(
+		{
+			id: {
+				type: DataTypes.UUID,
+				primaryKey: true,
+				allowNull: false,
+				defaultValue: UUIDV4,
+			},
+			price: {
+				type: DataTypes.DECIMAL(10, 2),
+				allowNull: false,
+				get() {
+					const value = this.getDataValue('price')
+					return value !== undefined ? parseFloat(value) : undefined
+				},
+			},
+			isChildren: {
+				type: DataTypes.BOOLEAN,
+				allowNull: false,
+				defaultValue: false,
+			},
+			externalAzureId: {
+				type: DataTypes.UUID,
+				allowNull: true,
+				defaultValue: null,
+			},
+			swimmingLoggedUserId: {
+				type: DataTypes.UUID,
+				allowNull: true,
+				defaultValue: null,
+			},
+			associatedSwimmerId: {
+				type: DataTypes.UUID,
+				allowNull: true,
+				defaultValue: null,
+			},
+			remainingEntries: {
+				type: DataTypes.SMALLINT,
+				allowNull: true,
+			},
+			createdAt: {
+				type: DataTypes.DATE,
+				allowNull: false,
+				defaultValue: literal('NOW()'),
+			},
+			updatedAt: {
+				type: DataTypes.DATE,
+				allowNull: false,
+				defaultValue: literal('NOW()'),
+			},
 		},
-		price: {
-			type: DataTypes.DECIMAL(10, 2),
-			allowNull: false,
-			get() {
-				const value = this.getDataValue('price');
-				return value !== undefined ? parseFloat(value) : undefined
-			}
-		},
-		isChildren: {
-			type: DataTypes.BOOLEAN,
-			allowNull: false,
-			defaultValue: false
-		},
-		loggedUserId: {
-			type: DataTypes.UUID,
-			allowNull: true,
-			defaultValue: null
-		},
-		associatedSwimmerId: {
-			type: DataTypes.UUID,
-			allowNull: true,
-			defaultValue: null
-		},
-		remainingEntries: {
-			type: DataTypes.SMALLINT,
-			allowNull: true
-		},
-		createdAt: {
-			type: DataTypes.DATE,
-			allowNull: false,
-			defaultValue: literal('NOW()')
-		},
-		updatedAt: {
-			type: DataTypes.DATE,
-			allowNull: false,
-			defaultValue: literal('NOW()')
+		{
+			paranoid: true,
+			timestamps: true,
+			sequelize,
+			modelName: 'ticket',
+			hooks: {
+				beforeFind(options: any): HookReturn {
+					options.raw = false
+				},
+			},
 		}
-	}, {
-		paranoid: true,
-		timestamps: true,
-		sequelize,
-		modelName: 'ticket',
-		hooks: {
-			beforeFind(options: any): HookReturn {
-				options.raw = false;
-			  },
-		}
-	})
+	)
 
 	TicketModel.associate = (models) => {
 		TicketModel.belongsTo(models.Profile, {
 			foreignKey: {
 				name: 'profileId',
-				allowNull: false
+				allowNull: false,
 			},
-			as: 'profile'
+			as: 'profile',
 		})
 		TicketModel.belongsTo(models.Order, {
 			foreignKey: {
 				name: 'orderId',
-				allowNull: false
+				allowNull: false,
 			},
-			as: 'order'
+			as: 'order',
 		})
 		TicketModel.belongsTo(models.Ticket, {
 			foreignKey: {
 				name: 'parentTicketId',
-				allowNull: true
+				allowNull: true,
 			},
-			as: 'parentTicket'
+			as: 'parentTicket',
 		})
 		TicketModel.belongsTo(models.TicketType, {
 			foreignKey: {
 				name: 'ticketTypeId',
-				allowNull: false
+				allowNull: false,
 			},
-			as: 'ticketType'
+			as: 'ticketType',
 		})
 
 		TicketModel.hasMany(models.Ticket, {
 			foreignKey: {
 				name: 'parentTicketId',
-				allowNull: true
+				allowNull: true,
 			},
-			as: 'children'
+			as: 'children',
 		})
 		TicketModel.hasMany(models.Entry, {
 			foreignKey: {
 				name: 'ticketId',
-				allowNull: true
+				allowNull: true,
 			},
-			as: 'entries'
+			as: 'entries',
 		})
 	}
 

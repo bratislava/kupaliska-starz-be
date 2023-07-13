@@ -10,30 +10,22 @@ export async function up(queryInterface: QueryInterface) {
 
 		const table: any = await queryInterface.describeTable('swimmingPools')
 		if (!table.ordering) {
-			await queryInterface.addColumn(
-				'swimmingPools',
-				'ordering',
-				{
-					type: DataTypes.SMALLINT,
-					allowNull: false,
-					defaultValue: 0
-				},
-			)
+			await queryInterface.addColumn('swimmingPools', 'ordering', {
+				type: DataTypes.SMALLINT,
+				allowNull: false,
+				defaultValue: 0,
+			})
 		}
 		return Promise.resolve()
-
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
 	const table: any = await queryInterface.describeTable('swimmingPools')
 	if (table.ordering) {
-		await queryInterface.removeColumn(
-			'swimmingPools',
-			'ordering'
-		)
+		await queryInterface.removeColumn('swimmingPools', 'ordering')
 	}
 
 	return Promise.resolve()

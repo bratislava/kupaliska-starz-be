@@ -5,19 +5,23 @@ import { models } from '../../../db/models'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { UserModel } from '../../../db/models/user'
 
-const {
-	User
-} = models
+const { User } = models
 
 export const schema = Joi.object().keys({
 	body: Joi.object(),
 	query: Joi.object(),
 	params: Joi.object().keys({
-		userId: Joi.string().guid({version: ['uuidv4']}).required()
-	})
+		userId: Joi.string()
+			.guid({ version: ['uuidv4'] })
+			.required(),
+	}),
 })
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { params } = req
 		const authUser = req.user as UserModel
@@ -36,12 +40,14 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 
 		return res.json({
 			data: {
-				id: user.id
+				id: user.id,
 			},
-			messages: [{
-				type: MESSAGE_TYPE.SUCCESS,
-				message: req.t('success:admin.users.deleted')
-			}]
+			messages: [
+				{
+					type: MESSAGE_TYPE.SUCCESS,
+					message: req.t('success:admin.users.deleted'),
+				},
+			],
 		})
 	} catch (err) {
 		return next(err)

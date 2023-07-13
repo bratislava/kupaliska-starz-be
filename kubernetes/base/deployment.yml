@@ -1,49 +1,51 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app
-  labels:
-    service: app
-  namespace: ${NAMESPACE}
-  annotations:
-    repositoryUrl: ${BUILD_REPOSITORY_URI}
-    commit: ${COMMIT}
-    tag: ${TAG}
-    image: ${IMAGE}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      service: app
-  template:
-    metadata:
-      labels:
+    name: app
+    labels:
         service: app
-    spec:
-      containers:
-        - image: ${IMAGE_TAG}
-          name: app
-          imagePullPolicy: IfNotPresent
-          ports:
-          - name: http
-            containerPort: ${APP_PORT}
-            protocol: TCP
-          resources:
-            limits:
-              cpu: 500m
-              memory: 1Gi
-            requests:
-              cpu: 50m
-              memory: 64Mi
-          envFrom:
-            - secretRef:
-                name: app-secret
-            - secretRef:
-                name: db
-            - configMapRef:
-                name: env
-      dnsPolicy: ClusterFirst
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 30
-      imagePullSecrets:
-        - name: ${IMAGE_PULL_SECRET}
+    namespace: ${NAMESPACE}
+    annotations:
+        repositoryUrl: ${BUILD_REPOSITORY_URI}
+        commit: ${COMMIT}
+        tag: ${TAG}
+        image: ${IMAGE}
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            service: app
+    template:
+        metadata:
+            labels:
+                service: app
+        spec:
+            containers:
+                - image: ${IMAGE_TAG}
+                  name: app
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                      - name: http
+                        containerPort: ${APP_PORT}
+                        protocol: TCP
+                  resources:
+                      limits:
+                          cpu: 500m
+                          memory: 1Gi
+                      requests:
+                          cpu: 50m
+                          memory: 64Mi
+                  envFrom:
+                      - secretRef:
+                            name: app-secret
+                      - secretRef:
+                            name: turnstile-secret
+                      - secretRef:
+                            name: db
+                      - configMapRef:
+                            name: env
+            dnsPolicy: ClusterFirst
+            restartPolicy: Always
+            terminationGracePeriodSeconds: 30
+            imagePullSecrets:
+                - name: ${IMAGE_PULL_SECRET}

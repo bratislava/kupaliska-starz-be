@@ -3,9 +3,9 @@ import { DatabaseModel } from '../../types/models'
 import { ProfileModel } from './profile'
 
 export enum RelatedType {
-	SWIMMINGPOOL = "swimmingPool",
-	ASSOCIATEDSWIMMER = "associatedSwimmer",
-	SWIMMINGLOGGEDUSER = "swimmingLoggedUser"
+	SWIMMINGPOOL = 'swimmingPool',
+	ASSOCIATEDSWIMMER = 'associatedSwimmer',
+	SWIMMINGLOGGEDUSER = 'swimmingLoggedUser',
 }
 
 export class FileModel extends DatabaseModel {

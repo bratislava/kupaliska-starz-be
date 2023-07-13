@@ -5,19 +5,23 @@ import { models } from '../../../db/models'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { formatUser } from '../../../utils/formatters'
 
-const {
-	User,
-} = models
+const { User } = models
 
 export const schema = Joi.object().keys({
 	body: Joi.object(),
 	query: Joi.object(),
 	params: Joi.object().keys({
-		userId: Joi.string().guid({version: ['uuidv4']}).required()
-	})
+		userId: Joi.string()
+			.guid({ version: ['uuidv4'] })
+			.required(),
+	}),
 })
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	try {
 		const { params } = req
 
@@ -30,13 +34,13 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				'isConfirmed',
 				'createdAt',
 				'updatedAt',
-				'deletedAt'
+				'deletedAt',
 			],
 			where: {
-				id: { [Op.eq]: params.userId }
+				id: { [Op.eq]: params.userId },
 			},
 			paranoid: false,
-			include: { association: 'swimmingPools'}
+			include: { association: 'swimmingPools' },
 		})
 
 		if (!user) {

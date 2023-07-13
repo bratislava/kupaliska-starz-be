@@ -26,6 +26,7 @@ export enum TICKET_CATEGORY {
 	ADULT = 'adult',
 	CHILDREN_WITH_ADULT = 'children_with_adult',
 	CHILDREN_WITHOUT_ADULT = 'children_without_adult',
+	SENIOR_OR_DISABLED = 'senior_or_disabled',
 }
 
 export enum USER_ROLE {
@@ -100,10 +101,14 @@ export const textColorsMap = {
 	[TICKET_CATEGORY.ADULT]: { text: '#FFFFFF', background: '#07038C' },
 	[TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT]: {
 		text: '#07038C',
-		background: '#D0ECF8',
+		background: '#8AEBD9',
 	},
 	[TICKET_CATEGORY.CHILDREN_WITH_ADULT]: {
 		text: '#07038C',
-		background: '#FFFFFF',
+		background: '#7CCEF2',
+	},
+	[TICKET_CATEGORY.SENIOR_OR_DISABLED]: {
+		text: '#07038C',
+		background: '#CFD9FC',
 	},
 }

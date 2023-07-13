@@ -7,36 +7,35 @@ export async function up(queryInterface: QueryInterface) {
 				primaryKey: true,
 				allowNull: false,
 				references: {
-					model: "ticketTypes",
-					key: "id"
+					model: 'ticketTypes',
+					key: 'id',
 				},
 			},
 			swimmingPoolId: {
 				type: DataTypes.UUID,
 				primaryKey: true,
 				references: {
-					model: "swimmingPools",
-					key: "id"
+					model: 'swimmingPools',
+					key: 'id',
 				},
-				allowNull: false
+				allowNull: false,
 			},
 			createdAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			updatedAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
-		});
-
+		})
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-	await queryInterface.dropTable('swimmingPoolTicketType');
+	await queryInterface.dropTable('swimmingPoolTicketType')
 }

@@ -1,12 +1,11 @@
 import { QueryInterface } from 'sequelize'
 export async function up(queryInterface: QueryInterface) {
-    try {
-
-        await queryInterface.sequelize.query(`
+	try {
+		await queryInterface.sequelize.query(`
             DROP MATERIALIZED VIEW visits;
         `)
 
-        await queryInterface.sequelize.query(`
+		await queryInterface.sequelize.query(`
 			CREATE MATERIALIZED VIEW visits AS
 			SELECT *, ROW_NUMBER() OVER (PARTITION BY "ticketId", day ORDER BY "firstCheckIn") as "checkInOrder"
 			FROM
@@ -19,21 +18,17 @@ export async function up(queryInterface: QueryInterface) {
 						"entries"
 					GROUP BY
 						CAST("timestamp" as date), "ticketId", "swimmingPoolId"
-				) as visits`
-        );
+				) as visits`)
 
-        return Promise.resolve()
-
-    } catch (err) {
-        throw err;
-    }
+		return Promise.resolve()
+	} catch (err) {
+		throw err
+	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-
-    await queryInterface.sequelize.query(`
-		DROP MATERIALIZED VIEW visits;`
-    );
+	await queryInterface.sequelize.query(`
+		DROP MATERIALIZED VIEW visits;`)
 
 	await queryInterface.sequelize.query(`
 		CREATE MATERIALIZED VIEW visits AS
@@ -43,8 +38,7 @@ export async function down(queryInterface: QueryInterface) {
 		FROM
 			"entries"
 		GROUP BY
-			CAST("timestamp" as date), "ticketId", "swimmingPoolId"`
-	);
+			CAST("timestamp" as date), "ticketId", "swimmingPoolId"`)
 
-    return Promise.resolve()
+	return Promise.resolve()
 }

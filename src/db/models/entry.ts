@@ -1,17 +1,11 @@
-import { ENTRY_TYPE, ENTRY_FLAG } from './../../utils/enums';
-import { SwimmingPoolModel } from './swimmingPool';
+import { ENTRY_TYPE, ENTRY_FLAG } from './../../utils/enums'
+import { SwimmingPoolModel } from './swimmingPool'
 /* eslint import/no-cycle: 0 */
-import {
-	Sequelize,
-	DataTypes,
-	literal,
-	UUIDV4,
-	Op
-} from 'sequelize'
+import { Sequelize, DataTypes, literal, UUIDV4, Op } from 'sequelize'
 
 import { DatabaseModel } from '../../types/models'
 import { TicketModel } from './ticket'
-import { UserModel } from './user';
+import { UserModel } from './user'
 
 export class EntryModel extends DatabaseModel {
 	id: string
@@ -36,73 +30,78 @@ export class EntryModel extends DatabaseModel {
 }
 
 export default (sequelize: Sequelize) => {
-	EntryModel.init({
-		id: {
-			type: DataTypes.UUID,
-			primaryKey: true,
-			allowNull: false,
-			defaultValue: UUIDV4,
+	EntryModel.init(
+		{
+			id: {
+				type: DataTypes.UUID,
+				primaryKey: true,
+				allowNull: false,
+				defaultValue: UUIDV4,
+			},
+			type: {
+				type: DataTypes.STRING(3),
+				allowNull: false,
+			},
+			flag: {
+				type: DataTypes.STRING(1),
+				allowNull: false,
+			},
+			timestamp: {
+				type: DataTypes.DATE,
+				allowNull: false,
+				defaultValue: literal('NOW()'),
+			},
 		},
-		type: {
-			type: DataTypes.STRING(3),
-			allowNull: false,
-		},
-		flag: {
-			type: DataTypes.STRING(1),
-			allowNull: false,
-		},
-		timestamp: {
-			type: DataTypes.DATE,
-			allowNull: false,
-			defaultValue: literal('NOW()')
-		},
-	}, {
-		timestamps: false,
-		sequelize,
-		modelName: 'entry',
-		hooks: {
-		},
-		scopes: {
-			manual: {
-				where: {
-					flag: {
-						[Op.eq]: ENTRY_FLAG.MANUAL
-					}
+		{
+			timestamps: false,
+			sequelize,
+			modelName: 'entry',
+			hooks: {},
+			scopes: {
+				manual: {
+					where: {
+						flag: {
+							[Op.eq]: ENTRY_FLAG.MANUAL,
+						},
+					},
 				},
 			},
 		}
-	})
+	)
 
-	EntryModel.addScope('timestamp', (from = new Date(new Date().setHours(0, 0, 0, 0))) => ({
-		where: {
-			timestamp: {
-				[Op.gt]: from
-			}
-		},
-	}));
+	EntryModel.addScope(
+		'timestamp',
+		(from = new Date(new Date().setHours(0, 0, 0, 0))) => ({
+			where: {
+				timestamp: {
+					[Op.gt]: from,
+				},
+			},
+		})
+	)
 
 	EntryModel.associate = (models) => {
 		EntryModel.belongsTo(models.SwimmingPool, {
 			foreignKey: {
 				name: 'swimmingPoolId',
-				allowNull: false
+				allowNull: false,
 			},
-			as: 'swimmingPool'
+			as: 'swimmingPool',
 		})
 		EntryModel.belongsTo(models.Ticket, {
 			foreignKey: {
 				name: 'ticketId',
-				allowNull: false
+				allowNull: false,
 			},
-			as: 'ticket'
+			as: 'ticket',
 		})
 
 		EntryModel.belongsTo(models.User, {
 			foreignKey: {
 				name: 'employeeId',
-				allowNull: false
+				allowNull: false,
 			},
-			as: 'employee'
+			as: 'employee',
 		})
 	}
 

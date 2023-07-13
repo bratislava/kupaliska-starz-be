@@ -1,17 +1,12 @@
 import Joi from 'joi'
 import { NextFunction, Request, Response } from 'express'
 import { Op } from 'sequelize'
-import { map } from 'lodash'
 
 import { models } from '../../../db/models'
 import { formatSwimmingLoggedUser } from '../../../utils/formatters'
-import {
-	azureGetAzureData,
-	azureGetAzureId,
-	isAzureAutehnticated,
-} from '../../../utils/azureAuthentication'
-import ErrorBuilder from '../../../utils/ErrorBuilder'
+import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
 import readAsBase64 from '../../../utils/reader'
+import ErrorBuilder from '../../../utils/ErrorBuilder'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -42,72 +37,56 @@ export const workflow = async (
 	next: NextFunction
 ) => {
 	try {
-		const { query }: any = req
-
-		const { limit, page } = query
-		const offset = limit * page - limit
-
-		const where: any = {}
-
-		if (query.search) {
-			where.name = {
-				[Op.iLike]: `%${query.search}%`,
-			}
-		}
-		const loggedUser = await azureGetAzureData(req)
-
-		if (isAzureAutehnticated(req)) {
-			const oid = await azureGetAzureId(req)
-			if (oid) {
-				const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
-					attributes: [
-						'id',
-						'externalId',
-						'age',
-						'zip',
-						'createdAt',
-						'updatedAt',
-						'deletedAt',
-					],
-					where: {
-						externalId: { [Op.eq]: oid },
+		const sub = await getCognitoIdOfLoggedInUser(req)
+		if (sub) {
+			const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
+				attributes: [
+					'id',
+					'externalAzureId',
+					'externalCognitoId',
+					'age',
+					'zip',
+					'createdAt',
+					'updatedAt',
+					'deletedAt',
+				],
+				where: {
+					externalCognitoId: { [Op.eq]: sub },
+				},
+				include: [
+					{
+						association: 'image',
+						attributes: [
+							'id',
+							'name',
+							'originalPath',
+							'mimeType',
+							'size',
+							'relatedId',
+							'relatedType',
+						],
 					},
-					include: [
-						{
-							association: 'image',
-							attributes: [
-								'id',
-								'name',
-								'originalPath',
-								'mimeType',
-								'size',
-								'relatedId',
-								'relatedType',
-							],
-						},
-					],
-				})
+				],
+			})
 
-				let swimmingLoggedUserWithImageBase64 = {
-					...formatSwimmingLoggedUser(swimmingLoggedUser),
-					image: swimmingLoggedUser.image
-						? await readAsBase64(swimmingLoggedUser.image)
-						: null,
-				}
-
-				return res.json({
-					...swimmingLoggedUserWithImageBase64,
-					...loggedUser,
-					// pagination: {
-					// 	page: query.page,
-					// 	limit: query.limit,
-					// 	totalPages: Math.ceil(count / limit) || 0,
-					// 	totalCount: count,
-					// },
-				})
+			let swimmingLoggedUserWithImageBase64 = {
+				...formatSwimmingLoggedUser(swimmingLoggedUser),
+				image: swimmingLoggedUser.image
+					? await readAsBase64(swimmingLoggedUser.image)
+					: null,
 			}
+
+			return res.json({
+				...swimmingLoggedUserWithImageBase64,
+				// pagination: {
+				// 	page: query.page,
+				// 	limit: query.limit,
+				// 	totalPages: Math.ceil(count / limit) || 0,
+				// 	totalCount: count,
+				// },
+			})
 		} else {
-			throw new ErrorBuilder(401, req.t('error:userNotAuthenticated'))
+			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
 		}
 	} catch (err) {
 		return next(err)

@@ -34,35 +34,35 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			ageFrom: {
 				type: DataTypes.SMALLINT,
-				allowNull: false
+				allowNull: false,
 			},
 			ageTo: {
 				type: DataTypes.SMALLINT,
-				allowNull: false
+				allowNull: false,
 			},
 			childrenAllowed: {
 				type: DataTypes.BOOLEAN,
-				allowNull: false
+				allowNull: false,
 			},
 			childrenMaxNumber: {
 				type: DataTypes.SMALLINT,
-				allowNull: true
+				allowNull: true,
 			},
 			childrenPrice: {
 				type: DataTypes.DECIMAL(10, 2),
-				allowNull: true
+				allowNull: true,
 			},
 			childrenAgeFrom: {
 				type: DataTypes.SMALLINT,
-				allowNull: true
+				allowNull: true,
 			},
 			childrenAgeTo: {
 				type: DataTypes.SMALLINT,
-				allowNull: true
+				allowNull: true,
 			},
 			childrenAgeToWithAdult: {
 				type: DataTypes.SMALLINT,
-				allowNull: true
+				allowNull: true,
 			},
 			childrenPhotoRequired: {
 				type: DataTypes.BOOLEAN,
@@ -86,33 +86,32 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			entriesNumber: {
 				type: DataTypes.SMALLINT,
-				allowNull: true
+				allowNull: true,
 			},
 			entranceFrom: {
 				type: DataTypes.TIME,
-				allowNull: true
+				allowNull: true,
 			},
 			createdAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			updatedAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			deletedAt: {
 				type: DataTypes.DATE,
 				allowNull: true,
-			}
-		});
-
+			},
+		})
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-    await queryInterface.dropTable('ticketTypes');
+	await queryInterface.dropTable('ticketTypes')
 }

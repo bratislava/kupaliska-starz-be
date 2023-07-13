@@ -57,7 +57,7 @@ export const formatTicket = (ticket: TicketModel) => {
 		name: ticket.profile.name,
 		zip: ticket.profile.zip,
 		parentTicketId: ticket.parentTicketId,
-		ticketTypeId: ticket.ticketTypeId,
+		ticketTypeId: ticket.ticketType.id,
 		qrCode: ticket.qrCode,
 	}
 }
@@ -136,6 +136,7 @@ export const formatTicketType = (ticketType: TicketTypeModel) => {
 		ticketDuration: ticketType.ticketDuration,
 		validFrom: ticketType.validFrom,
 		validTo: ticketType.validTo,
+		isSeniorIsDisabled: ticketType.isSeniorIsDisabled,
 		swimmingPools: ticketType.swimmingPools
 			? map(ticketType.swimmingPools, (pool) => ({
 					id: pool.id,
@@ -282,7 +283,7 @@ export const formatSwimmingLoggedUser = (
 
 	return {
 		id: swimmingLoggedUser.id,
-		externalId: swimmingLoggedUser.externalId,
+		externalId: swimmingLoggedUser.externalCognitoId,
 		age: swimmingLoggedUser.age,
 		zip: swimmingLoggedUser.zip,
 		image: swimmingLoggedUser.image,

@@ -24,6 +24,7 @@ import defineSwimmingPoolTicketType from './swimmingPoolTicketType'
 import defineEntryModel from './entry'
 import defineDiscountCodeModel from './discountCode'
 import defineDiscountCodeTicketTypeModel from './discountCodeTicketType'
+import { logger } from '../../utils/logger'
 
 // NOTE: set true because otherwise BIGINT return string instead of integer https://github.com/sequelize/sequelize/issues/1774
 pg.defaults.parseInt8 = true
@@ -35,7 +36,7 @@ const { url, options: dbOptions } = database[env]
 
 if (dbOptions.logging) {
 	dbOptions.logging = (log: string) => {
-		console.log(
+		logger.info(
 			highlight(log, {
 				language: 'sql',
 				ignoreIllegals: true,
@@ -52,12 +53,12 @@ sequelize
 	.then(
 		() =>
 			env !== ENV.test &&
-			console.log(
+			logger.info(
 				'Database Connection has been established successfully.'.green
 			)
 	)
 	.catch((e: any) =>
-		console.error(`Unable to connect to the database${e}.`.red)
+		logger.error(`Unable to connect to the database${e}.`.red)
 	)
 
 const models = {

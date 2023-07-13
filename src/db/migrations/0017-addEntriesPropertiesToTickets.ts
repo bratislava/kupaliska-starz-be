@@ -11,20 +11,15 @@ export async function up(queryInterface: QueryInterface) {
 		const table: any = await queryInterface.describeTable('tickets')
 
 		if (!table.remainingEntries) {
-			await queryInterface.addColumn(
-				'tickets',
-				'remainingEntries',
-				{
-					type: DataTypes.SMALLINT,
-					allowNull: true
-				}
-			)
+			await queryInterface.addColumn('tickets', 'remainingEntries', {
+				type: DataTypes.SMALLINT,
+				allowNull: true,
+			})
 		}
 
 		return Promise.resolve()
-
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
@@ -32,10 +27,7 @@ export async function down(queryInterface: QueryInterface) {
 	const table: any = await queryInterface.describeTable('tickets')
 
 	if (table.remainingEntries) {
-		await queryInterface.removeColumn(
-			'tickets',
-			'remainingEntries'
-		)
+		await queryInterface.removeColumn('tickets', 'remainingEntries')
 	}
 
 	return Promise.resolve()

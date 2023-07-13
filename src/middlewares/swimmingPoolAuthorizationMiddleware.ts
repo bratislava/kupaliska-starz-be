@@ -10,27 +10,31 @@ import { difference, map } from 'lodash'
 /**
  *  SWIMMING_POOL_OPERATOR and SWIMMING_POOL_EMPLOYEE can access only their swimming pools
  */
-export default (extractFrom = 'params') => async (req: Request, res: Response, next: NextFunction) => {
+export default (extractFrom = 'params') =>
+	async (req: Request, res: Response, next: NextFunction) => {
+		const { params, query } = req
+		const user = req.user as UserModel
 
-	const { params, query } = req
-	const user = req.user as UserModel
+		if (
+			user.role !== USER_ROLE.SWIMMING_POOL_OPERATOR &&
+			user.role !== USER_ROLE.SWIMMING_POOL_EMPLOYEE
+		) {
+			return next()
+		}
 
-	if (user.role !== USER_ROLE.SWIMMING_POOL_OPERATOR &&
-		user.role !== USER_ROLE.SWIMMING_POOL_EMPLOYEE
-	) {
-		return next()
+		await user.reload({ include: { association: 'swimmingPools' } })
+
+		const usersSwimmingPools = map(user.swimmingPools, (pool) => pool.id)
+		const accessedSwimmingPools =
+			extractFrom === 'params'
+				? [params.swimmingPoolId]
+				: (query.swimmingPools as string[])
+
+		if (
+			difference(accessedSwimmingPools, usersSwimmingPools).length === 0
+		) {
+			return next()
+		}
+
+		return next(new ErrorBuilder(403, 'Forbidden swimming pool'))
 	}
-
-	await user.reload({ include: { association: 'swimmingPools' } })
-
-	const usersSwimmingPools = map(user.swimmingPools, (pool) => pool.id)
-	const accessedSwimmingPools = extractFrom === 'params'
-		? [ params.swimmingPoolId ]
-		: query.swimmingPools as string[]
-
-	if (difference(accessedSwimmingPools, usersSwimmingPools).length === 0) {
-		return next()
-	}
-
-	return next(new ErrorBuilder(403, 'Forbidden swimming pool'))
-}

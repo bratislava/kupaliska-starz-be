@@ -15,61 +15,60 @@ export async function up(queryInterface: QueryInterface) {
 			isChildren: {
 				type: DataTypes.BOOLEAN,
 				allowNull: false,
-				defaultValue: false
+				defaultValue: false,
 			},
 			ticketTypeId: {
 				type: DataTypes.UUID,
 				references: {
-					model: "ticketTypes",
-					key: "id"
+					model: 'ticketTypes',
+					key: 'id',
 				},
-				allowNull: false
+				allowNull: false,
 			},
 			orderId: {
 				type: DataTypes.UUID,
 				references: {
-					model: "orders",
-					key: "id"
+					model: 'orders',
+					key: 'id',
 				},
-				allowNull: false
+				allowNull: false,
 			},
 			profileId: {
 				type: DataTypes.UUID,
 				references: {
-					model: "profiles",
-					key: "id"
+					model: 'profiles',
+					key: 'id',
 				},
-				allowNull: false
+				allowNull: false,
 			},
 			parentTicketId: {
 				type: DataTypes.UUID,
 				references: {
-					model: "tickets",
-					key: "id"
+					model: 'tickets',
+					key: 'id',
 				},
-				allowNull: true
+				allowNull: true,
 			},
 			createdAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			updatedAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
-				defaultValue: literal('NOW()')
+				defaultValue: literal('NOW()'),
 			},
 			deletedAt: {
 				type: DataTypes.DATE,
 				allowNull: true,
-			}
-		});
-
+			},
+		})
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
-	await queryInterface.dropTable('tickets');
+	await queryInterface.dropTable('tickets')
 }

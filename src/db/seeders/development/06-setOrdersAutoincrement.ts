@@ -1,6 +1,6 @@
 import { QueryInterface } from 'sequelize'
 
-import sequelize from '../../models';
+import sequelize from '../../models'
 
 export async function up(queryInterface: QueryInterface) {
 	await sequelize.query('SELECT setval(\'"orders_orderNumber_seq"\', 25000)')

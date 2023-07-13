@@ -9,11 +9,10 @@ export async function up(queryInterface: QueryInterface) {
 			expandedDescription: 'Dlhsí Popis kupaliska delfín.',
 			waterTemp: -5,
 			maxCapacity: 1000,
-			openingHours: "[]",
-			facilities: "[\"changing-room\", \"food\", \"playground\"]",
-			locationUrl: 'https://goo.gl/maps/gvuMM4mYWvtGiRfN8'
+			openingHours: '[]',
+			facilities: '["changing-room", "food", "playground"]',
+			locationUrl: 'https://goo.gl/maps/gvuMM4mYWvtGiRfN8',
 		},
-
 	])
 }
 

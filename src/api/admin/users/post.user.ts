@@ -1,40 +1,52 @@
-import { formatUser } from './../../../utils/formatters';
-import { USER_ROLE } from './../../../utils/enums';
+import { formatUser } from './../../../utils/formatters'
+import { USER_ROLE } from './../../../utils/enums'
 import Joi from 'joi'
 import { NextFunction, Request, Response } from 'express'
 import { Op, Transaction } from 'sequelize'
 import DB, { models } from '../../../db/models'
 import { createJwt } from '../../../utils/authorization'
 
-import {
-	USER_ROLES,
-	MESSAGE_TYPE
-} from '../../../utils/enums'
+import { USER_ROLES, MESSAGE_TYPE } from '../../../utils/enums'
 
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { isEmpty, map } from 'lodash'
-import { UserModel } from '../../../db/models/user';
-import { sendEmail } from '../../../services/mailerService';
+import { UserModel } from '../../../db/models/user'
+import { sendEmail } from '../../../services/mailerService'
 import config from 'config'
-import { IAppConfig, IMailgunserviceConfig, IPassportConfig } from '../../../types/interfaces'
+import {
+	IAppConfig,
+	IMailgunserviceConfig,
+	IPassportConfig,
+} from '../../../types/interfaces'
 
 export const userAddSchema = {
 	name: Joi.string().max(255).required(),
 	isConfirmed: Joi.boolean().required(),
 	email: Joi.string().email().max(255).required(),
-	role: Joi.string().uppercase().valid(...USER_ROLES).required(),
-	swimmingPools: Joi.array().items(
-		Joi.string().guid({ version: ['uuidv4'] }).required()
-	).when('role', {
-		is: Joi.valid(USER_ROLE.SWIMMING_POOL_EMPLOYEE, USER_ROLE.SWIMMING_POOL_OPERATOR),
-		then: Joi.required(), otherwise: Joi.forbidden()
-	}),
+	role: Joi.string()
+		.uppercase()
+		.valid(...USER_ROLES)
+		.required(),
+	swimmingPools: Joi.array()
+		.items(
+			Joi.string()
+				.guid({ version: ['uuidv4'] })
+				.required()
+		)
+		.when('role', {
+			is: Joi.valid(
+				USER_ROLE.SWIMMING_POOL_EMPLOYEE,
+				USER_ROLE.SWIMMING_POOL_OPERATOR
+			),
+			then: Joi.required(),
+			otherwise: Joi.forbidden(),
+		}),
 }
 
 export const schema = Joi.object().keys({
 	body: Joi.object().keys(userAddSchema),
 	query: Joi.object(),
-	params: Joi.object()
+	params: Joi.object(),
 })
 
 const passwordConfig: IPassportConfig = config.get('passport')
@@ -42,13 +54,13 @@ const appConfig: IAppConfig = config.get('app')
 const mailgunConfig: IMailgunserviceConfig = config.get('mailgunService')
 const setPasswordTemplate = mailgunConfig.templates.setPassword
 
-const {
-	User,
-	SwimmingPool,
-	SwimmingPoolUser
-} = models
+const { User, SwimmingPool, SwimmingPoolUser } = models
 
-export const workflow = async (req: Request, res: Response, next: NextFunction) => {
+export const workflow = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	let transaction: Transaction
 	try {
 		const { body } = req
@@ -60,13 +72,16 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 
 		const userExists = await User.unscoped().findOne({
 			where: {
-				email: { [Op.eq]: body.email }
+				email: { [Op.eq]: body.email },
 			},
-			paranoid: false
+			paranoid: false,
 		})
 		if (userExists) {
 			if (userExists.email === body.email) {
-				throw new ErrorBuilder(409, req.t('error:userEmailAlreadyExists'))
+				throw new ErrorBuilder(
+					409,
+					req.t('error:userEmailAlreadyExists')
+				)
 			} else {
 				throw new ErrorBuilder(409, req.t('error:userAlreadyExists'))
 			}
@@ -76,35 +91,47 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			const swimmingPools = await SwimmingPool.findAll({
 				where: {
 					id: {
-						[Op.in]: body.swimmingPools
-					}
-				}
+						[Op.in]: body.swimmingPools,
+					},
+				},
 			})
 			if (swimmingPools.length !== body.swimmingPools.length) {
-				throw new ErrorBuilder(400, req.t('error:incorrectSwimmingPools'))
+				throw new ErrorBuilder(
+					400,
+					req.t('error:incorrectSwimmingPools')
+				)
 			}
 		}
 
 		transaction = await DB.transaction()
 
-		const user = await User.create({
-			...body,
-			hash: '',
-		}, { transaction })
+		const user = await User.create(
+			{
+				...body,
+				hash: '',
+			},
+			{ transaction }
+		)
 
 		if (!isEmpty(body.swimmingPools)) {
-			await SwimmingPoolUser.bulkCreate(map(body.swimmingPools, (poolId) => ({
-				swimmingPoolId: poolId,
-				userId: user.id
-			})), { transaction })
+			await SwimmingPoolUser.bulkCreate(
+				map(body.swimmingPools, (poolId) => ({
+					swimmingPoolId: poolId,
+					userId: user.id,
+				})),
+				{ transaction }
+			)
 		}
 
-		const accessToken = await createJwt({
-			uid: user.id
-		}, {
-			audience: passwordConfig.jwt.resetPassword.audience,
-			expiresIn: passwordConfig.jwt.setPassword.exp
-		})
+		const accessToken = await createJwt(
+			{
+				uid: user.id,
+			},
+			{
+				audience: passwordConfig.jwt.resetPassword.audience,
+				expiresIn: passwordConfig.jwt.setPassword.exp,
+			}
+		)
 
 		// send email to reset pass
 		await sendEmail(
@@ -113,7 +140,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			req.t('email:setPasswordSubject'),
 			setPasswordTemplate,
 			{
-				resetLink: `${appConfig.feResetPasswordUrl}?token=${accessToken}`
+				resetLink: `${appConfig.feResetPasswordUrl}?token=${accessToken}`,
 			}
 		)
 
@@ -124,12 +151,14 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		return res.json({
 			data: {
 				id: user.id,
-				user: formatUser(user)
+				user: formatUser(user),
 			},
-			messages: [{
-				type: MESSAGE_TYPE.SUCCESS,
-				message: req.t('success:admin.users.created')
-			}]
+			messages: [
+				{
+					type: MESSAGE_TYPE.SUCCESS,
+					message: req.t('success:admin.users.created'),
+				},
+			],
 		})
 	} catch (err) {
 		if (transaction) {

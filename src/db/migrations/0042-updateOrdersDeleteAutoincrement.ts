@@ -11,40 +11,30 @@ export async function up(queryInterface: QueryInterface) {
 		const table: any = await queryInterface.describeTable('orders')
 
 		if (table.orderNumber) {
-			await queryInterface.changeColumn(
-				'orders',
-				'orderNumber',
-				{
-					type: DataTypes.BIGINT,
-					autoIncrement: false,
-					allowNull: false,
-					unique: true
-				}
-			)
+			await queryInterface.changeColumn('orders', 'orderNumber', {
+				type: DataTypes.BIGINT,
+				autoIncrement: false,
+				allowNull: false,
+				unique: true,
+			})
 		}
 
 		return Promise.resolve()
-
 	} catch (err) {
-		throw err;
+		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
 	const table: any = await queryInterface.describeTable('orders')
 
-
 	if (table.orderNumber) {
-		await queryInterface.changeColumn(
-			'orders',
-			'orderNumber',
-			{
-				type: DataTypes.BIGINT,
-				autoIncrement: true,
-				allowNull: false,
-				unique: true
-			}
-		)
+		await queryInterface.changeColumn('orders', 'orderNumber', {
+			type: DataTypes.BIGINT,
+			autoIncrement: true,
+			allowNull: false,
+			unique: true,
+		})
 	}
 
 	return Promise.resolve()
