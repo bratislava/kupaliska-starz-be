@@ -355,7 +355,8 @@ const priceDryRun = async (
 			ticketType,
 			orderId,
 			dryRun,
-			isChildren
+			isChildren,
+			ticketType.photoRequired
 		)
 
 		let totals = { newTicketsPrice: ticketsPrice, discount: discount }
@@ -390,7 +391,8 @@ const saveTickets = async (
 	ticketType: TicketTypeModel,
 	orderId: string,
 	dryRun: boolean,
-	isChildren: boolean
+	isChildren: boolean,
+	photoRequired: boolean
 ) => {
 	let ticketsPrice = ticketType.price
 	if (
@@ -413,7 +415,9 @@ const saveTickets = async (
 			ticketsPrice,
 			null
 		)
-		await uploadProfilePhotos(createdTicket)
+		if (photoRequired) {
+			await uploadProfilePhotos(createdTicket)
+		}
 	}
 
 	return ticketsPrice
@@ -555,7 +559,7 @@ const getDiscount = async (
  * Persist ticket with profile and his children. Also save profile IDs to the ticket object for later use when uploading profile photos.
  */
 const createTicketWithProfile = async (
-	ticket: GetUser,
+	user: GetUser,
 	ticketType: TicketTypeModel,
 	orderId: string,
 	isChildren: boolean,
@@ -573,14 +577,14 @@ const createTicketWithProfile = async (
 			price: ticketPrice,
 			parentTicketId: parentTicketId,
 			remainingEntries: ticketType.entriesNumber,
-			swimmingLoggedUserId: ticket.loggedUserId,
-			associatedSwimmerId: ticket.associatedSwimmerId,
+			swimmingLoggedUserId: user.loggedUserId,
+			associatedSwimmerId: user.associatedSwimmerId,
 			profile: {
 				id: profileId,
-				email: ticket.email,
-				name: ticket.name,
-				age: ticket.age,
-				zip: ticket.zip,
+				email: user.email,
+				name: user.name,
+				age: user.age,
+				zip: user.zip,
 			},
 		},
 		{
