@@ -582,8 +582,8 @@ const createTicketWithProfile = async (
 			profile: {
 				id: profileId,
 				email: user.email,
-				name: user.name,
-				age: user.age,
+				name: ticketType.nameRequired ? user.name : null,
+				age: ticketType.nameRequired ? user.age : null,
 				zip: user.zip,
 			},
 		},
