@@ -79,18 +79,14 @@ export const workflow = async (
 
 		return res.json({
 			summary: concat(
-				map(allTicketTypes, (ticketType) => {
-					const ticketTypesSale = filter(
-						ticketTypesSales,
-						(sale) => sale.ticketTypeId === ticketType.id
+				map(ticketTypesSales, (ticketTypeSale) => {
+					const ticketType = allTicketTypes.find(
+						(ticketType) =>
+							ticketType.id === ticketTypeSale.ticketTypeId
 					)
 					return {
-						name: ticketType.name,
-						amount:
-							ticketTypesSale.length > 0 &&
-							ticketTypesSale[0].amount
-								? Number(ticketTypesSale[0].amount)
-								: 0.0,
+						name: ticketType?.name || '',
+						amount: Number(ticketTypeSale.amount),
 					}
 				}),
 				[
