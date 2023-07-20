@@ -232,8 +232,12 @@ export const workflow = async (
 			[]
 		)
 
+		const filteredResponseData = responseData.filter(
+			(item) => item.numberOfUses > 0
+		)
+
 		return res.json({
-			data: map(responseData, (ticketType: TicketTypeRecord) => {
+			data: map(filteredResponseData, (ticketType: TicketTypeRecord) => {
 				const { price, entryPrice, ...other } = ticketType
 				const finalPrice =
 					Math.round(
