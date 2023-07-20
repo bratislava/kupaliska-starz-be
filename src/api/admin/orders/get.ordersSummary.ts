@@ -80,21 +80,13 @@ export const workflow = async (
 		return res.json({
 			summary: concat(
 				map(ticketTypesSales, (ticketTypeSale) => {
-					const ticketType = allTicketTypes.find((ticketType) => ticketType.id === ticketTypeSale.ticketTypeId
-					return {
-						name: ticketType?.name || '',
-						amount: Number(ticketTypeSale.amount)
-					}
-						allTicketTypes,
+					const ticketType = allTicketTypes.find(
 						(ticketType) =>
 							ticketType.id === ticketTypeSale.ticketTypeId
 					)
 					return {
-						name: ticketType.length > 0 && ticketType[0].name,
-						amount:
-							ticketType.length > 0 && ticketTypeSale.amount
-								? Number(ticketTypeSale.amount)
-								: 0.0,
+						name: ticketType?.name || '',
+						amount: Number(ticketTypeSale.amount),
 					}
 				}),
 				[
