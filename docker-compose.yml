@@ -35,6 +35,7 @@ services:
             - SENTRY_DEBUG
             - TURNSTILE_SECRET_KEY
             - GP_WEBPAY_HTTP_API_URL
+            - GP_WEBPAY_HTTP_WEBSERVICE_API_URL
             - GP_WEBPAY_MERCHANT_NUMBER
             - GP_WEBPAY_CURRENCY
             - GP_WEBPAY_KEYS_PATH

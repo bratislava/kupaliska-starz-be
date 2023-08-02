@@ -1,6 +1,7 @@
 import formurlencoded from 'form-urlencoded'
 import fs from 'fs'
 import config from 'config'
+import fetch from 'node-fetch'
 import { models } from '../db/models'
 import { PaymentResponseModel } from '../db/models/paymentResponse'
 import { createSignature, verifySignature } from '../utils/webpay'
@@ -59,6 +60,19 @@ const createRequestSignatureString = (
 	return data
 }
 
+const createRequestSignatureStringSimplified = (
+	paramsToSign: (number | string)[]
+): string => {
+	let data: string = ''
+	paramsToSign.forEach((param, index) => {
+		if (index !== 0) {
+			data += '|'
+		}
+		data += param
+	})
+	return data
+}
+
 // In case of DIGEST1 verification use withMerchantNumber = true
 const createResponseSignatureString = (
 	responseObject: IGPWebpayHttpResponse,
@@ -107,6 +121,16 @@ const signData = async (paymentObject: IGPWebpayHttpRequest) => {
 	// }
 }
 
+export const signDataSimplified = async (arrayToSign: (number | string)[]) => {
+	const dataToSign = createRequestSignatureStringSimplified(arrayToSign)
+	const privateKey = await fs.promises.readFile(webpayConfig.privateKeyPath)
+	return createSignature(
+		dataToSign,
+		privateKey,
+		webpayConfig.privateKeyPassword
+	)
+}
+
 const verifyData = async (paymentResponse: IGPWebpayHttpResponse) => {
 	const data = createResponseSignatureString(paymentResponse)
 	const dataWithMerchantNumber = createResponseSignatureString(
@@ -122,6 +146,16 @@ const verifyData = async (paymentResponse: IGPWebpayHttpResponse) => {
 			publicKey
 		)
 	)
+}
+
+export const verifyDataGetPaymentStatusWebserviceResponse = async (
+	arrayTosign: string[],
+	signature: string
+) => {
+	const data = await signDataSimplified(arrayTosign)
+	console.log(data)
+	const publicKey = await fs.promises.readFile(webpayConfig.gpPublicKeyPath)
+	return verifySignature(data, signature, publicKey)
 }
 
 const verifyPayment = (paymentResponse: IGPWebpayHttpResponse) =>
@@ -175,5 +209,50 @@ export const registerPaymentResult = async (
 		isVerified: verificationResult,
 		isSuccess: paymentResult,
 		paymentOrderId: paymentOrderId,
+	})
+}
+
+export const getPaymentStatusWebServiceRequest = async (
+	orderNumber: number
+): Promise<any> => {
+	const provider = webpayConfig.provider
+	const merchantNumber = webpayConfig.merchantNumber
+
+	const envVars = {
+		provider,
+		merchantNumber,
+	}
+
+	const now = new Date()
+
+	const messageId = `${now.getTime()}${provider}${merchantNumber}getPaymentStatus`
+
+	const requestObject = {
+		messageId,
+		...envVars,
+	}
+	// we need to encrypt values and process of signing is dependent on order of values
+	// more info here https://www.gpwebpay.cz/downloads/GP_webpay_WS.pdf and here https://www.gpwebpay.cz/downloads/GP_webpay_Sprava_soukromeho_klice.pdf part 4.2.2.2.1
+	const paramsToSign = [
+		messageId,
+		requestObject.provider,
+		requestObject.merchantNumber,
+		orderNumber,
+	]
+	const signature = await signDataSimplified(paramsToSign)
+
+	const paymentStatusRequestObject = {
+		...envVars,
+		messageId,
+		paymentNumber: orderNumber,
+		signature,
+	}
+
+	const requestBody = `<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:v1='http://gpe.cz/pay/pay-ws/proc/v1' xmlns:type='http://gpe.cz/pay/pay-ws/proc/v1/type'><soapenv:Header/><soapenv:Body><v1:getPaymentStatus><v1:paymentStatusRequest><type:messageId>${paymentStatusRequestObject.messageId}</type:messageId><type:provider>${paymentStatusRequestObject.provider}</type:provider><type:merchantNumber>${paymentStatusRequestObject.merchantNumber}</type:merchantNumber><type:paymentNumber>${paymentStatusRequestObject.paymentNumber}</type:paymentNumber><type:signature>${paymentStatusRequestObject.signature}</type:signature></v1:paymentStatusRequest></v1:getPaymentStatus></soapenv:Body></soapenv:Envelope>`
+
+	return fetch(webpayConfig.httpGPWebpayWebservice, {
+		method: 'post',
+		body: requestBody,
+		headers: { 'Content-Type': 'text/xml' },
 	})
 }

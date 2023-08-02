@@ -53,5 +53,12 @@ export default async () => {
 			null,
 			true,
 			'Europe/Bratislava'
+		).start(),
+		new CronJob(
+			workersConfig.schedule.checkCreatedUnpaidOrders,
+			() => workerCallback('checkCreatedUnpaidOrders', {}),
+			null,
+			true,
+			'Europe/Bratislava'
 		).start()
 }
