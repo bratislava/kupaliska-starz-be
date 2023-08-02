@@ -19,7 +19,10 @@ const appConfig: IAppConfig = config.get('app')
 const mailgunConfig: IMailgunserviceConfig = config.get('mailgunService')
 const orderTemplate = mailgunConfig.templates.order
 
-export const sendOrderEmail = async (req: Request, order: OrderModel) => {
+export const sendOrderEmail = async (
+	req: Request | undefined,
+	order: OrderModel
+) => {
 	const parentTicket = order.tickets[0]
 
 	await sendEmail(

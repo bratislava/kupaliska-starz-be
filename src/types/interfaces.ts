@@ -28,6 +28,7 @@ export interface IWorkersConfig {
 	schedule: {
 		visitsComputation: string
 		refreshCustomersView: string
+		checkCreatedUnpaidOrders: string
 	}
 }
 
@@ -40,6 +41,7 @@ export interface ISentryConfig {
 
 export interface IGPWebpayConfig {
 	httpApi: string
+	httpGPWebpayWebservice: string
 	clientAppUrl: string
 	merchantNumber: string
 	currency: string

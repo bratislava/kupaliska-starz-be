@@ -37,6 +37,9 @@ export = {
 				process.env.SCHEDULE_VISITS_COMPUTATION || '00 00 23 * * *', // Run visits computation at 23:00 every day
 			refreshCustomersView:
 				process.env.SCHEDULE_REFRESH_CUSTOMERS_VIEW || '00 00 23 * * *', // Refresh customers views at 23:00 every day
+			checkCreatedUnpaidOrders:
+				process.env.SCHEDULE_CHECK_CREATED_UNPAID_ORDERS ||
+				'0 */5 * * * *', // check created unpaid orders every 5 minutes
 		},
 	},
 	i18next: <I18nextOptions>{
@@ -107,6 +110,9 @@ export = {
 		httpApi:
 			process.env.GP_WEBPAY_HTTP_API_URL ||
 			'https://test.3dsecure.gpwebpay.com/pgw/order.do',
+		httpGPWebpayWebservice:
+			process.env.GP_WEBPAY_HTTP_WEBSERVICE_API_URL ||
+			'https://test.3dsecure.gpwebpay.com/pay-ws/v1/PaymentService',
 		merchantNumber: process.env.GP_WEBPAY_MERCHANT_NUMBER, // Merchant number
 		currency: process.env.GP_WEBPAY_CURRENCY || '978', // Currency number
 		privateKeyPath: process.env.GP_WEBPAY_KEYS_PATH
