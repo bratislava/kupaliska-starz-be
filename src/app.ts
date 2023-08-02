@@ -48,7 +48,7 @@ const passportConfig: IPassportConfig = config.get('passport')
 const i18NextConfig: InitOptions = config.get('i18next')
 const appConfig: IAppConfig = config.get('app')
 
-// Check payment keys
+// Check payment keys in production
 if (process.env.NODE_ENV !== ENV.test) {
 	if (checkPaymentKeys() === false) {
 		throw new Error('Invalid payment keys')
