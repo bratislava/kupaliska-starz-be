@@ -149,11 +149,10 @@ const verifyData = async (paymentResponse: IGPWebpayHttpResponse) => {
 }
 
 export const verifyDataGetPaymentStatusWebserviceResponse = async (
-	arrayTosign: string[],
+	arrayToSign: string[],
 	signature: string
 ) => {
-	const data = await signDataSimplified(arrayTosign)
-	console.log(data)
+	const data = await signDataSimplified(arrayToSign)
 	const publicKey = await fs.promises.readFile(webpayConfig.gpPublicKeyPath)
 	return verifySignature(data, signature, publicKey)
 }
