@@ -90,56 +90,62 @@ process.on('message', async () => {
 		})
 
 		for (const order of orders) {
-			const orderNumber = order.orderNumber
-			logger.info(
-				`Found PAID order without proper status in order - id: ${orderNumber} checking against GP`
-			)
-			const responseFromGP = await getPaymentStatusWebServiceRequest(
-				orderNumber
-			)
-			const data = await responseFromGP.text()
-			logger.info(`Data from GP received ${data}`)
-			const parser = new xml2js.Parser()
-			let parsedBody = null
-			let parsedError = null
-			parser.parseString(data, (error, result) => {
-				parsedBody = result
-				parsedError = error
-			})
+			try {
+				const orderNumber = order.orderNumber
+				logger.info(
+					`Found PAID order without proper status in order - id: ${orderNumber} checking against GP`
+				)
+				const responseFromGP = await getPaymentStatusWebServiceRequest(
+					orderNumber
+				)
+				const data = await responseFromGP.text()
+				logger.info(`Data from GP received ${data}`)
+				const parser = new xml2js.Parser()
+				let parsedBody = null
+				try {
+					parsedBody = await parser.parseStringPromise(data)
 
-			if (parsedError) {
-				logger.info(`Error parsing GP response: ${parsedError}`)
-			} else {
-				const { error: validateSchemaError, value } =
-					gpWebserviceSchema.validate(parsedBody)
-				if (validateSchemaError) {
-					logger.info(
-						`Error validating GP response: ${validateSchemaError}`
-					)
-				} else {
-					const realData =
-						value['soapenv:Envelope']['soapenv:Body'][0][
-							'ns4:getPaymentStatusResponse'
-						][0]['ns4:paymentStatusResponse'][0]
-					const messageId = realData['ns3:messageId'][0]
-					const status = realData['ns3:status'][0]
-					const state = realData['ns3:state'][0]
-					const subStatus = realData['ns3:subStatus'][0]
-					const signature = realData['ns3:signature'][0]
-					// should be used to verify if needed
-					// await verifyDataGetPaymentStatusWebserviceResponse(
-					// 	[messageId, state, status, subStatus],
-					// 	signature
-					// )
-
-					if (status === ORDER_STATE_GPWEBPAY.CAPTURED) {
+					const { error: validateSchemaError, value } =
+						gpWebserviceSchema.validate(parsedBody)
+					if (validateSchemaError) {
 						logger.info(
-							`Found PAID order without proper status in order - id: ${orderNumber} changing status to PAID and sending email`
+							`Error validating GP response: ${validateSchemaError}`
 						)
-						await order.update({ state: ORDER_STATE.PAID })
-						await sendOrderEmail(undefined, order)
+					} else {
+						const realData =
+							value['soapenv:Envelope']['soapenv:Body'][0][
+								'ns4:getPaymentStatusResponse'
+							][0]['ns4:paymentStatusResponse'][0]
+						const messageId = realData['ns3:messageId'][0]
+						const status = realData['ns3:status'][0]
+						const state = realData['ns3:state'][0]
+						const subStatus = realData['ns3:subStatus'][0]
+						const signature = realData['ns3:signature'][0]
+						// should be used to verify if needed
+						// await verifyDataGetPaymentStatusWebserviceResponse(
+						// 	[messageId, state, status, subStatus],
+						// 	signature
+						// )
+
+						if (status === ORDER_STATE_GPWEBPAY.CAPTURED) {
+							logger.info(
+								`Found PAID order without proper status in order - id: ${orderNumber} changing status to PAID and sending email`
+							)
+							await order.update({ state: ORDER_STATE.PAID })
+							await sendOrderEmail(undefined, order)
+						}
 					}
+				} catch (error) {
+					logger.info(error)
+					logger.info(`Error parsing GP response: ${error}`)
 				}
+			} catch (err) {
+				logger.info(err)
+				logger.info(
+					`ERROR - Check created unpaid orders - ERROR: ${JSON.stringify(
+						err
+					)}`
+				)
 			}
 		}
 
