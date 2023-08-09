@@ -11,8 +11,6 @@ export const minioClient = new Client({
 	endPoint: minioConfig.endPoint,
 	port: Number(minioConfig.port),
 	useSSL: true,
-	// TODO these are mine (@mpinter), freshly generated credentials - ok to use, but should ultimately be removed from code & disabled in admin console
-	// this should be replaced by MINIO_ACCESS_KEY and MINIO_SECRET_KEY, which both exist as secrets in all of our kbs envs
 	accessKey: process.env.MINIO_ACCESS_KEY,
 	secretKey: process.env.MINIO_SECRET_KEY,
 })
