@@ -34,6 +34,8 @@ services:
             - SENTRY_TRACES_SAMPLE_RATE
             - SENTRY_DEBUG
             - TURNSTILE_SECRET_KEY
+            - MINIO_ACCESS_KEY
+            - MINIO_SECRET_KEY
             - GP_WEBPAY_HTTP_API_URL
             - GP_WEBPAY_MERCHANT_NUMBER
             - GP_WEBPAY_CURRENCY
