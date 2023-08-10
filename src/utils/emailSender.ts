@@ -1,8 +1,11 @@
 import { concat, map } from 'lodash'
-import { Attachment } from 'mailgun-js'
 import { TicketModel } from '../db/models/ticket'
-import { createAttachment, sendEmail } from '../services/mailerService'
-import { IAppConfig, IMailgunserviceConfig } from '../types/interfaces'
+import { sendEmail } from '../services/mailerService'
+import {
+	IAppConfig,
+	IAttachment,
+	IMailgunserviceConfig,
+} from '../types/interfaces'
 import { generateQrCodeBuffer } from './qrCodeGenerator'
 import {
 	getChildrenTicketName,
@@ -41,24 +44,24 @@ export const sendOrderEmail = async (req: Request, order: OrderModel) => {
 
 const getOrderEmailInlineAttachments = async (
 	tickets: TicketModel[]
-): Promise<Attachment[]> => {
+): Promise<IAttachment[]> => {
 	return await Promise.all(
 		map(tickets, async (ticket, index) => {
 			ticket.qrCode = await generateQrCodeBuffer(ticket.id, {
 				width: 264,
 				margin: 0,
 			})
-			return createAttachment({
-				data: ticket.qrCode,
+			return {
+				data: new Blob([ticket.qrCode]),
 				filename: `qr-code-${index + 1}.png`,
-			})
+			}
 		})
 	)
 }
 
 const getOrderEmailAttachments = async (
 	tickets: TicketModel[]
-): Promise<Attachment[]> => {
+): Promise<IAttachment[]> => {
 	return concat(
 		await Promise.all(
 			map(tickets, async (ticket) => {
@@ -66,8 +69,10 @@ const getOrderEmailAttachments = async (
 					? `${ticket.profile.name}_`
 					: ''
 				ticket.qrCode = await generateQrCodeBuffer(ticket.id)
-				return createAttachment({
-					data: Buffer.from(await generatePdf([ticket]), 'base64'),
+				return {
+					data: new Blob([
+						Buffer.from(await generatePdf([ticket]), 'base64'),
+					]),
 					// when filename contains "/" it will be deleted with everything before it therefore we need to replace it with something else
 					filename: `${ticketProfileName
 						.toString()
@@ -76,15 +81,17 @@ const getOrderEmailAttachments = async (
 						.replace('/', ', ')}_${ticket.id.substr(
 						ticket.id.length - 8
 					)}.pdf`,
-				})
+				}
 			})
 		),
 		tickets.length > 1
 			? [
-					createAttachment({
-						data: Buffer.from(await generatePdf(tickets), 'base64'),
+					{
+						data: new Blob([
+							Buffer.from(await generatePdf(tickets), 'base64'),
+						]),
 						filename: `${i18next.t('allTickets')}.pdf`,
-					}),
+					},
 			  ]
 			: []
 	)
