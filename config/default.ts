@@ -95,7 +95,7 @@ export = {
 	mailgunService: {
 		apiKey: process.env.MAILGUN_API_KEY,
 		domain: process.env.MAILGUN_DOMAIN,
-		host: process.env.MAILGUN_HOST,
+		host: process.env.MAILGUN_HOST || 'https://api.eu.mailgun.net',
 		fromEmail: process.env.MAILGUN_EMAIL_FROM || 'kupaliska@bratislava.sk',
 		templates: {
 			resetPassword: process.env.MAILGUN_TEMPLATE_RESET_PASSWORD,
