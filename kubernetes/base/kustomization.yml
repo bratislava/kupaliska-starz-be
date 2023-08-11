@@ -1,26 +1,23 @@
 resources:
-    - deployment.yml
-    - service-app.yml
-    - ingress.yml
-    - statefulSet.yml
-    - service-db.yml
-    - secrets/db.secret.yml
+  - deployment.yml
+  - service-app.yml
+  - ingress.yml
+  - statefulSet.yml
+  - service-db.yml
+  - secrets/db.secret.yml
+  - secrets/minio-secret.secret.yaml
 configurations:
-    - configuration.yml
-
+  - configuration.yml
 namePrefix: ${BUILD_REPOSITORY_NAME}-
 commonLabels:
-    app: ${BUILD_REPOSITORY_NAME}
-    source: ${BUILD_REPOSITORY_NAME}
-
+  app: ${BUILD_REPOSITORY_NAME}
+  source: ${BUILD_REPOSITORY_NAME}
 commonAnnotations:
-    repositoryUrl: ${BUILD_REPOSITORY_URI}
-
+  repositoryUrl: ${BUILD_REPOSITORY_URI}
 generatorOptions:
-    disableNameSuffixHash: false
-
+  disableNameSuffixHash: false
 configMapGenerator:
-    - name: env
-      namespace: ${NAMESPACE}
-      envs:
-          - .env
+  - name: env
+    namespace: ${NAMESPACE}
+    envs:
+      - .env
