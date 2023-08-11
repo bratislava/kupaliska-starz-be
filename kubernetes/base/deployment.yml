@@ -41,6 +41,8 @@ spec:
                       - secretRef:
                             name: turnstile-secret
                       - secretRef:
+                            name: minio
+                      - secretRef:
                             name: db
                       - configMapRef:
                             name: env
