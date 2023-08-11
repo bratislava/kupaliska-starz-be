@@ -5,7 +5,6 @@ resources:
   - statefulSet.yml
   - service-db.yml
   - secrets/db.secret.yml
-  - secrets/minio-secret.secret.yaml
 configurations:
   - configuration.yml
 namePrefix: ${BUILD_REPOSITORY_NAME}-
