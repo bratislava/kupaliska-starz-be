@@ -50,6 +50,13 @@ export interface IGPWebpayConfig {
 	provider: string
 }
 
+export interface IMinioConfig {
+	endPoint: string
+	port: number
+	accessKey: string
+	secretKey: string
+}
+
 interface JWTConfig {
 	jwtFromRequest: JwtFromRequestFunction
 	exp: string
