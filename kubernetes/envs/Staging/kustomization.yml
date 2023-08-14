@@ -2,6 +2,7 @@ resources:
   - ../../base
   - secrets/app.secret.yml
   - scaler.yml
+  - secrets/minio-secret.secret.yaml
 
 generatorOptions:
     disableNameSuffixHash: false
