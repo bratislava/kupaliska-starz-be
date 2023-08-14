@@ -44,6 +44,10 @@ export enum ORDER_STATE {
 	CANCELED = 'CANCELED',
 }
 
+export enum ORDER_STATE_GPWEBPAY {
+	CAPTURED = 'CAPTURED',
+}
+
 export enum PAYMENT_OPERATION {
 	CREATE_ORDER = 'CREATE_ORDER', // Card payment
 	CARD_VERIFICATION = 'CARD_VERIFICATION', // Card verification
