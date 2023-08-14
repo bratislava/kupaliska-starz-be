@@ -15,26 +15,57 @@ import config from 'config'
 import { OrderModel } from '../db/models/order'
 import { Request } from 'express'
 import { generatePdf } from './pdfGenerator'
-import i18next from 'i18next'
+import i18next, { InitOptions } from 'i18next'
 import { textColorsMap } from './enums'
+import i18nextMiddleware from 'i18next-express-middleware'
+import i18nextBackend from 'i18next-node-fs-backend'
 
+const i18NextConfig: InitOptions = config.get('i18next')
 const appConfig: IAppConfig = config.get('app')
 const mailgunConfig: IMailgunserviceConfig = config.get('mailgunService')
 const orderTemplate = mailgunConfig.templates.order
 
-export const sendOrderEmail = async (req: Request, order: OrderModel) => {
+export const sendOrderEmail = async (
+	req: Request | undefined,
+	order: OrderModel
+) => {
 	const parentTicket = order.tickets[0]
-
-	await sendEmail(
-		req,
-		parentTicket.profile.email,
-		req.t('email:orderSubject', {
+	if (!req) {
+		await i18next
+			.use(i18nextMiddleware.LanguageDetector)
+			.use(i18nextBackend)
+			.init({
+				...i18NextConfig,
+			}) // it has to be copy otherwise is readonly
+	}
+	const params = [
+		'email:orderSubject',
+		{
 			ticketName: getTicketNameTranslation(
 				parentTicket.ticketType,
 				1,
 				'a'
 			),
-		}),
+		},
+	]
+	await sendEmail(
+		req,
+		parentTicket.profile.email,
+		req?.t
+			? req.t('email:orderSubject', {
+					ticketName: getTicketNameTranslation(
+						parentTicket.ticketType,
+						1,
+						'a'
+					),
+			  })
+			: i18next.t('email:orderSubject', {
+					ticketName: getTicketNameTranslation(
+						parentTicket.ticketType,
+						1,
+						'a'
+					),
+			  }),
 		orderTemplate,
 		getOrderEmailData(parentTicket, order),
 		await getOrderEmailInlineAttachments(order.tickets),

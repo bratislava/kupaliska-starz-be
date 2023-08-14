@@ -37,6 +37,9 @@ export = {
 				process.env.SCHEDULE_VISITS_COMPUTATION || '00 00 23 * * *', // Run visits computation at 23:00 every day
 			refreshCustomersView:
 				process.env.SCHEDULE_REFRESH_CUSTOMERS_VIEW || '00 00 23 * * *', // Refresh customers views at 23:00 every day
+			checkCreatedUnpaidOrders:
+				process.env.SCHEDULE_CHECK_CREATED_UNPAID_ORDERS ||
+				'0 */5 * * * *', // check created unpaid orders every 5 minutes
 		},
 	},
 	i18next: <I18nextOptions>{
@@ -104,11 +107,10 @@ export = {
 		},
 	},
 	gpWebpayService: {
-		httpApi:
-			process.env.GP_WEBPAY_HTTP_API_URL ||
-			'https://test.3dsecure.gpwebpay.com/pgw/order.do',
+		httpApi: process.env.GP_WEBPAY_HTTP_API_URL,
+		httpGPWebpayWebservice: process.env.GP_WEBPAY_HTTP_WEBSERVICE_API_URL,
 		merchantNumber: process.env.GP_WEBPAY_MERCHANT_NUMBER, // Merchant number
-		currency: process.env.GP_WEBPAY_CURRENCY || '978', // Currency number
+		currency: process.env.GP_WEBPAY_CURRENCY, // Currency number
 		privateKeyPath: process.env.GP_WEBPAY_KEYS_PATH
 			? path.join(process.env.GP_WEBPAY_KEYS_PATH, 'merchant-pvk.key')
 			: path.join(process.cwd(), 'resources', 'keys', 'merchant-pvk.key'), // Merchant private key path
@@ -122,7 +124,7 @@ export = {
 		clientAppUrl:
 			process.env.GP_WEBPAY_CLIENT_APP_URL ||
 			'http://kupaliska.bratislava.sk', // front-end URL
-		provider: process.env.GP_WEBPAY_PROVIDER || '0902', // Provider code = Global Payments s.r.o. – SK
+		provider: process.env.GP_WEBPAY_PROVIDER, // Provider code = Global Payments s.r.o. – SK
 	},
 	minio: {
 		endPoint: process.env.MINIO_ENDPOINT || 'cdn-api.bratislava.sk',
