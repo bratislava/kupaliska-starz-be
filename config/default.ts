@@ -107,14 +107,10 @@ export = {
 		},
 	},
 	gpWebpayService: {
-		httpApi:
-			process.env.GP_WEBPAY_HTTP_API_URL ||
-			'https://test.3dsecure.gpwebpay.com/pgw/order.do',
-		httpGPWebpayWebservice:
-			process.env.GP_WEBPAY_HTTP_WEBSERVICE_API_URL ||
-			'https://test.3dsecure.gpwebpay.com/pay-ws/v1/PaymentService',
+		httpApi: process.env.GP_WEBPAY_HTTP_API_URL,
+		httpGPWebpayWebservice: process.env.GP_WEBPAY_HTTP_WEBSERVICE_API_URL,
 		merchantNumber: process.env.GP_WEBPAY_MERCHANT_NUMBER, // Merchant number
-		currency: process.env.GP_WEBPAY_CURRENCY || '978', // Currency number
+		currency: process.env.GP_WEBPAY_CURRENCY, // Currency number
 		privateKeyPath: process.env.GP_WEBPAY_KEYS_PATH
 			? path.join(process.env.GP_WEBPAY_KEYS_PATH, 'merchant-pvk.key')
 			: path.join(process.cwd(), 'resources', 'keys', 'merchant-pvk.key'), // Merchant private key path
@@ -128,6 +124,6 @@ export = {
 		clientAppUrl:
 			process.env.GP_WEBPAY_CLIENT_APP_URL ||
 			'http://kupaliska.bratislava.sk', // front-end URL
-		provider: process.env.GP_WEBPAY_PROVIDER || '0902', // Provider code = Global Payments s.r.o. – SK
+		provider: process.env.GP_WEBPAY_PROVIDER, // Provider code = Global Payments s.r.o. – SK
 	},
 }
