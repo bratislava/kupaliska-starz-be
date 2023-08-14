@@ -18,8 +18,6 @@ export const minioClient = new Client({
 // uploads a file stored on filesystem
 // path in bucket matches path on drive
 export const uploadFileToBucket = (fullPath: string) => {
-	console.log(process.env.MINIO_ACCESS_KEY)
-	console.log(process.env.MINIO_SECRET_KEY)
 	return new Promise((resolve, reject) => {
 		minioClient.fPutObject(
 			'kupaliska-starz',
