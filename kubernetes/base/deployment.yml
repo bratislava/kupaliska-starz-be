@@ -46,8 +46,22 @@ spec:
                             name: db
                       - configMapRef:
                             name: env
+                  volumeMounts:
+                  - mountPath: "/home/node/app/resources/keys"
+                    name: keys
+                    readOnly: true
+                  - mountPath: "/home/node/app/resources/test-keys"
+                    name: test-keys
+                    readOnly: true
             dnsPolicy: ClusterFirst
             restartPolicy: Always
             terminationGracePeriodSeconds: 30
             imagePullSecrets:
                 - name: ${IMAGE_PULL_SECRET}
+            volumes:
+            - name: keys
+              secret:
+                secretName: ${BUILD_REPOSITORY_NAME}-keys
+            - name: test-keys
+              secret:
+                secretName: ${BUILD_REPOSITORY_NAME}-test-keys
