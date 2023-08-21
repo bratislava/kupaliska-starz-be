@@ -66,6 +66,7 @@ process.on('message', async () => {
 				state: ORDER_STATE.CREATED,
 				createdAt: {
 					[Op.gte]: new Date(Date.now() - 30 * 60 * 1000),
+					[Op.lte]: new Date(Date.now() - 5 * 60 * 1000),
 				},
 			},
 			include: [
@@ -93,7 +94,7 @@ process.on('message', async () => {
 			try {
 				const orderNumber = order.orderNumber
 				logger.info(
-					`Found PAID order without proper status in order - id: ${orderNumber} checking against GP`
+					`Found CREATED order - id: ${orderNumber} checking against GP`
 				)
 				const responseFromGP = await getPaymentStatusWebServiceRequest(
 					orderNumber
