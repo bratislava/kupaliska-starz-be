@@ -66,6 +66,10 @@ process.on('message', async () => {
 				state: ORDER_STATE.CREATED,
 				createdAt: {
 					[Op.gte]: new Date(Date.now() - 30 * 60 * 1000),
+					// https://github.com/bratislava/kupaliska-starz-be/issues/113
+					// if user pays in the middle of this algorithm,
+					// he will get two mails, this will mostly erase this problem,
+					// but not solve it completly and it should happen very rarely.
 					[Op.lte]: new Date(Date.now() - 5 * 60 * 1000),
 				},
 			},
