@@ -39,7 +39,7 @@ export const sendEmail = async (
 	}
 
 	try {
-		logger.info('SEND MAIL DATA', mailData)
+		logger.info('SEND MAIL DATA', JSON.stringify(mailData))
 		await mg.messages.create(mailgunConfig.domain, mailData)
 	} catch (err) {
 		logger.error(err)
