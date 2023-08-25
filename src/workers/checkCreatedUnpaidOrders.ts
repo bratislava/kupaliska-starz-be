@@ -142,7 +142,9 @@ process.on('message', async () => {
 					}
 				} catch (error) {
 					logger.info(error)
-					logger.info(`Error parsing GP response: ${error}`)
+					logger.info(
+						`Error parsing GP response: ${JSON.stringify(error)}`
+					)
 				}
 			} catch (err) {
 				logger.info(err)
