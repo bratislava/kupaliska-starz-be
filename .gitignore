@@ -131,3 +131,7 @@ files/public/swimming-pools
 
 # bratiska-cli manifest files
 manifest-*.y?ml
+
+# global payments keys
+resources/keys/*
+resources/test-keys/*
