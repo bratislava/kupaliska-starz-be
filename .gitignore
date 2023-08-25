@@ -133,5 +133,5 @@ files/public/swimming-pools
 manifest-*.y?ml
 
 # global payments keys
-resources/keys/*
-resources/test-keys/*
+resources/keys/
+resources/test-keys/
