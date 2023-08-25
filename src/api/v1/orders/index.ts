@@ -82,8 +82,16 @@ export default () => {
 	)
 
 	// didn't find a better place to put this (/tickets ?), therefore under /orders
-	router.get('/appleWallet/:ticketId', GetAppleWallet.workflow)
-	router.get('/googlePay/:ticketId', GetGooglePay.workflow)
+	router.get(
+		'/appleWallet/:ticketId',
+		schemaMiddleware(GetAppleWallet.schema),
+		GetAppleWallet.workflow
+	)
+	router.get(
+		'/googlePay/:ticketId',
+		schemaMiddleware(GetGooglePay.schema),
+		GetGooglePay.workflow
+	)
 
 	return router
 }
