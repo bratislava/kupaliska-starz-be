@@ -10,6 +10,7 @@ import * as GetGooglePay from './get.googlePay'
 import passport from 'passport'
 import schemaMiddleware from '../../../middlewares/schemaMiddleware'
 import recaptchaMiddleware from '../../../middlewares/recaptchaMiddleware'
+import offseasonMiddleware from '../../../middlewares/offseasonMiddleware'
 
 const router = Router()
 
@@ -22,6 +23,7 @@ export default () => {
 
 	router.post(
 		'/',
+		offseasonMiddleware,
 		passport.authenticate('jwt-cognito'),
 		recaptchaMiddleware,
 		schemaMiddleware(PostOrder.schema),
@@ -32,6 +34,7 @@ export default () => {
 
 	router.post(
 		'/unauthenticated',
+		offseasonMiddleware,
 		recaptchaMiddleware,
 		schemaMiddleware(PostOrder.schema),
 		(req: Request, res: Response, next: NextFunction) => {
