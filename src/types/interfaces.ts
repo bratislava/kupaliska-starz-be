@@ -188,3 +188,8 @@ export interface IGPWebpayHttpResponse {
 	DIGEST: string
 	DIGEST1: string
 }
+
+export interface IAttachment {
+	data: Blob
+	filename?: string
+}

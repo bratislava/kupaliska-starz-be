@@ -1,12 +1,12 @@
-FROM node:20.9.0-alpine AS base
+FROM node:18.14.0-alpine AS base
 ENV NODE_ENV=production
 
 FROM base AS app-base
 RUN apk update \
-      && apk add tini \
-      && rm -rf /var/cache/apk/* \
-      && mkdir -p /home/node/app \
-      && chown -R node:node /home/node/app
+ && apk add tini \
+ && rm -rf /var/cache/apk/* \
+ && mkdir -p /home/node/app \
+ && chown -R node:node /home/node/app
 USER node
 WORKDIR /home/node/app
 COPY --chown=node:node --chmod=0755 start.sh .
@@ -20,7 +20,7 @@ RUN npm ci --production
 FROM build-base AS build
 COPY --chown=node:node . ./
 RUN npm ci --production=false \
-      && npm run build
+ && npm run build
 
 FROM app-base AS dev
 ENV NODE_ENV=development
