@@ -23,7 +23,7 @@ patches:
     patch: |-
       - op: replace
         path: /spec/rules/0/host
-        value: api.kupaliska.bratislava.sk
+        value: api-kupaliska.bratislava.sk
       - op: replace
         path: /spec/tls/0/hosts/0
-        value: api.kupaliska.bratislava.sk
+        value: api-kupaliska.bratislava.sk

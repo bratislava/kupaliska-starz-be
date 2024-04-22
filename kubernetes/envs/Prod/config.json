@@ -2,7 +2,7 @@
 	"envs": {
 		"APP_PORT": 3000,
 		"FE_HOSTNAME": "kupaliska.bratislava.sk",
-		"ADMIN_HOSTNAME": "login.kupaliska.bratislava.sk",
-		"API_HOST": "api.kupaliska.bratislava.sk"
+		"ADMIN_HOSTNAME": "login-kupaliska.bratislava.sk",
+		"API_HOST": "api-kupaliska.bratislava.sk"
 	}
 }

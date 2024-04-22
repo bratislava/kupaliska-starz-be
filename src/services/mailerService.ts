@@ -1,9 +1,10 @@
 import { captureError } from './sentryService'
 import config from 'config'
-import { IAttachment, IMailgunserviceConfig } from '../types/interfaces'
+import { IMailgunserviceConfig } from '../types/interfaces'
 import { Request } from 'express'
+import FormData from 'form-data'
 
-import Mailgun from 'mailgun.js'
+import Mailgun, { CustomFile } from 'mailgun.js'
 import ErrorBuilder from '../utils/ErrorBuilder'
 import i18next from 'i18next'
 import path from 'path'
@@ -24,8 +25,8 @@ export const sendEmail = async (
 	subject: string,
 	template: string,
 	variables: Object,
-	inlineAttachments?: IAttachment[],
-	attachments?: IAttachment[]
+	inlineAttachments?: CustomFile[],
+	attachments?: CustomFile[]
 ): Promise<void> => {
 	const mailData = {
 		from: mailgunConfig.fromEmail,

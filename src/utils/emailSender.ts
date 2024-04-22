@@ -1,11 +1,7 @@
 import { concat, map } from 'lodash'
 import { TicketModel } from '../db/models/ticket'
 import { sendEmail } from '../services/mailerService'
-import {
-	IAppConfig,
-	IAttachment,
-	IMailgunserviceConfig,
-} from '../types/interfaces'
+import { IAppConfig, IMailgunserviceConfig } from '../types/interfaces'
 import { generateQrCodeBuffer } from './qrCodeGenerator'
 import {
 	getChildrenTicketName,
@@ -19,6 +15,7 @@ import i18next, { InitOptions } from 'i18next'
 import { textColorsMap } from './enums'
 import i18nextMiddleware from 'i18next-express-middleware'
 import i18nextBackend from 'i18next-node-fs-backend'
+import { CustomFile } from 'mailgun.js'
 
 const i18NextConfig: InitOptions = config.get('i18next')
 const appConfig: IAppConfig = config.get('app')
@@ -75,7 +72,7 @@ export const sendOrderEmail = async (
 
 const getOrderEmailInlineAttachments = async (
 	tickets: TicketModel[]
-): Promise<IAttachment[]> => {
+): Promise<CustomFile[]> => {
 	return await Promise.all(
 		map(tickets, async (ticket, index) => {
 			ticket.qrCode = await generateQrCodeBuffer(ticket.id, {
@@ -83,7 +80,7 @@ const getOrderEmailInlineAttachments = async (
 				margin: 0,
 			})
 			return {
-				data: new Blob([ticket.qrCode]),
+				data: ticket.qrCode,
 				filename: `qr-code-${index + 1}.png`,
 			}
 		})
@@ -92,7 +89,7 @@ const getOrderEmailInlineAttachments = async (
 
 const getOrderEmailAttachments = async (
 	tickets: TicketModel[]
-): Promise<IAttachment[]> => {
+): Promise<CustomFile[]> => {
 	return concat(
 		await Promise.all(
 			map(tickets, async (ticket) => {
@@ -101,9 +98,8 @@ const getOrderEmailAttachments = async (
 					: ''
 				ticket.qrCode = await generateQrCodeBuffer(ticket.id)
 				return {
-					data: new Blob([
-						Buffer.from(await generatePdf([ticket]), 'base64'),
-					]),
+					data: Buffer.from(await generatePdf([ticket]), 'base64'),
+
 					// when filename contains "/" it will be deleted with everything before it therefore we need to replace it with something else
 					filename: `${ticketProfileName
 						.toString()
@@ -118,9 +114,7 @@ const getOrderEmailAttachments = async (
 		tickets.length > 1
 			? [
 					{
-						data: new Blob([
-							Buffer.from(await generatePdf(tickets), 'base64'),
-						]),
+						data: Buffer.from(await generatePdf(tickets), 'base64'),
 						filename: `${i18next.t('allTickets')}.pdf`,
 					},
 			  ]
