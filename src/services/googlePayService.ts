@@ -34,7 +34,7 @@ export const getPassUrl = async (ticket: TicketModel) => {
 		// TODO replace the logo after first deploy
 		// logo: {
 		// 	sourceUri: {
-		// 		uri: 'https://api.kupaliska.bratislava.sk/public/wallet-pass/logo-starz.png',
+		// 		uri: 'https://api-kupaliska.bratislava.sk/public/wallet-pass/logo-starz.png',
 		// 	},
 		// },
 		cardTitle: {

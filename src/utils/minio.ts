@@ -20,7 +20,7 @@ export const minioClient = new Client({
 export const uploadFileToBucket = (fullPath: string) => {
 	return new Promise((resolve, reject) => {
 		minioClient.fPutObject(
-			'kupaliska-starz',
+			process.env.MINIO_BUCKET,
 			fullPath,
 			fullPath,
 			function (e: any) {
@@ -39,7 +39,7 @@ export const uploadFileToBucket = (fullPath: string) => {
 export const downloadFileFromBucket = (fullPath: string) =>
 	new Promise((resolve, reject) => {
 		minioClient.fGetObject(
-			'kupaliska-starz',
+			process.env.MINIO_BUCKET,
 			fullPath,
 			fullPath,
 			function (e) {
@@ -60,7 +60,7 @@ export const minioStaticServeMiddleware =
 	(path: string) => async (req: Request, res: Response) => {
 		await new Promise((resolve, reject) =>
 			minioClient.getObject(
-				'kupaliska-starz',
+				process.env.MINIO_BUCKET,
 				`${path}${req.url}`,
 				(err, stream) => {
 					if (err) {
@@ -78,7 +78,7 @@ export const minioStaticServeMiddleware =
 	}
 
 // async (req, res) => {
-//   await new Promise((resolve, reject) => minioClient.getObject('kupaliska-starz', `files/public${req.url}`, (err, stream) => {
+//   await new Promise((resolve, reject) => minioClient.getObject(process.env.MINIO_BUCKET, `files/public${req.url}`, (err, stream) => {
 //     if (err) {
 //       logger.error(err)
 //       return reject(err)

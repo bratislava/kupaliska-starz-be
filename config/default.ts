@@ -127,7 +127,7 @@ export = {
 		provider: process.env.GP_WEBPAY_PROVIDER, // Provider code = Global Payments s.r.o. – SK
 	},
 	minio: {
-		endPoint: process.env.MINIO_ENDPOINT || 'cdn-api.bratislava.sk',
+		endPoint: process.env.MINIO_ENDPOINT || 's3.bratislava.sk',
 		port: process.env.MINIO_PORT || 443,
 		accessKey: process.env.MINIO_ACCESS_KEY,
 		secretKey: process.env.MINIO_SECRET_KEY,
