@@ -2,7 +2,7 @@ resources:
   - ../../base
   - secrets/app.secret.yml
   - scaler.yml
-  - secrets/minio-secret.secret.yml
+  - secrets/minio.secret.yml
   - secrets/keys.secret.yml
   - secrets/test-keys.secret.yml
 
