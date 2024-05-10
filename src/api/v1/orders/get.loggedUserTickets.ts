@@ -1,14 +1,8 @@
 import { Request, Response, NextFunction } from 'express'
 import { models } from '../../../db/models'
-import {
-	ENTRY_TYPE,
-	ORDER_STATE,
-	textColorsMap,
-	TICKET_CATEGORY,
-} from '../../../utils/enums'
+import { ENTRY_TYPE, ORDER_STATE, textColorsMap } from '../../../utils/enums'
 import { generateQrCodeBuffer } from '../../../utils/qrCodeGenerator'
 import { getDataAboutCurrentUser } from '../../../utils/getDataCurrentUser'
-import { TicketTypeModel } from '../../../db/models/ticketType'
 
 const { Ticket, Order, TicketType, Entry, SwimmingPool } = models
 
@@ -31,6 +25,7 @@ interface GetTicket {
 	price: number
 	ticketColor: TicketColors | null
 	age: null | number
+	validTo: Date | null
 }
 
 interface TicketColors {
@@ -73,6 +68,7 @@ export const workflow = async (
 				price: 0,
 				ticketColor: null,
 				age: null,
+				validTo: null,
 			}
 
 			const order = await Order.findByPk(ticket.orderId)
@@ -82,10 +78,14 @@ export const workflow = async (
 				ticketResult.remainingEntries = ticket.remainingEntries
 
 				const ticketType = await TicketType.findByPk(
-					ticket.ticketTypeId
+					ticket.ticketTypeId,
+					{
+						paranoid: false,
+					}
 				)
 				// ?. for cases when the ticketType has been removed
 				ticketResult.type = ticketType?.name
+				ticketResult.validTo = ticketType?.validTo
 				const qrCode = await generateQrCodeBuffer(ticket.id)
 				ticketResult.qrCode =
 					'data:image/png;base64, ' +
