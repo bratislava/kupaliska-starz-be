@@ -6,11 +6,11 @@
   ],
   "settings": {
     "workbench.colorCustomizations": {
-      "sideBar.border": "#07038C",
-      "statusBar.background": "#07038C",
+      "sideBar.border": "#0A07F5",
+      "statusBar.background": "#0A07F5",
       "statusBar.foreground": "#ffffff",
       "statusBarItem.hoverBackground": "#D83728",
-      "statusBarItem.remoteBackground": "#07038C",
+      "statusBarItem.remoteBackground": "#0A07F5",
       "statusBarItem.remoteForeground": "#ffffff"
     },
     "typescript.tsdk": "./node_modules/typescript/lib"
