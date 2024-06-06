@@ -102,17 +102,17 @@ export const TICKET_CHECKOUT_ERROR_CODES = Object.values(
 export const CHECK_STATUSS = Object.values(CHECK_STATUS)
 
 export const textColorsMap = {
-	[TICKET_CATEGORY.ADULT]: { text: '#FFFFFF', background: '#07038C' },
+	[TICKET_CATEGORY.ADULT]: { text: '#FFFFFF', background: '#0A07F5' },
 	[TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT]: {
-		text: '#07038C',
+		text: '#0A07F5',
 		background: '#8AEBD9',
 	},
 	[TICKET_CATEGORY.CHILDREN_WITH_ADULT]: {
-		text: '#07038C',
+		text: '#0A07F5',
 		background: '#7CCEF2',
 	},
 	[TICKET_CATEGORY.SENIOR_OR_DISABLED]: {
-		text: '#07038C',
+		text: '#0A07F5',
 		background: '#CFD9FC',
 	},
 }
