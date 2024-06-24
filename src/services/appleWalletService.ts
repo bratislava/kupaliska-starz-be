@@ -108,7 +108,8 @@ export const createPass = async (ticket: TicketModel) => {
 			ownerName ? ` ${ownerName}` : ''
 		}`,
 		serialNumber: ticketId,
-		expirationDate: '2023-09-31T10:00-05:00',
+		// this could be included in general info at start of the season
+		expirationDate: '2024-09-31T10:00-05:00',
 		generic: {
 			headerFields: [
 				{
