@@ -91,6 +91,7 @@ export const createPass = async (ticket: TicketModel) => {
 	const ownerName = ticket.ticketType.isDisposable
 		? undefined
 		: ticket.profile.name
+	const year = new Date().getFullYear()
 
 	const pass = template.createPass({
 		backgroundColor: hexToRgbString(
@@ -109,7 +110,7 @@ export const createPass = async (ticket: TicketModel) => {
 		}`,
 		serialNumber: ticketId,
 		// this could be included in general info at start of the season
-		expirationDate: '2024-09-31T10:00-05:00',
+		expirationDate: `${year}-09-31T10:00-05:00`,
 		generic: {
 			headerFields: [
 				{
