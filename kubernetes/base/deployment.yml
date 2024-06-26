@@ -47,6 +47,9 @@ spec:
                       - configMapRef:
                             name: env
                   volumeMounts:
+                  - mountPath: "/home/node/app/resources/apple-wallet"
+                    name: apple-wallet-keys
+                    readOnly: true
                   - mountPath: "/home/node/app/resources/keys"
                     name: keys
                     readOnly: true
@@ -59,6 +62,9 @@ spec:
             imagePullSecrets:
                 - name: ${IMAGE_PULL_SECRET}
             volumes:
+            - name: apple-wallet-keys
+              secret:
+                secretName: apple-wallet
             - name: keys
               secret:
                 secretName: ${BUILD_REPOSITORY_NAME}-keys

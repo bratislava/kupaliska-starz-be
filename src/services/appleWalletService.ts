@@ -9,7 +9,7 @@ import {
 import { TicketModel } from '../db/models/ticket'
 
 const template = new Template('generic', {
-	passTypeIdentifier: 'pass.sk.bratislava.kupaliska.v2',
+	passTypeIdentifier: 'pass.sk.bratislava.kupaliska.v3',
 	teamIdentifier: '2P6QC78LFR',
 	organizationName: 'STARZ Bratislava',
 	backgroundColor: hexToRgbString(
@@ -62,8 +62,8 @@ const template = new Template('generic', {
 
 template
 	.loadCertificate(
-		'./resources/apple-wallet/pass.sk.bratislava.kupaliska.v2.pem',
-		'$%nhw49T6t2!'
+		'./resources/apple-wallet/apple-wallet-cert.pem',
+		'PgrWa~6Fbf'
 	)
 	.catch((err) => {
 		logger.error('Error Apple Wallet init! Problem loading certificate')

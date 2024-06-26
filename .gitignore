@@ -135,3 +135,6 @@ manifest-*.y?ml
 # global payments keys
 resources/keys/
 resources/test-keys/
+
+# apple walet cert
+resources/apple-wallet/
