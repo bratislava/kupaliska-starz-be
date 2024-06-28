@@ -136,5 +136,8 @@ manifest-*.y?ml
 resources/keys/
 resources/test-keys/
 
-# apple walet cert
+# apple wallet cert
 resources/apple-wallet/
+
+# google wallet credentials
+resources/google-pay/

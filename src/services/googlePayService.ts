@@ -32,11 +32,11 @@ export const getPassUrl = async (ticket: TicketModel) => {
 		genericType: 'GENERIC_TYPE_UNSPECIFIED',
 		hexBackgroundColor: textColorsMap[ticket.getCategory()].background,
 		// TODO replace the logo after first deploy
-		// logo: {
-		// 	sourceUri: {
-		// 		uri: 'https://api-kupaliska.bratislava.sk/public/wallet-pass/logo-starz.png',
-		// 	},
-		// },
+		logo: {
+			sourceUri: {
+				uri: 'https://api-kupaliska.bratislava.sk/public/wallet-pass/logo-starz.png',
+			},
+		},
 		cardTitle: {
 			defaultValue: {
 				language: 'en',
