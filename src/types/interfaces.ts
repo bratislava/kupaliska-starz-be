@@ -59,6 +59,10 @@ export interface IMinioConfig {
 	secretKey: string
 }
 
+export interface IAppleWalletConfig {
+	certificatePassword: string
+}
+
 interface JWTConfig {
 	jwtFromRequest: JwtFromRequestFunction
 	exp: string
