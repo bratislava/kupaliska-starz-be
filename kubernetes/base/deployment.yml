@@ -67,7 +67,7 @@ spec:
             volumes:
             - name: google-wallet-credentials
               secret:
-                secretName: google-wallet
+                secretName: ${BUILD_REPOSITORY_NAME}-google-wallet
             - name: apple-wallet-keys
               secret:
                 secretName: apple-wallet
