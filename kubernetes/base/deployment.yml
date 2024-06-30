@@ -44,6 +44,8 @@ spec:
                             name: minio
                       - secretRef:
                             name: db
+                      - secretRef:
+                            name: apple-wallet-certificate-secret
                       - configMapRef:
                             name: env
                   volumeMounts:
