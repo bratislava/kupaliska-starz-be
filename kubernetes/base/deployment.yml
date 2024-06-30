@@ -66,7 +66,7 @@ spec:
             volumes:
             - name: apple-wallet-keys
               secret:
-                secretName: apple-wallet
+                secretName: ${BUILD_REPOSITORY_NAME}-apple-wallet
             - name: keys
               secret:
                 secretName: ${BUILD_REPOSITORY_NAME}-keys
