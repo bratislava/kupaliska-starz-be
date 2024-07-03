@@ -6,6 +6,10 @@ This app is built on Node.js framework Express.
 
 There is .pdf documentation in docs folder
 
+## Product specification
+
+[Product specification](https://magistratba.sharepoint.com/:w:/s/InnovationTeam/EbkNEpF0x5dNgH-nfmNf03UB8oJLmVhrDIkOe0aZ9JrEPA?e=ZXjH7z)
+
 ## Development setup
 
 ### Without Docker
