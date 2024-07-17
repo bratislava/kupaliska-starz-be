@@ -46,6 +46,8 @@ spec:
                             name: db
                       - secretRef:
                             name: apple-wallet-certificate-secret
+                      - secretRef:
+                            name: apple-wallet-password
                       - configMapRef:
                             name: env
                   volumeMounts:
