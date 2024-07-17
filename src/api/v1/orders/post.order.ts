@@ -296,6 +296,7 @@ const priceDryRun = async (
 		}
 		if (
 			ticketType.nameRequired &&
+			user.cityAccountType &&
 			user.cityAccountType !== AccountType.FO
 		) {
 			throw new ErrorBuilder(
