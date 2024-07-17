@@ -6,7 +6,7 @@ import formUrlEncoded from 'form-urlencoded'
 import { v4 as uuidv4 } from 'uuid'
 import { models } from '../../../db/models'
 import { IAppConfig, IPassportConfig } from '../../../types/interfaces'
-import { MESSAGE_TYPE, ORDER_STATE } from '../../../utils/enums'
+import { AccountType, MESSAGE_TYPE, ORDER_STATE } from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { TicketTypeModel } from '../../../db/models/ticketType'
 import { validate } from '../../../utils/validation'
@@ -41,6 +41,7 @@ interface GetUser {
 	name: string | null
 	age: number | null
 	zip: string | null
+	cityAccountType?: AccountType
 }
 
 const appConfig: IAppConfig = config.get('app')
@@ -293,6 +294,15 @@ const priceDryRun = async (
 		) {
 			numberOfChildren += 1
 		}
+		if (
+			ticketType.nameRequired &&
+			user.cityAccountType !== AccountType.FO
+		) {
+			throw new ErrorBuilder(
+				400,
+				req.t('error:ticket.userNotAllowedTicketType')
+			)
+		}
 	}
 
 	// discount code check
@@ -489,9 +499,14 @@ const getUser = async (
 			loggedUserId: swimmingLoggedUser.id,
 			email: cityAccountData.email,
 			name:
-				cityAccountData.given_name + ' ' + cityAccountData.family_name,
+				cityAccountData.given_name && cityAccountData.family_name
+					? cityAccountData.given_name +
+					  ' ' +
+					  cityAccountData.family_name
+					: undefined,
 			age: swimmingLoggedUser.age,
 			zip: swimmingLoggedUser.zip,
+			cityAccountType: cityAccountData['custom:account_type'],
 		}
 	} else {
 		if (!loggedUserId)

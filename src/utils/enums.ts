@@ -10,6 +10,12 @@ export enum LANGUAGE {
 	EN = 'en',
 }
 
+export enum AccountType {
+	FO = 'fo',
+	PO = 'po',
+	FOP = 'fo-p',
+}
+
 export enum MESSAGE_TYPE {
 	ERROR = 'ERROR',
 	WARNING = 'WARNING',
