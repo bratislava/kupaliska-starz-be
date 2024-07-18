@@ -20,6 +20,7 @@ import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
 import { getCityAccountData } from '../../../utils/helpers'
 import { logger } from '../../../utils/logger'
 import { TicketModel } from '../../../db/models/ticket'
+import { FE_ROUTES } from '../../../utils/constants'
 
 const {
 	SwimmingLoggedUser,
@@ -223,7 +224,7 @@ export const workflow = async (
 			return res.json({
 				data: {
 					id: order.id,
-					url: '/order-result',
+					url: FE_ROUTES.ORDER_SUCCESSFUL,
 					formurlencoded: formUrlEncoded({
 						success: true,
 						orderId: order.id,

@@ -11,6 +11,7 @@ import { IPassportConfig, IGPWebpayConfig } from '../../../types/interfaces'
 import { ORDER_STATE } from '../../../utils/enums'
 import { captureMessage } from '../../../services/sentryService'
 import { sendOrderEmail } from '../../../utils/emailSender'
+import { FE_ROUTES } from '../../../utils/constants'
 
 const passwordConfig: IPassportConfig = config.get('passport')
 const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
@@ -70,7 +71,7 @@ export const workflow = async (
 				)} - ${req.method} - ${req.ip}`
 			)
 			return res.redirect(
-				`${webpayConfig.clientAppUrl}/order-result?success=false`
+				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
 			)
 		}
 
@@ -81,7 +82,7 @@ export const workflow = async (
 				)} - ${req.method} - ${req.ip}`
 			)
 			return res.redirect(
-				`${webpayConfig.clientAppUrl}/order-result?success=false`
+				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
 			)
 		}
 
@@ -92,7 +93,7 @@ export const workflow = async (
 				} - ${req.ip}`
 			)
 			return res.redirect(
-				`${webpayConfig.clientAppUrl}/order-result?success=false`
+				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
 			)
 		}
 
@@ -107,7 +108,7 @@ export const workflow = async (
 			captureMessage('PAYMENT - payment  order not found', req.ip)
 			await order.update({ state: ORDER_STATE.FAILED })
 			return res.redirect(
-				`${webpayConfig.clientAppUrl}/order-result?success=false`
+				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
 			)
 		}
 
@@ -126,7 +127,7 @@ export const workflow = async (
 			captureMessage('PAYMENT - payment  verification failed', req.ip)
 			await order.update({ state: ORDER_STATE.FAILED })
 			return res.redirect(
-				`${webpayConfig.clientAppUrl}/order-result?success=false`
+				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
 			)
 		}
 
@@ -145,7 +146,7 @@ export const workflow = async (
 				await order.update({ state: ORDER_STATE.FAILED })
 			}
 			return res.redirect(
-				`${webpayConfig.clientAppUrl}/order-result?success=false`
+				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
 			)
 		}
 
@@ -166,7 +167,6 @@ export const workflow = async (
 
 		const queryParams = formurlencoded(
 			{
-				success: paymentResult.isSuccess,
 				orderId: order.id,
 				orderAccessToken: orderAccessToken ? orderAccessToken : null,
 			},
@@ -174,7 +174,7 @@ export const workflow = async (
 		)
 
 		return res.redirect(
-			`${webpayConfig.clientAppUrl}/order-result?${queryParams}`
+			`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_SUCCESSFUL}?${queryParams}`
 		)
 	} catch (error) {
 		return next(error)
