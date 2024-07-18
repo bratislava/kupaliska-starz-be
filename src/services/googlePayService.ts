@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken'
-// TODO remove credentials form git
-import credentials from '../../resources/google-pay/credentials.json'
+import fs from 'fs'
 import { textColorsMap } from '../utils/enums'
 import { TicketModel } from '../db/models/ticket'
 import {
@@ -72,6 +71,12 @@ export const getPassUrl = async (ticket: TicketModel) => {
 			value: ticket.id,
 		},
 	}
+
+	const credentialsBuffer = fs.readFileSync(
+		'resources/google-pay/credentials.json'
+	)
+
+	const credentials = JSON.parse(credentialsBuffer.toString())
 
 	const claims = {
 		iss: credentials.client_email,
