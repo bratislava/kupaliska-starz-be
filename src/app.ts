@@ -1,5 +1,5 @@
 import passport from 'passport'
-import i18nextMiddleware from 'i18next-express-middleware'
+import i18nextMiddleware from 'i18next-http-middleware'
 import i18nextBackend from 'i18next-node-fs-backend'
 import express from 'express'
 import cors from 'cors'
