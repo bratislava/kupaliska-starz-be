@@ -45,7 +45,7 @@ spec:
                       - secretRef:
                             name: db
                       - secretRef:
-                            name: apple-wallet-certificate-secret
+                            name: apple-wallet
                       - secretRef:
                             name: apple-wallet-password
                       - configMapRef:
