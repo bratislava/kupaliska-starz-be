@@ -13,7 +13,7 @@ import { Request } from 'express'
 import { generatePdf } from './pdfGenerator'
 import i18next, { InitOptions } from 'i18next'
 import { textColorsMap } from './enums'
-import i18nextMiddleware from 'i18next-express-middleware'
+import i18nextMiddleware from 'i18next-http-middleware'
 import i18nextBackend from 'i18next-node-fs-backend'
 import { CustomFile } from 'mailgun.js'
 
