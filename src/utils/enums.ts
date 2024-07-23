@@ -50,6 +50,11 @@ export enum ORDER_STATE {
 	CANCELED = 'CANCELED',
 }
 
+export enum ORDER_PAYMENT_METHOD_STATE {
+	GPAY = 'GPAY',
+	APAY = 'APAY',
+}
+
 export enum ORDER_STATE_GPWEBPAY {
 	CAPTURED = 'CAPTURED',
 }
@@ -98,6 +103,9 @@ export const USER_ROLES = Object.values(USER_ROLE)
 export const PAYMENT_OPERATIONS = Object.values(PAYMENT_OPERATION)
 export const TICKET_TYPES = Object.values(TICKET_TYPE)
 export const ORDER_STATES = Object.values(ORDER_STATE)
+export const ORDER_PAYMENT_METHOD_STATES = Object.values(
+	ORDER_PAYMENT_METHOD_STATE
+)
 export const ENTRY_TYPES = Object.values(ENTRY_TYPE)
 export const TICKET_CHECKIN_ERROR_CODES = Object.values(
 	TICKET_CHECKIN_ERROR_CODE
@@ -121,4 +129,9 @@ export const textColorsMap = {
 		text: '#0A07F5',
 		background: '#CFD9FC',
 	},
+}
+
+export enum PaymentMethod {
+	GPAY = 'GPAY',
+	APPLE_PAY = 'APAY',
 }

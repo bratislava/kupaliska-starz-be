@@ -11,9 +11,8 @@ import {
 	IGPWebpayHttpRequest,
 	IGPWebpayHttpResponse,
 } from '../types/interfaces'
-import { Transaction } from 'sequelize'
 import { OrderModel } from '../db/models/order'
-import { PAYMENT_OPERATION } from '../utils/enums'
+import { PAYMENT_OPERATION, PaymentMethod } from '../utils/enums'
 import { logger } from '../utils/logger'
 
 const appConfig: IAppConfig = config.get('app')
@@ -56,6 +55,7 @@ const createRequestSignatureString = (
 	data += paymentObject.CURRENCY ? `|${paymentObject.CURRENCY}` : ''
 	data += paymentObject.DEPOSITFLAG ? `|${paymentObject.DEPOSITFLAG}` : ''
 	data += paymentObject.URL ? `|${paymentObject.URL}` : ''
+	data += paymentObject.PAYMETHOD ? `|${paymentObject.PAYMETHOD}` : ''
 	data += paymentObject.USERPARAM1 ? `|${paymentObject.USERPARAM1}` : ''
 	return data
 }
@@ -162,7 +162,10 @@ const verifyPayment = (paymentResponse: IGPWebpayHttpResponse) =>
 	parseInt(paymentResponse.PRCODE, 10) === 0 &&
 	parseInt(paymentResponse.SRCODE, 10) === 0
 
-export const createPayment = async (order: OrderModel) => {
+export const createPayment = async (
+	order: OrderModel,
+	orderPaymentMethod?: PaymentMethod
+) => {
 	const { PaymentOrder } = models
 
 	const paymentOrder = await PaymentOrder.create({
@@ -178,6 +181,7 @@ export const createPayment = async (order: OrderModel) => {
 		CURRENCY: Number(webpayConfig.currency), // num code based on ISO 4217
 		DEPOSITFLAG: 1, // 1 - Require immediate payment | 0 - Do not require immediate payment
 		URL: `${appConfig.host}/api/v1/orders/webpay/response`, // BE URL where will result be sent
+		PAYMETHOD: orderPaymentMethod, // payment method
 	}
 
 	const signedObject: IGPWebpayHttpRequest = {
@@ -187,8 +191,6 @@ export const createPayment = async (order: OrderModel) => {
 
 	return {
 		url: webpayConfig.httpApi,
-		data: signedObject,
-		dataToSign: createRequestSignatureString(paymentObject),
 		formurlencoded: formurlencoded(signedObject, { ignorenull: true }),
 	}
 }
