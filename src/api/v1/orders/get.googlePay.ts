@@ -46,7 +46,7 @@ export const workflow = async (
 		return res.redirect(await getPassUrl(ticket))
 	} catch (err) {
 		// extra logging just in case
-		logger.error('Error Apple Wallet request failed')
+		logger.error('Error Google Wallet request failed')
 		logger.error(err)
 		return next(err)
 	}

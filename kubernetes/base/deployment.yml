@@ -47,6 +47,9 @@ spec:
                       - configMapRef:
                             name: env
                   volumeMounts:
+                  - mountPath: "/home/node/app/resources/google-pay"
+                    name: google-wallet-credentials
+                    readOnly: true
                   - mountPath: "/home/node/app/resources/apple-wallet"
                     name: apple-wallet-keys
                     readOnly: true
@@ -62,6 +65,9 @@ spec:
             imagePullSecrets:
                 - name: ${IMAGE_PULL_SECRET}
             volumes:
+            - name: google-wallet-credentials
+              secret:
+                secretName: ${BUILD_REPOSITORY_NAME}-google-wallet
             - name: apple-wallet-keys
               secret:
                 secretName: apple-wallet

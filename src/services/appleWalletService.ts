@@ -53,6 +53,11 @@ const template = new Template('generic', {
 			longitude: 17.146377606091,
 			relevantText: 'Kúpalisko Rača',
 		},
+		{
+			latitude: 48.152962,
+			longitude: 17.093707,
+			relevantText: 'Kúpalisko Mičurín',
+		},
 	],
 	maxDistance: 50,
 })
