@@ -6,6 +6,7 @@ import {
 	getWalletPassTicketDescription,
 	getWalletPassTicketName,
 } from '../utils/helpers'
+import logger from '../utils/logger'
 
 // the pass was created using this guide: https://codelabs.developers.google.com/add-to-wallet-web
 // github repo of the guide: https://github.com/google-pay/wallet-web-codelab
@@ -15,6 +16,15 @@ const issuerId = '3388000000022225089'
 // this class was created using the tutorial mentioned above
 const classId = `${issuerId}.sk.bratislava.kupaliska.v2`
 
+let credentialsBuffer
+let credentials: { client_email: any; private_key: jwt.Secret }
+try {
+	credentialsBuffer = fs.readFileSync('resources/google-pay/credentials.json')
+	credentials = JSON.parse(credentialsBuffer.toString())
+} catch (err) {
+	logger.error('Error Google pay credentials file not found')
+	logger.error(err)
+}
 export const getPassUrl = async (ticket: TicketModel) => {
 	const objectId = `${issuerId}.${ticket.id}`
 	const ticketName = getWalletPassTicketName(ticket)
@@ -71,12 +81,6 @@ export const getPassUrl = async (ticket: TicketModel) => {
 			value: ticket.id,
 		},
 	}
-
-	const credentialsBuffer = fs.readFileSync(
-		'resources/google-pay/credentials.json'
-	)
-
-	const credentials = JSON.parse(credentialsBuffer.toString())
 
 	const claims = {
 		iss: credentials.client_email,
