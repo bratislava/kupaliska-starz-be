@@ -7,6 +7,10 @@ import {
 	hexToRgbString,
 } from '../utils/helpers'
 import { TicketModel } from '../db/models/ticket'
+import config from 'config'
+import { IAppleWalletConfig } from '../types/interfaces'
+
+const appleWalletConfig: IAppleWalletConfig = config.get('appleWallet')
 
 const template = new Template('generic', {
 	passTypeIdentifier: 'pass.sk.bratislava.kupaliska.v3',
@@ -68,7 +72,7 @@ const template = new Template('generic', {
 template
 	.loadCertificate(
 		'./resources/apple-wallet/apple-wallet-cert.pem',
-		'PgrWa~6Fbf'
+		appleWalletConfig.certificatePassword
 	)
 	.catch((err) => {
 		logger.error('Error Apple Wallet init! Problem loading certificate')

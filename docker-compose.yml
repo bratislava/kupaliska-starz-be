@@ -44,6 +44,7 @@ services:
             - GP_WEBPAY_PRIV_KEY_PASS
             - GP_WEBPAY_CLIENT_APP_URL
             - GP_WEBPAY_PROVIDER
+            - APPLE_WALLET_CERTIFICATE_PASSWORD
 
     postgres:
         image: postgres:13-alpine

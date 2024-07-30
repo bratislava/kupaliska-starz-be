@@ -132,4 +132,7 @@ export = {
 		accessKey: process.env.MINIO_ACCESS_KEY,
 		secretKey: process.env.MINIO_SECRET_KEY,
 	},
+	appleWallet: {
+		certificatePassword: process.env.APPLE_WALLET_CERTIFICATE_PASSWORD,
+	},
 }

@@ -44,6 +44,10 @@ spec:
                             name: minio
                       - secretRef:
                             name: db
+                      - secretRef:
+                            name: apple-wallet
+                      - secretRef:
+                            name: apple-wallet-password
                       - configMapRef:
                             name: env
                   volumeMounts:
@@ -70,7 +74,7 @@ spec:
                 secretName: ${BUILD_REPOSITORY_NAME}-google-wallet
             - name: apple-wallet-keys
               secret:
-                secretName: apple-wallet
+                secretName: ${BUILD_REPOSITORY_NAME}-apple-wallet
             - name: keys
               secret:
                 secretName: ${BUILD_REPOSITORY_NAME}-keys
