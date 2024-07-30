@@ -92,3 +92,6 @@ export const getWalletPassTicketDescription = (ticket: TicketModel) =>
 		? i18next.t('translation:walletPass.seniorOrDisabledText')
 		: // no description text for adult ticket
 		  ''
+export function isDefined<T>(value: T | undefined | null): value is T {
+	return value !== undefined && value !== null
+}
