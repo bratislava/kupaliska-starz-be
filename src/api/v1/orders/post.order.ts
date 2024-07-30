@@ -17,7 +17,7 @@ import { DiscountCodeModel } from '../../../db/models/discountCode'
 import { createJwt } from '../../../utils/authorization'
 import { sendOrderEmail } from '../../../utils/emailSender'
 import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
-import { getCityAccountData } from '../../../utils/helpers'
+import { getCityAccountData, isDefined } from '../../../utils/helpers'
 import { logger } from '../../../utils/logger'
 import { TicketModel } from '../../../db/models/ticket'
 
@@ -499,12 +499,9 @@ const getUser = async (
 			associatedSwimmerId: null,
 			loggedUserId: swimmingLoggedUser.id,
 			email: cityAccountData.email,
-			name:
-				cityAccountData.given_name && cityAccountData.family_name
-					? cityAccountData.given_name +
-					  ' ' +
-					  cityAccountData.family_name
-					: undefined,
+			name: [cityAccountData.given_name, cityAccountData.family_name]
+				.filter(isDefined)
+				.join(' '),
 			age: swimmingLoggedUser.age,
 			zip: swimmingLoggedUser.zip,
 			cityAccountType: cityAccountData['custom:account_type'],

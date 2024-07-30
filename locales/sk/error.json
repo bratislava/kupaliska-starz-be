@@ -59,7 +59,7 @@
 	"userEmailAlreadyExists": "Email už existuje",
 	"emailNotFoundOnUser": "Nepodarilo sa získať emailovú adresu z mestského konta - kontaktujte prosím podporu",
 	"userNotFound": "Používateľ sa nenašiel",
-	"userNotAllowedTicketType": "Používateľ nemá povolený tento typ lístka",
+	"userNotAllowedTicketType": "Používateľ nemá povolený tento typ lístka. Prosím, založte si konto ako fyzická osoba.",
 	"wrongEmail": "Používateľ so zadaným emailom neexistuje",
 	"exceededOrderingNumber": "Prekročené maximálne poradie",
 	"register": {
