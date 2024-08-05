@@ -43,18 +43,6 @@ export async function up(queryInterface: QueryInterface) {
 				type: DataTypes.TEXT,
 				allowNull: false,
 			},
-			mainImageAddress: {
-				type: DataTypes.TEXT,
-				allowNull: false,
-			},
-			mainImageMobileAddress: {
-				type: DataTypes.TEXT,
-				allowNull: false,
-			},
-			logoAddress: {
-				type: DataTypes.TEXT,
-				allowNull: false,
-			},
 			createdAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
