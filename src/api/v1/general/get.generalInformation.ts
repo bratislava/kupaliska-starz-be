@@ -30,6 +30,7 @@ export const workflow = async (
 				'offSeasonTitle',
 				'offSeasonSubtitle',
 				'mainImageAddress',
+				'mainImageMobileAddress',
 				'logoAddress',
 				'createdAt',
 				'updatedAt',
@@ -37,9 +38,6 @@ export const workflow = async (
 			],
 		})
 
-		console.log('-----------------------------')
-		console.log(general)
-		console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 		if (!general) {
 			throw new ErrorBuilder(404, req.t('error:generalNotFound'))
 		}

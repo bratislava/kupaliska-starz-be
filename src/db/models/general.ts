@@ -15,6 +15,7 @@ export class GeneralInformationModel extends DatabaseModel {
 	offSeasonTitle: string
 	offSeasonSubtitle: string
 	mainImageAddress: string
+	mainImageMobileAddress: string
 	logoAddress: string
 	createdAt: Date
 	updatedAt: Date
@@ -67,12 +68,14 @@ export default (sequelize: Sequelize) => {
 			},
 			mainImageAddress: {
 				type: DataTypes.TEXT,
-				defaultValue: 0,
+				allowNull: false,
+			},
+			mainImageMobileAddress: {
+				type: DataTypes.TEXT,
 				allowNull: false,
 			},
 			logoAddress: {
 				type: DataTypes.TEXT,
-				defaultValue: 0,
 				allowNull: false,
 			},
 			createdAt: {

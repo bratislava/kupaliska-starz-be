@@ -30,6 +30,7 @@ export const workflow = async (
 				'offSeasonTitle',
 				'offSeasonSubtitle',
 				'mainImageAddress',
+				'mainImageMobileAddress',
 				'logoAddress',
 				'createdAt',
 				'updatedAt',

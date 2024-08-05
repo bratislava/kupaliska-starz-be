@@ -45,12 +45,14 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			mainImageAddress: {
 				type: DataTypes.TEXT,
-				defaultValue: 0,
+				allowNull: false,
+			},
+			mainImageMobileAddress: {
+				type: DataTypes.TEXT,
 				allowNull: false,
 			},
 			logoAddress: {
 				type: DataTypes.TEXT,
-				defaultValue: 0,
 				allowNull: false,
 			},
 			createdAt: {
@@ -74,5 +76,5 @@ export async function up(queryInterface: QueryInterface) {
 }
 
 export async function down(queryInterface: QueryInterface) {
-	await queryInterface.dropTable('general')
+	await queryInterface.dropTable('generalInformations')
 }
