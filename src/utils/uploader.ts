@@ -9,7 +9,6 @@ import mime from 'mime-types'
 import ErrorBuilder from './ErrorBuilder'
 import logger from './logger'
 import { IAppConfig } from '../types/interfaces'
-import { captureError } from '../services/sentryService'
 import { uploadFileToBucket } from './minio'
 
 const appConfig: IAppConfig = config.get('app')
@@ -25,6 +24,8 @@ async function checkDestinationAccess(req: Request, directory: string) {
 			switch (err.code) {
 				case 'ENOENT':
 					// create filesystem errors log
+					logger.error(err)
+					logger.error(resultPath)
 					logger.error(
 						`${403} - ${err.message} - ${req.originalUrl} - ${
 							req.method
@@ -33,15 +34,13 @@ async function checkDestinationAccess(req: Request, directory: string) {
 					logger.error(
 						`stack: ${JSON.stringify(util.inspect(err.stack))} \n`
 					)
-					captureError(err, req.ip, 'uploadInfo', {
-						path: resultPath,
-					})
 					throw new ErrorBuilder(
 						403,
 						req.t('error:uploadIncorrectSubdir')
 					)
 				case 'LIMIT_FILE_SIZE':
 					// create filesystem errors log
+					logger.error(err)
 					logger.error(
 						`${418} - ${err.message} - ${req.originalUrl} - ${
 							req.method
@@ -50,9 +49,6 @@ async function checkDestinationAccess(req: Request, directory: string) {
 					logger.error(
 						`stack: ${JSON.stringify(util.inspect(err.stack))} \n`
 					)
-					captureError(err, req.ip, 'uploadInfo', {
-						path: resultPath,
-					})
 					throw new ErrorBuilder(
 						418,
 						req.t('error:uploadFileTooLarge')
@@ -105,7 +101,7 @@ export default async function uploadFileFromBase64(
 		await writeFile(fullFilePath, base64, { encoding: 'base64' })
 		await uploadFileToBucket(fullFilePath)
 	} catch (err) {
-		captureError(err, req.ip, 'uploadInfo', { path: fullFilePath })
+		logger.error(err)
 		throw new ErrorBuilder(409, req.t('error:failedUpload'))
 	}
 

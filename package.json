@@ -43,8 +43,6 @@
 		"@joi/date": "2.1.0",
 		"@js-joda/core": "5.5.3",
 		"@js-joda/timezone": "2.18.0",
-		"@sentry/node": "6.5.1",
-		"@sentry/tracing": "6.5.1",
 		"@types/request": "2.48.5",
 		"@walletpass/pass-js": "6.9.1",
 		"base64-img": "1.0.4",

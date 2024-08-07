@@ -2,7 +2,6 @@ import 'dotenv/config'
 import path from 'path'
 import { InitOptions as I18nextOptions } from 'i18next'
 import { ExtractJwt } from 'passport-jwt'
-import { ISentryConfig } from '../src/types/interfaces'
 
 export = {
 	app: {
@@ -20,16 +19,6 @@ export = {
 		contactEmail: process.env.CONTACT_EMAIL,
 		minZipCodeFrequency: process.env.MIN_ZIP_CODE_FREQUENCY || 10,
 		commissionCoefficient: process.env.COMMISSION_COEFFICIENT || 0.015,
-	},
-	sentry: <ISentryConfig>{
-		dsn: process.env.SENTRY_DSN || null,
-		env: process.env.SENTRY_ENV || false,
-		tracesSampleRate: process.env.SENTRY_TRACES_SAMPLE_RATE || 0.01,
-		debug: process.env.SENTRY_DEBUG
-			? process.env.SENTRY_DEBUG === 'true'
-				? true
-				: false
-			: false,
 	},
 	workers: {
 		schedule: {
