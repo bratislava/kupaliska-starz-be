@@ -13,6 +13,7 @@ export const minioClient = new Client({
 	useSSL: true,
 	accessKey: process.env.MINIO_ACCESS_KEY,
 	secretKey: process.env.MINIO_SECRET_KEY,
+	pathStyle: false,
 })
 
 // uploads a file stored on filesystem
