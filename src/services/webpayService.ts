@@ -12,7 +12,7 @@ import {
 	IGPWebpayHttpResponse,
 } from '../types/interfaces'
 import { OrderModel } from '../db/models/order'
-import { PAYMENT_OPERATION, PaymentMethod } from '../utils/enums'
+import { PAYMENT_OPERATION, ORDER_PAYMENT_METHOD_STATE } from '../utils/enums'
 import { logger } from '../utils/logger'
 
 const appConfig: IAppConfig = config.get('app')
@@ -164,7 +164,7 @@ const verifyPayment = (paymentResponse: IGPWebpayHttpResponse) =>
 
 export const createPayment = async (
 	order: OrderModel,
-	orderPaymentMethod?: PaymentMethod
+	orderPaymentMethod?: ORDER_PAYMENT_METHOD_STATE
 ) => {
 	const { PaymentOrder } = models
 

@@ -53,6 +53,7 @@ export enum ORDER_STATE {
 export enum ORDER_PAYMENT_METHOD_STATE {
 	GPAY = 'GPAY',
 	APAY = 'APAY',
+	CARD = 'CRD',
 }
 
 export enum ORDER_STATE_GPWEBPAY {
@@ -129,9 +130,4 @@ export const textColorsMap = {
 		text: '#0A07F5',
 		background: '#CFD9FC',
 	},
-}
-
-export enum PaymentMethod {
-	GPAY = 'GPAY',
-	APPLE_PAY = 'APAY',
 }
