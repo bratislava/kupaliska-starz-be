@@ -6,7 +6,12 @@ import formUrlEncoded from 'form-urlencoded'
 import { v4 as uuidv4 } from 'uuid'
 import { models } from '../../../db/models'
 import { IAppConfig, IPassportConfig } from '../../../types/interfaces'
-import { AccountType, MESSAGE_TYPE, ORDER_STATE } from '../../../utils/enums'
+import {
+	AccountType,
+	MESSAGE_TYPE,
+	ORDER_PAYMENT_METHOD_STATES,
+	ORDER_STATE,
+} from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { TicketTypeModel } from '../../../db/models/ticketType'
 import { validate } from '../../../utils/validation'
@@ -69,6 +74,7 @@ export const schema = Joi.object({
 		discountCode: Joi.string().min(5).max(20),
 		discountPercent: Joi.number(),
 		token: Joi.string(),
+		paymentMethod: Joi.string().valid(...ORDER_PAYMENT_METHOD_STATES),
 	}),
 	query: Joi.object(),
 	params: Joi.object(),
@@ -241,7 +247,7 @@ export const workflow = async (
 			})
 		}
 
-		const paymentData = await createPayment(order)
+		const paymentData = await createPayment(order, body.paymentMethod)
 
 		return res.json({
 			data: {
