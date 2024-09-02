@@ -495,12 +495,6 @@ const getUser = async (
 				500,
 				req.t('error:ticket.emailNotFoundOnUser')
 			)
-		// TODO watch for this in logs
-		if (!cityAccountData.given_name || !cityAccountData.family_name)
-			logger.warn(
-				'ERROR - missing given or family name in user data: ',
-				JSON.stringify(cityAccountData || {})
-			)
 
 		return {
 			associatedSwimmerId: null,
