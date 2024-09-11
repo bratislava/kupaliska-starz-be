@@ -32,13 +32,6 @@ export interface IWorkersConfig {
 	}
 }
 
-export interface ISentryConfig {
-	dsn: string
-	env: string
-	debug: boolean
-	tracesSampleRate: number
-}
-
 export interface IGPWebpayConfig {
 	httpApi: string
 	httpGPWebpayWebservice: string

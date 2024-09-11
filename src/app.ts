@@ -9,12 +9,8 @@ import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt'
 import { passportJwtSecret } from 'jwks-rsa'
 import helmet from 'helmet'
 
-// services
-import Sentry, { initSentry } from './services/sentryService'
-
 // middlewares
 import errorMiddleware from './middlewares/errorMiddleware'
-import sentryMiddleware from './middlewares/sentryMiddleware'
 
 // passport
 import {
@@ -119,12 +115,6 @@ i18next
 
 const app = express()
 
-if (process.env.NODE_ENV !== ENV.test && process.env.SENTRY_DSN) {
-	initSentry(app)
-	app.use(Sentry.Handlers.requestHandler() as express.RequestHandler)
-	app.use(Sentry.Handlers.tracingHandler())
-}
-
 app.use(helmet())
 app.use(cors({ origin: appConfig.corsOrigins, credentials: true }))
 app.use(express.urlencoded({ extended: true, limit: '40mb' }))
@@ -166,11 +156,6 @@ app.use('/api/test-download-base64', async (_req, res) => {
 	const base64File = await readFile(fullFilePath, { encoding: 'base64' })
 	res.json({ base64: base64File })
 })
-
-if (process.env.NODE_ENV !== ENV.test && process.env.SENTRY_DSN) {
-	app.use(sentryMiddleware)
-	app.use(Sentry.Handlers.errorHandler() as express.ErrorRequestHandler)
-}
 
 app.use(errorMiddleware)
 

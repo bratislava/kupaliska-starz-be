@@ -1,4 +1,3 @@
-import { captureError } from './sentryService'
 import config from 'config'
 import { IMailgunserviceConfig } from '../types/interfaces'
 import { Request } from 'express'
@@ -49,12 +48,6 @@ export const sendEmail = async (
 				req.method
 			} - ${req.ip}`
 		)
-		captureError(err, req.ip, 'emailData', {
-			from: mailData.from,
-			to: recipient,
-			variables,
-			emailType: 'templateEmail',
-		})
 		throw new ErrorBuilder(424, i18next.t('error:emailFailed'))
 	}
 }
@@ -75,16 +68,12 @@ export const sendRawEmail = async (
 	try {
 		await mg.messages.create(mailgunConfig.domain, mailData)
 	} catch (err) {
+		logger.error(err)
 		logger.error(
 			`${424} - EMAIL ERROR - ${err.message} - ${req.originalUrl} - ${
 				req.method
 			} - ${req.ip}`
 		)
-		captureError(err, req.ip, 'emailData', {
-			from: mailData.from,
-			to: recipient,
-			emailType: 'rawEmail',
-		})
 		throw new ErrorBuilder(424, i18next.t('error:emailFailed'))
 	}
 }
