@@ -9,6 +9,7 @@ import DiscountCodesRouter from './discountCodes'
 import OrdersRouter from './orders'
 import CustomersRouter from './customers'
 import EntriesRouter from './entries'
+import GeneralRouter from './general'
 
 const router = Router()
 
@@ -22,5 +23,6 @@ export default () => {
 	router.use('/orders', OrdersRouter())
 	router.use('/customers', CustomersRouter())
 	router.use('/entries', EntriesRouter())
+	router.use('/general', GeneralRouter())
 	return router
 }
