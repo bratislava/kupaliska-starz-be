@@ -104,7 +104,7 @@ export const workflow = async (
 					data
 				)} - ${req.method} - ${req.ip}`
 			)
-			logger.info('PAYMENT - payment  order not found', req.ip)
+			logger.error('PAYMENT - payment  order not found', req.ip)
 			await order.update({ state: ORDER_STATE.FAILED })
 			return res.redirect(
 				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
@@ -131,12 +131,12 @@ export const workflow = async (
 		}
 
 		if (!paymentResult.isSuccess) {
-			logger.info(
+			logger.error(
 				`ERROR - ${400} - Payment was not successful- ${JSON.stringify(
 					data
 				)} - ${req.method} - ${req.ip}`
 			)
-			logger.info('PAYMENT - was not successful', req.ip)
+			logger.error('PAYMENT - was not successful', req.ip)
 			if (
 				// PRCODE 14 means "RESULTTEXT":"Duplicate order number" and in this case we should not update order state beacause if it is already paid we don't want to change it
 				parseInt(data.PRCODE, 10) !== 14 ||
