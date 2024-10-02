@@ -31,7 +31,8 @@ export async function down(queryInterface: QueryInterface) {
 	if (table.orderNumber) {
 		await queryInterface.changeColumn('orders', 'orderNumber', {
 			type: DataTypes.BIGINT,
-			autoIncrement: true,
+			// TODO migration doesnt work
+			autoIncrement: false,
 			allowNull: false,
 			unique: true,
 		})

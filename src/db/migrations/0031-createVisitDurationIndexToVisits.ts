@@ -11,7 +11,8 @@ export async function up(queryInterface: QueryInterface) {
 }
 
 export async function down(queryInterface: QueryInterface) {
-	await queryInterface.sequelize.query(`
-		DROP INDEX "visits_visitDuration";`)
+	// TODO this cannot be commented out
+	// await queryInterface.sequelize.query(`
+	// 	DROP INDEX "visits_visitDuration";`)
 	return Promise.resolve()
 }

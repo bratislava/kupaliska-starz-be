@@ -83,12 +83,15 @@ describe(`[PUT] ${endpoint})`, () => {
 				validFrom: '2021-09-12',
 				validTo: '2021-10-12',
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
+				isSeniorIsDisabled: false,
 			})
 		expect(response.status).toBe(200)
 		expect(response.type).toBe('application/json')
 		expect(schema.validate(response.body).error).toBeUndefined()
 
-		const ticketType = await TicketTypeModel.findByPk(response.body.data.id)
+		const ticketType = (await TicketTypeModel.findByPk(
+			response.body.data.id
+		)) as TicketTypeModel
 		expect(ticketType.name).toBe('Novy nazov')
 		expect(ticketType.description).toBe('Novy popis')
 		expect(ticketType.price).toBe(100.23)
