@@ -31,8 +31,7 @@ export async function down(queryInterface: QueryInterface) {
 	if (table.orderNumber) {
 		await queryInterface.changeColumn('orders', 'orderNumber', {
 			type: DataTypes.BIGINT,
-			// TODO migration doesnt work
-			autoIncrement: false,
+			autoIncrement: false, // TODO migration doesn't work when running tests with value (autoIncrement: true) which is what it should be
 			allowNull: false,
 			unique: true,
 		})

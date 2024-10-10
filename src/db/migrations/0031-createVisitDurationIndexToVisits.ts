@@ -11,7 +11,7 @@ export async function up(queryInterface: QueryInterface) {
 }
 
 export async function down(queryInterface: QueryInterface) {
-	// TODO this cannot be commented out
+	// TODO does not work when running tests
 	// await queryInterface.sequelize.query(`
 	// 	DROP INDEX "visits_visitDuration";`)
 	return Promise.resolve()
