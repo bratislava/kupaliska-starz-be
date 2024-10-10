@@ -24,7 +24,8 @@ export const uploadFileToBucket = (fullPath: string) => {
 			process.env.MINIO_BUCKET,
 			fullPath,
 			fullPath,
-			function (e: any) {
+			{},
+			function (e) {
 				if (e) {
 					logger.error(e)
 					reject(e)

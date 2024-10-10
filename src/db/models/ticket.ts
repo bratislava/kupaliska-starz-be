@@ -9,7 +9,7 @@ import { OrderModel } from './order'
 import { ProfileModel } from './profile'
 import { TicketTypeModel } from './ticketType'
 import { TICKET_CATEGORY } from '../../utils/enums'
-import { HookReturn } from 'sequelize/types/lib/hooks'
+import { HookReturn } from 'sequelize/types/hooks'
 
 export class TicketModel extends DatabaseModel {
 	id: string

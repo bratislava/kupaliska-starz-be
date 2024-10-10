@@ -64,16 +64,4 @@ export default async () => {
 	env.ticket2AllowedSwimmingPoolId = ticket2AllowedSwimmingPoolId
 	env.ticket3Id = ticket3Id
 	env.ticket3AllowedSwimmingPoolId = ticket3AllowedSwimmingPoolId
-	env.jwtTicket = await createJwt(
-		{ tid: ticketId },
-		{ audience: passportConfig.jwt.qrCode.audience }
-	)
-	env.jwtTicket2 = await createJwt(
-		{ tid: ticket2Id },
-		{ audience: passportConfig.jwt.qrCode.audience }
-	)
-	env.jwtTicket3 = await createJwt(
-		{ tid: ticket3Id },
-		{ audience: passportConfig.jwt.qrCode.audience }
-	)
 }

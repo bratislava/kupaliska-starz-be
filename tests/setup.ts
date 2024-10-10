@@ -4,6 +4,31 @@ import clearDB from './clearDB'
 
 jest.mock('../src/middlewares/recaptchaMiddleware')
 jest.mock('../src/services/mailerService')
+jest.mock('minio', () => {
+	const actualMinio = jest.requireActual('minio')
+	return {
+		...actualMinio,
+		Client: class extends actualMinio.Client {
+			constructor(...args: any[]) {
+				super(...args)
+				this.fPutObject = jest
+					.fn()
+					.mockImplementation(
+						(
+							_bucket,
+							_objectName,
+							_filePath,
+							_metaData,
+							callback
+						) => {
+							// Simulate successful upload and call the callback
+							callback(null)
+						}
+					)
+			}
+		},
+	}
+})
 // jest.mock('../src/services/webpayService');
 
 beforeAll(async () => {
@@ -20,7 +45,9 @@ afterAll(async () => {
 	jest.clearAllMocks()
 	jest.resetModules()
 	await sequelize.close()
-	global.gc()
+	if (global.gc) {
+		global.gc()
+	}
 })
 
 jest.setTimeout(30000)

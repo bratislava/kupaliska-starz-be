@@ -2,31 +2,30 @@ import * as webpay from './../../../../../src/utils/webpay'
 import formurlencoded from 'form-urlencoded'
 import { ORDER_STATE } from './../../../../../src/utils/enums'
 import supertest from 'supertest'
-import Joi from 'joi'
 import app from '../../../../../src/app'
-import config from 'config'
-import { IAppConfig } from '../../../../../src/types/interfaces'
 import { OrderModel } from '../../../../../src/db/models/order'
 import { Op } from 'sequelize'
 import url from 'url'
 import queryString from 'query-string'
+import { FE_ROUTES } from '../../../../../src/utils/constants'
 
 const endpoint = '/api/v1/orders/webpay/response'
 
 describe(`[GET] ${endpoint})`, () => {
 	const request = supertest(app)
 
-	it('Request without DIGEST params should return success=false ', async () => {
+	it(`Request without DIGEST params should return redirect to ${FE_ROUTES.ORDER_UNSUCCESSFUL} `, async () => {
 		const response = await request
 			.get(`${endpoint}`)
 			.set('Content-Type', 'application/json')
 			.send()
-
-		expect(response.headers.location.split('?')[1]).toBeTruthy()
-		expect(response.headers.location.split('?')[1]).toBe('success=false')
+		expect(response.status).toEqual(302)
+		expect(response.headers.location).toContain(
+			FE_ROUTES.ORDER_UNSUCCESSFUL
+		)
 	})
 
-	it('Request without PRCODE and SRCODE param should return success=false ', async () => {
+	it(`Request without PRCODE and SRCODE param should return redirect to ${FE_ROUTES.ORDER_UNSUCCESSFUL} `, async () => {
 		const queryParams = formurlencoded({
 			DIGEST: 'digest',
 			DIGEST1: 'digest1',
@@ -37,11 +36,13 @@ describe(`[GET] ${endpoint})`, () => {
 			.set('Content-Type', 'application/json')
 			.send()
 
-		expect(response.headers.location.split('?')[1]).toBeTruthy()
-		expect(response.headers.location.split('?')[1]).toBe('success=false')
+		expect(response.status).toEqual(302)
+		expect(response.headers.location).toContain(
+			FE_ROUTES.ORDER_UNSUCCESSFUL
+		)
 	})
 
-	it('Request without ORDER NUMBER param should return success=false ', async () => {
+	it(`Request without ORDER NUMBER param should return redirect to ${FE_ROUTES.ORDER_UNSUCCESSFUL} `, async () => {
 		const queryParams = formurlencoded({
 			DIGEST: 'digest',
 			DIGEST1: 'digest1',
@@ -54,11 +55,13 @@ describe(`[GET] ${endpoint})`, () => {
 			.set('Content-Type', 'application/json')
 			.send()
 
-		expect(response.headers.location.split('?')[1]).toBeTruthy()
-		expect(response.headers.location.split('?')[1]).toBe('success=false')
+		expect(response.status).toEqual(302)
+		expect(response.headers.location).toContain(
+			FE_ROUTES.ORDER_UNSUCCESSFUL
+		)
 	})
 
-	it('Request with wrong ORDERNUMBER param should return success=false ', async () => {
+	it(`Request with wrong ORDERNUMBER param should return redirect to ${FE_ROUTES.ORDER_UNSUCCESSFUL} `, async () => {
 		const queryParams = formurlencoded({
 			DIGEST: 'digest',
 			DIGEST1: 'digest1',
@@ -72,11 +75,13 @@ describe(`[GET] ${endpoint})`, () => {
 			.set('Content-Type', 'application/json')
 			.send()
 
-		expect(response.headers.location.split('?')[1]).toBeTruthy()
-		expect(response.headers.location.split('?')[1]).toBe('success=false')
+		expect(response.status).toEqual(302)
+		expect(response.headers.location).toContain(
+			FE_ROUTES.ORDER_UNSUCCESSFUL
+		)
 	})
 
-	it('Order without payment order should return success=false', async () => {
+	it(`Order without payment order should return redirect to ${FE_ROUTES.ORDER_UNSUCCESSFUL} `, async () => {
 		const queryParams = formurlencoded({
 			DIGEST: 'digest',
 			DIGEST1: 'digest1',
@@ -89,9 +94,10 @@ describe(`[GET] ${endpoint})`, () => {
 			.get(`${endpoint}/?${queryParams}`)
 			.set('Content-Type', 'application/json')
 			.send()
-
-		expect(response.headers.location.split('?')[1]).toBeTruthy()
-		expect(response.headers.location.split('?')[1]).toBe('success=false')
+		expect(response.status).toEqual(302)
+		expect(response.headers.location).toContain(
+			FE_ROUTES.ORDER_UNSUCCESSFUL
+		)
 	})
 
 	it('Is not verified', async () => {
@@ -111,10 +117,12 @@ describe(`[GET] ${endpoint})`, () => {
 			.set('Content-Type', 'application/json')
 			.send()
 
-		expect(response.headers.location.split('?')[1]).toBeTruthy()
-		expect(response.headers.location.split('?')[1]).toBe('success=false')
+		expect(response.status).toEqual(302)
+		expect(response.headers.location).toContain(
+			FE_ROUTES.ORDER_UNSUCCESSFUL
+		)
 
-		const order = await OrderModel.findOne({
+		const order = (await OrderModel.findOne({
 			where: {
 				orderNumber: {
 					[Op.eq]: 50,
@@ -124,7 +132,7 @@ describe(`[GET] ${endpoint})`, () => {
 				association: 'paymentOrder',
 				include: [{ association: 'paymentResponse' }],
 			},
-		})
+		})) as OrderModel
 
 		expect(order.state).toBe(ORDER_STATE.FAILED)
 		expect(order.paymentOrder.paymentResponse.isVerified).toBe(false)
@@ -150,10 +158,12 @@ describe(`[GET] ${endpoint})`, () => {
 			.set('Content-Type', 'application/json')
 			.send()
 
-		expect(response.headers.location.split('?')[1]).toBeTruthy()
-		expect(response.headers.location.split('?')[1]).toBe('success=false')
+		expect(response.status).toEqual(302)
+		expect(response.headers.location).toContain(
+			FE_ROUTES.ORDER_UNSUCCESSFUL
+		)
 
-		const order = await OrderModel.findOne({
+		const order = (await OrderModel.findOne({
 			where: {
 				orderNumber: {
 					[Op.eq]: 51,
@@ -163,7 +173,7 @@ describe(`[GET] ${endpoint})`, () => {
 				association: 'paymentOrder',
 				include: [{ association: 'paymentResponse' }],
 			},
-		})
+		})) as OrderModel
 
 		expect(order.state).toBe(ORDER_STATE.FAILED)
 		expect(order.paymentOrder.paymentResponse.isVerified).toBe(true)
@@ -189,7 +199,7 @@ describe(`[GET] ${endpoint})`, () => {
 			.set('Content-Type', 'application/json')
 			.send()
 
-		const order = await OrderModel.findOne({
+		const order = (await OrderModel.findOne({
 			where: {
 				orderNumber: {
 					[Op.eq]: 52,
@@ -199,18 +209,21 @@ describe(`[GET] ${endpoint})`, () => {
 				association: 'paymentOrder',
 				include: [{ association: 'paymentResponse' }],
 			},
-		})
+		})) as OrderModel
 
 		let parsedUrl = url.parse(response.headers.location)
-		let parsedQs = queryString.parse(parsedUrl.query)
+		expect(parsedUrl.query).not.toBe(null)
+		if (parsedUrl.query !== null) {
+			let parsedQs = queryString.parse(parsedUrl.query)
 
-		expect(Boolean(parsedQs.success)).toBe(true)
-		expect(parsedQs.orderId).toBe(order.id)
-		expect(parsedQs.orderAccessToken).toBeTruthy()
-		expect(order.state).toBe(ORDER_STATE.PAID)
+			expect(parsedUrl.pathname).toBe(FE_ROUTES.ORDER_SUCCESSFUL)
+			expect(parsedQs.orderId).toBe(order.id)
+			expect(parsedQs.orderAccessToken).toBeTruthy()
+			expect(order.state).toBe(ORDER_STATE.PAID)
 
-		expect(order.paymentOrder.paymentResponse.isVerified).toBe(true)
-		expect(order.paymentOrder.paymentResponse.isSuccess).toBe(true)
+			expect(order.paymentOrder.paymentResponse.isVerified).toBe(true)
+			expect(order.paymentOrder.paymentResponse.isSuccess).toBe(true)
+		}
 
 		verifySignatureMock.mockRestore()
 	})

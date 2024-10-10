@@ -163,7 +163,7 @@ export const getSequelizeFilters = (filters: any, tablePrefix = '') => {
 							sequelize.col(`${tablePrefixString}${filterName}`),
 							'date'
 					  )
-					: filterName,
+					: (filterName as any), // TODO add types
 				{
 					...from,
 					...to,
