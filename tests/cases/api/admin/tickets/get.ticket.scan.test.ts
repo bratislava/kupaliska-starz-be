@@ -8,9 +8,15 @@ import supertest from 'supertest'
 import Joi from 'joi'
 import app from '../../../../../src/app'
 
-const endpoint = (swimmingPoolId = 'c70954c7-970d-4f1a-acf4-12b91acabe01') =>
-	`/api/admin/tickets/swimmingPools/${swimmingPoolId}/scan`
+const allowedSwimmingPool = 'c70954c7-970d-4f1a-acf4-12b91acabe01'
 const disallowedSwimmingPool = 'c70954c7-970d-4f1a-acf4-12b91acabe55'
+const ticketIdAllowed = process.env.ticketId
+const ticketIdDisallowed = 'c70954c7-970d-4f1a-acf4-12b91acabe5a'
+
+const endpoint = (
+	swimmingPoolId = allowedSwimmingPool,
+	ticketId = ticketIdAllowed
+) => `/api/admin/tickets/swimmingPools/${swimmingPoolId}/scan/${ticketId}`
 
 const schema = Joi.object().keys()
 
@@ -29,16 +35,7 @@ describe(`[GET] ${endpoint})`, () => {
 			.get(endpoint())
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtBase}`)
-			.set('Qr-Code-Authorization', `${process.env.jwtTicket}`)
 		expect(response.status).toBe(403)
-	})
-
-	it('Expect status 401 | Invalid or missing jwt qr code', async () => {
-		const response = await request
-			.get(endpoint())
-			.set('Content-Type', 'application/json')
-			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
-		expect(response.status).toBe(404)
 	})
 
 	it('Response should return code 200', async () => {
@@ -46,11 +43,18 @@ describe(`[GET] ${endpoint})`, () => {
 			.get(endpoint())
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
-			.set('Qr-Code-Authorization', `${process.env.jwtTicket}`)
 		expect(response.status).toBe(200)
 		expect(response.type).toBe('application/json')
 		expect(schema.validate(response.body).error).toBeUndefined()
 		expect(response.body.lastEntry).toBeNull()
+	})
+
+	it('Expect status 404 | Invalid ticketId', async () => {
+		const response = await request
+			.get(endpoint(allowedSwimmingPool, ticketIdDisallowed))
+			.set('Content-Type', 'application/json')
+			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
+		expect(response.status).toBe(404)
 	})
 
 	it('Get right last entry', async () => {
@@ -58,10 +62,9 @@ describe(`[GET] ${endpoint})`, () => {
 		jest.setSystemTime(new Date('2021-05-03 17:19:35'))
 
 		const response = await request
-			.get(endpoint())
+			.get(endpoint(allowedSwimmingPool, process.env.ticket2Id))
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
-			.set('Qr-Code-Authorization', `${process.env.jwtTicket2}`)
 		expect(response.status).toBe(200)
 
 		expect(response.body.lastEntry.timestamp).toBe(
@@ -77,10 +80,9 @@ describe(`[GET] ${endpoint})`, () => {
 		jest.useFakeTimers('modern')
 		jest.setSystemTime(new Date('2021-05-03 20:19:35'))
 		const response = await request
-			.get(endpoint(disallowedSwimmingPool))
+			.get(endpoint(disallowedSwimmingPool, process.env.ticket2Id))
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
-			.set('Qr-Code-Authorization', `${process.env.jwtTicket2}`)
 		expect(response.status).toBe(200)
 
 		expect(response.body.checkIn.messages).toEqual(
@@ -180,10 +182,14 @@ describe(`[GET] ${endpoint})`, () => {
 		jest.useFakeTimers('modern')
 		jest.setSystemTime(new Date('2021-05-03 14:35'))
 		const response = await request
-			.get(endpoint(process.env.ticket3AllowedSwimmingPoolId))
+			.get(
+				endpoint(
+					process.env.ticket3AllowedSwimmingPoolId,
+					process.env.ticket3Id
+				)
+			)
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
-			.set('Qr-Code-Authorization', `${process.env.jwtTicket3}`)
 		expect(response.status).toBe(200)
 
 		expect(response.body.checkIn.messages).not.toEqual(
@@ -279,7 +285,6 @@ describe(`[GET] ${endpoint})`, () => {
 			.get(endpoint(process.env.ticketAllowedSwimmingPoolId))
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
-			.set('Qr-Code-Authorization', `${process.env.jwtTicket}`)
 		expect(response.status).toBe(200)
 		expect(response.body.checkIn.status).toBe(CHECK_STATUS.OK)
 		expect(response.body.checkOut.status).toBe(CHECK_STATUS.OK)

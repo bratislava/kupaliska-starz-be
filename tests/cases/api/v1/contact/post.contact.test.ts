@@ -58,7 +58,7 @@ describe(`[POST] ${endpoint})`, () => {
 		)
 		expect(response.body.messages).toEqual(
 			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.recaptcha' }),
+				expect.objectContaining({ path: 'body.token' }),
 			])
 		)
 	})

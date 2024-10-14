@@ -9,8 +9,12 @@ import Joi from 'joi'
 import app from '../../../../../src/app'
 import { TicketModel } from '../../../../../src/db/models/ticket'
 
-const endpoint = (swimmingPoolId = 'c70954c7-970d-4f1a-acf4-12b91acabe01') =>
-	`/api/admin/tickets/swimmingPools/${swimmingPoolId}/checkin`
+const allowedSwimmingPool = 'c70954c7-970d-4f1a-acf4-12b91acabe01'
+
+const endpoint = (
+	swimmingPoolId = allowedSwimmingPool,
+	ticketId = process.env.ticketId
+) => `/api/admin/tickets/swimmingPools/${swimmingPoolId}/checkin/${ticketId}`
 const disallowedSwimmingPool = 'c70954c7-970d-4f1a-acf4-12b91acabe55'
 
 const schema = Joi.object().keys()
@@ -30,20 +34,13 @@ describe(`[POST] ${endpoint})`, () => {
 			.post(endpoint())
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtBase}`)
-			.set('Qr-Code-Authorization', `${process.env.jwtTicket}`)
 		expect(response.status).toBe(403)
 	})
 
-	it('Expect status 401 | Invalid or missing jwt qr code', async () => {
-		const response = await request
-			.post(endpoint())
-			.set('Content-Type', 'application/json')
-			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
-		expect(response.status).toBe(404)
-	})
-
 	it('Check-in create new entry and decrement', async () => {
-		const prevTicket = await TicketModel.findByPk(process.env.ticketId)
+		const prevTicket = (await TicketModel.findByPk(
+			process.env.ticketId
+		)) as TicketModel
 
 		jest.useFakeTimers('modern')
 		jest.setSystemTime(new Date('2021-05-03 14:35'))
@@ -51,18 +48,17 @@ describe(`[POST] ${endpoint})`, () => {
 			.post(endpoint(process.env.ticketAllowedSwimmingPoolId))
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
-			.set('Qr-Code-Authorization', `${process.env.jwtTicket}`)
 		expect(response.status).toBe(200)
 		expect(response.body.status).toBe(CHECK_STATUS.OK)
 
-		const ticket = await TicketModel.findByPk(process.env.ticketId, {
+		const ticket = (await TicketModel.findByPk(process.env.ticketId, {
 			include: {
 				association: 'entries',
 				separate: true,
 				order: [['timestamp', 'desc']],
 				limit: 1,
 			},
-		})
+		})) as TicketModel
 
 		expect(ticket.entries[0]).toBeTruthy()
 		expect(ticket.entries[0].type).toBe(ENTRY_TYPE.CHECKIN)
@@ -78,7 +74,9 @@ describe(`[POST] ${endpoint})`, () => {
 	})
 
 	it('Check-in does NOT decrement remaining entries', async () => {
-		const prevTicket = await TicketModel.findByPk(process.env.ticketId)
+		const prevTicket = (await TicketModel.findByPk(
+			process.env.ticketId
+		)) as TicketModel
 
 		jest.useFakeTimers('modern')
 		jest.setSystemTime(new Date('2021-05-03 14:35'))
@@ -86,11 +84,12 @@ describe(`[POST] ${endpoint})`, () => {
 			.post(endpoint(process.env.ticketAllowedSwimmingPoolId))
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
-			.set('Qr-Code-Authorization', `${process.env.jwtTicket}`)
 		expect(response.status).toBe(200)
 		expect(response.body.status).toBe(CHECK_STATUS.OK)
 
-		const ticket = await TicketModel.findByPk(process.env.ticketId)
+		const ticket = (await TicketModel.findByPk(
+			process.env.ticketId
+		)) as TicketModel
 
 		expect(ticket.remainingEntries).toBe(prevTicket.remainingEntries)
 
@@ -101,10 +100,9 @@ describe(`[POST] ${endpoint})`, () => {
 		jest.useFakeTimers('modern')
 		jest.setSystemTime(new Date('2021-05-03 20:19:35'))
 		const response = await request
-			.post(endpoint(disallowedSwimmingPool))
+			.post(endpoint(disallowedSwimmingPool, process.env.ticket2Id))
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
-			.set('Qr-Code-Authorization', `${process.env.jwtTicket2}`)
 		expect(response.status).toBe(200)
 
 		expect(response.body.messages).toEqual(

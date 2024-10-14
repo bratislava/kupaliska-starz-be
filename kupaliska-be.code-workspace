@@ -13,6 +13,7 @@
       "statusBarItem.remoteBackground": "#0A07F5",
       "statusBarItem.remoteForeground": "#ffffff"
     },
-    "typescript.tsdk": "./node_modules/typescript/lib"
+    "typescript.tsdk": "./node_modules/typescript/lib",
+    "jestrunner.jestCommand": "npm run test",
   }
 }
