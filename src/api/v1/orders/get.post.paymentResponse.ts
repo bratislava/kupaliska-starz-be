@@ -3,7 +3,11 @@ import Joi from 'joi'
 import config from 'config'
 import formurlencoded from 'form-urlencoded'
 import { models } from '../../../db/models'
-import { registerPaymentResult } from '../../../services/webpayService'
+import {
+	registerPaymentResult,
+	verifyData,
+	verifyPayment,
+} from '../../../services/webpayService'
 import { logger } from '../../../utils/logger'
 import { Op } from 'sequelize'
 import { createJwt } from '../../../utils/authorization'
@@ -111,7 +115,12 @@ export const workflow = async (
 			)
 		}
 
+		const verificationResult = await verifyData(data)
+		const isPaymentOK = verifyPayment(data)
+
 		const paymentResult = await registerPaymentResult(
+			verificationResult,
+			isPaymentOK,
 			data,
 			paymentOrder.id,
 			req
@@ -124,24 +133,26 @@ export const workflow = async (
 				)} - ${req.method} - ${req.ip}`
 			)
 			logger.info('PAYMENT - payment  verification failed', req.ip)
-			await order.update({ state: ORDER_STATE.FAILED })
+			// we can't update order state here because if data is not verified we don't want to change order state,
+			// otherwise malicious user can change order state of PAID orders
 			return res.redirect(
 				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
 			)
 		}
 
 		if (!paymentResult.isSuccess) {
-			logger.error(
-				`ERROR - ${400} - Payment was not successful- ${JSON.stringify(
-					data
-				)} - ${req.method} - ${req.ip}`
-			)
-			logger.error('PAYMENT - was not successful', req.ip)
 			if (
 				// PRCODE 14 means "RESULTTEXT":"Duplicate order number" and in this case we should not update order state beacause if it is already paid we don't want to change it
-				parseInt(data.PRCODE, 10) !== 14 ||
-				parseInt(data.SRCODE, 10) !== 0
+				parseInt(data.PRCODE, 10) === 14 &&
+				parseInt(data.SRCODE, 10) === 0
 			) {
+			} else {
+				logger.error(
+					`ERROR - ${400} - Payment was not successful- ${JSON.stringify(
+						data
+					)} - ${req.method} - ${req.ip}`
+				)
+				logger.error('PAYMENT - was not successful', req.ip)
 				await order.update({ state: ORDER_STATE.FAILED })
 			}
 			return res.redirect(
@@ -151,31 +162,35 @@ export const workflow = async (
 
 		await order.update({ state: ORDER_STATE.PAID })
 
-		// Generate JWT for getting order`s info
-		const orderAccessToken = await createJwt(
-			{
-				uid: order.id,
-			},
-			{
-				audience: passwordConfig.jwt.orderResponse.audience,
-				expiresIn: passwordConfig.jwt.orderResponse.exp,
-			}
-		)
-
 		await sendOrderEmail(req, order)
 
-		const queryParams = formurlencoded(
-			{
-				orderId: order.id,
-				orderAccessToken: orderAccessToken ? orderAccessToken : null,
-			},
-			{ ignorenull: true }
-		)
+		// Generate JWT for getting order`s info
+		const successfulRedirectUrl = await generateSuccessfulRedirectUrl(order)
 
-		return res.redirect(
-			`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_SUCCESSFUL}?${queryParams}`
-		)
+		return res.redirect(successfulRedirectUrl)
 	} catch (error) {
 		return next(error)
 	}
+}
+
+const generateSuccessfulRedirectUrl = async (order: any) => {
+	// Generate JWT for getting order`s info
+	const orderAccessToken = await createJwt(
+		{
+			uid: order.id,
+		},
+		{
+			audience: passwordConfig.jwt.orderResponse.audience,
+			expiresIn: passwordConfig.jwt.orderResponse.exp,
+		}
+	)
+	const queryParams = formurlencoded(
+		{
+			orderId: order.id,
+			orderAccessToken: orderAccessToken ? orderAccessToken : null,
+		},
+		{ ignorenull: true }
+	)
+
+	return `${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_SUCCESSFUL}?${queryParams}`
 }
