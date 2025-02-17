@@ -131,7 +131,7 @@ export const signDataSimplified = async (arrayToSign: (number | string)[]) => {
 	)
 }
 
-const verifyData = async (paymentResponse: IGPWebpayHttpResponse) => {
+export const verifyData = async (paymentResponse: IGPWebpayHttpResponse) => {
 	const data = createResponseSignatureString(paymentResponse)
 	const dataWithMerchantNumber = createResponseSignatureString(
 		paymentResponse,
@@ -157,7 +157,7 @@ export const verifyDataGetPaymentStatusWebserviceResponse = async (
 	return verifySignature(data, signature, publicKey)
 }
 
-const verifyPayment = (paymentResponse: IGPWebpayHttpResponse) =>
+export const verifyPayment = (paymentResponse: IGPWebpayHttpResponse) =>
 	// AK PRCODE && SRCODE === 0 => PLATBA PREBEHLA V PORIADKU
 	parseInt(paymentResponse.PRCODE, 10) === 0 &&
 	parseInt(paymentResponse.SRCODE, 10) === 0
@@ -196,19 +196,18 @@ export const createPayment = async (
 }
 
 export const registerPaymentResult = async (
+	verificationResult: boolean,
+	isPaymentOK: boolean,
 	paymentData: any,
 	paymentOrderId: string,
 	req: any
 ): Promise<PaymentResponseModel> => {
 	const { PaymentResponse } = models
 
-	const verificationResult = await verifyData(paymentData)
-	const paymentResult = verifyPayment(paymentData)
-
 	return await PaymentResponse.create({
 		data: paymentData,
 		isVerified: verificationResult,
-		isSuccess: paymentResult,
+		isSuccess: isPaymentOK,
 		paymentOrderId: paymentOrderId,
 	})
 }
