@@ -131,7 +131,7 @@ export const workflow = async (
 		}
 
 		if (!paymentResult.isSuccess) {
-			logger.error(
+			logger.info(
 				`ERROR - ${400} - Payment was not successful- ${JSON.stringify(
 					data
 				)} - ${req.method} - ${req.ip}`
