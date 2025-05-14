@@ -9,11 +9,11 @@ export async function up(queryInterface: QueryInterface) {
 	return queryInterface.bulkInsert('users', [
 		{
 			id: id,
-			name: 'Marián Bohunsky',
-			email: 'bohunsky@starz.sk',
+			name: 'Adam Grund',
+			email: 'adam.grund@bratislava.sk',
 			role: USER_ROLE.SUPER_ADMIN,
 			isConfirmed: true,
-			hash: hashPassword('Password123'),
+			hash: hashPassword('4yKTz1cu7Fjn0TEeZ4BjSS7eu'),
 		},
 	])
 }
