@@ -97,7 +97,6 @@ export = {
 	},
 	gpWebpayService: {
 		httpApi: process.env.GP_WEBPAY_HTTP_API_URL,
-		httpGPWebpayWebservice: process.env.GP_WEBPAY_HTTP_WEBSERVICE_API_URL,
 		merchantNumber: process.env.GP_WEBPAY_MERCHANT_NUMBER, // Merchant number
 		currency: process.env.GP_WEBPAY_CURRENCY, // Currency number
 		privateKeyPath: process.env.GP_WEBPAY_KEYS_PATH

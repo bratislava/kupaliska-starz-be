@@ -190,7 +190,7 @@ export const createPayment = async (
 	}
 
 	return {
-		url: webpayConfig.httpApi,
+		url: `${webpayConfig.httpApi}/pgw/order.do`,
 		formurlencoded: formurlencoded(signedObject, { ignorenull: true }),
 	}
 }
@@ -251,7 +251,7 @@ export const getPaymentStatusWebServiceRequest = async (
 
 	const requestBody = `<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:v1='http://gpe.cz/pay/pay-ws/proc/v1' xmlns:type='http://gpe.cz/pay/pay-ws/proc/v1/type'><soapenv:Header/><soapenv:Body><v1:getPaymentStatus><v1:paymentStatusRequest><type:messageId>${paymentStatusRequestObject.messageId}</type:messageId><type:provider>${paymentStatusRequestObject.provider}</type:provider><type:merchantNumber>${paymentStatusRequestObject.merchantNumber}</type:merchantNumber><type:paymentNumber>${paymentStatusRequestObject.paymentNumber}</type:paymentNumber><type:signature>${paymentStatusRequestObject.signature}</type:signature></v1:paymentStatusRequest></v1:getPaymentStatus></soapenv:Body></soapenv:Envelope>`
 
-	return fetch(webpayConfig.httpGPWebpayWebservice, {
+	return fetch(`${webpayConfig.httpApi}/pay-ws/v1/PaymentService`, {
 		method: 'post',
 		body: requestBody,
 		headers: { 'Content-Type': 'text/xml' },
