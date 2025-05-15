@@ -15,7 +15,7 @@ export = {
 			['public', 'swimming-pools'],
 		],
 		feResetPasswordUrl: process.env.FE_RESET_PASSWORD_URL,
-		maxTicketPurchaseLimit: process.env.MAX_TICKET_PURCHASE_LIMIT || 10,
+		maxTicketPurchaseLimit: process.env.MAX_TICKET_PURCHASE_LIMIT || 50,
 		contactEmail: process.env.CONTACT_EMAIL,
 		minZipCodeFrequency: process.env.MIN_ZIP_CODE_FREQUENCY || 10,
 		commissionCoefficient: process.env.COMMISSION_COEFFICIENT || 0.015,
