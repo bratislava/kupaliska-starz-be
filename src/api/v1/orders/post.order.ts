@@ -517,11 +517,15 @@ const getIsChildrenForTicketType = (
 	user: GetUser,
 	ticketType: TicketTypeModel
 ) => {
-	return (
+	let isChildren = false
+	if (
 		user.age &&
 		user.age >= ticketType.childrenAgeFrom &&
 		user.age <= ticketType.childrenAgeTo
-	)
+	) {
+		isChildren = true
+	}
+	return isChildren
 }
 
 /**
