@@ -90,7 +90,21 @@ export const workflowDryRun = async (
 
 		await basicChecks(body.ticketTypeId, req)
 
-		const pricing = await getPrice(req, body.ticketTypeId, true)
+		// check if there is discount voucher, if yes, throw error
+		// in dry run we don't want to check the discount code, we check for body.discountPercent
+		// TODO refactor FE and this to use discount code in dry run as well
+		if (body.discountCode) {
+			throw new ErrorBuilder(
+				404,
+				req.t('error:checkDiscoundCodeNotAllowed')
+			)
+		}
+
+		const pricing = await getPrice(
+			req,
+			body.ticketTypeId,
+			100 - (body.discountPercent | 0)
+		)
 		return res.json({
 			data: {
 				pricing,
@@ -166,11 +180,24 @@ export const workflow = async (
 				await uploadProfilePhotos(createdTicket)
 			}
 		}
-		const pricing = await getPrice(req, body.ticketTypeId, false)
+		let discountCode = await getDiscountCode(
+			body.discountCode,
+			ticketType.id
+		)
+		if (!discountCode) {
+			throw new ErrorBuilder(404, req.t('error:discountCodeNotValid'))
+		}
+		const pricing = await getPrice(
+			req,
+			body.ticketTypeId,
+			discountCode.getInverseAmount * 100
+		)
 
+		await discountCode.update({
+			usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
+		})
 		const orderPrice = pricing.orderPrice
 		const discount = pricing.discount
-		const discountCode = pricing.discountCode
 
 		await order.update({
 			price: orderPrice,
@@ -263,12 +290,12 @@ export const workflow = async (
 const getPrice = async (
 	req: Request,
 	ticketTypeId: string,
-	dryRun: boolean
+	discountInPercent: number
+	// dryRun: boolean
 ) => {
 	const { body } = req
 	let orderPrice = 0
 	let discount = 0
-	let discountCode
 
 	const loggedUserId = getCognitoIdOfLoggedInUser(req)
 
@@ -288,21 +315,11 @@ const getPrice = async (
 		'ticketHasExpired'
 	)
 
-	// check if there is discount voucher, if yes, throw error
-	if (body.discountCode && dryRun) {
-		throw new ErrorBuilder(404, req.t('error:checkDiscoundCodeNotAllowed'))
-	}
-
 	// validate number of children
 	let numberOfChildren = 0
 	for (const ticket of body.tickets) {
 		const user = await getUser(req, ticket, loggedUserId)
-		if (
-			ticketType.childrenAllowed &&
-			user.age &&
-			user.age >= ticketType.childrenAgeFrom &&
-			user.age <= ticketType.childrenAgeTo
-		) {
+		if (getIsChildrenForTicketType(user, ticketType)) {
 			numberOfChildren += 1
 		}
 		if (
@@ -315,18 +332,6 @@ const getPrice = async (
 				req.t('error:ticket.userNotAllowedTicketType')
 			)
 		}
-	}
-
-	// discount code check
-	let applyDiscount = false
-	if (body.discountCode && !dryRun) {
-		discountCode = await getDiscountCode(body.discountCode, ticketType.id)
-		if (!discountCode) {
-			throw new ErrorBuilder(404, req.t('error:discountCodeNotValid'))
-		}
-		applyDiscount = true
-	} else if (body.discountPercent > 0 && dryRun) {
-		applyDiscount = true
 	}
 
 	// children allowed rules
@@ -344,7 +349,7 @@ const getPrice = async (
 			throw new ErrorBuilder(400, req.t('error:ticket.minimumIsOneAdult'))
 		}
 		// if discount in seasonpass, only for one user
-		if (numberOfAdults > 1 && applyDiscount) {
+		if (numberOfAdults > 1 && discountInPercent && discountInPercent > 0) {
 			throw new ErrorBuilder(
 				400,
 				req.t('error:ticket.discountOnlyForOneUser')
@@ -364,26 +369,13 @@ const getPrice = async (
 
 		let totals = { newTicketsPrice: ticketPrice, discount: discount }
 
-		if (!dryRun) {
-			if (applyDiscount) {
-				totals = getDiscount(
-					ticketPrice,
-					discountCode.getInverseAmount * 100
-				)
-				await discountCode.update({
-					usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
-				})
-			}
-		} else {
-			totals = getDiscount(ticketPrice, 100 - (body.discountPercent | 0))
-		}
+		totals = getDiscount(ticketPrice, discountInPercent)
 		orderPrice += totals.newTicketsPrice
 		discount = totals.discount
 	}
 	return {
 		orderPrice: Math.floor(orderPrice * 100) / 100,
 		discount: Math.floor(discount * 100) / 100,
-		discountCode: discountCode,
 		numberOfChildren: numberOfChildren,
 	}
 }
@@ -519,6 +511,7 @@ const getIsChildrenForTicketType = (
 ) => {
 	let isChildren = false
 	if (
+		ticketType.childrenAllowed &&
 		user.age &&
 		user.age >= ticketType.childrenAgeFrom &&
 		user.age <= ticketType.childrenAgeTo
