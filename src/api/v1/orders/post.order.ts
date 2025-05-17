@@ -90,7 +90,7 @@ export const workflowDryRun = async (
 
 		await basicChecks(body.ticketTypeId, req)
 
-		const pricing = await priceDryRun(req, body.ticketTypeId, true, '')
+		const pricing = await getPrice(req, body.ticketTypeId, true)
 		return res.json({
 			data: {
 				pricing,
@@ -128,12 +128,40 @@ export const workflow = async (
 			orderNumber: new Date().getTime(),
 		})
 
-		const pricing = await priceDryRun(
-			req,
-			body.ticketTypeId,
-			false,
-			order.id
-		)
+		const pricing = await getPrice(req, body.ticketTypeId, false)
+
+		const ticketType = await TicketType.findByPk(body.ticketTypeId)
+
+		// check if ticket type exists
+		if (!ticketType) {
+			throw new ErrorBuilder(404, req.t('error:ticketTypeNotFound'))
+		}
+		const loggedUserId = getCognitoIdOfLoggedInUser(req)
+
+		// for each instance add unique ticket
+		for (const ticket of body.tickets) {
+			let ticketPrice = await getTicketPrice(
+				ticketType,
+				req,
+				ticket,
+				loggedUserId,
+				false
+			)
+
+			const user = await getUser(req, ticket, loggedUserId, false)
+			let isChildren = getIsChildrenForTicketType(user, ticketType)
+			const createdTicket = await createTicketWithProfile(
+				user,
+				ticketType,
+				order.id,
+				isChildren,
+				ticketPrice,
+				null
+			)
+			if (ticketType.photoRequired) {
+				await uploadProfilePhotos(createdTicket)
+			}
+		}
 		const orderPrice = pricing.orderPrice
 		const discount = pricing.discount
 		const discountCode = pricing.discountCode
@@ -226,11 +254,10 @@ export const workflow = async (
 }
 
 // Compute price
-const priceDryRun = async (
+const getPrice = async (
 	req: Request,
 	ticketTypeId: string,
-	dryRun: boolean,
-	orderId: string
+	dryRun: boolean
 ) => {
 	const { body } = req
 	let orderPrice = 0
@@ -321,31 +348,20 @@ const priceDryRun = async (
 
 	//price computation
 	for (const ticket of body.tickets) {
-		const user = await getUser(req, ticket, loggedUserId, dryRun)
-		let isChildren = false
-		if (
-			user.age &&
-			user.age >= ticketType.childrenAgeFrom &&
-			user.age <= ticketType.childrenAgeTo
-		) {
-			isChildren = true
-		}
-
-		const ticketsPrice = await saveTickets(
-			user,
+		const ticketPrice = await getTicketPrice(
 			ticketType,
-			orderId,
-			dryRun,
-			isChildren,
-			ticketType.photoRequired
+			req,
+			ticket,
+			loggedUserId,
+			false
 		)
 
-		let totals = { newTicketsPrice: ticketsPrice, discount: discount }
+		let totals = { newTicketsPrice: ticketPrice, discount: discount }
 
 		if (!dryRun) {
 			if (applyDiscount) {
 				totals = getDiscount(
-					ticketsPrice,
+					ticketPrice,
 					discountCode.getInverseAmount * 100
 				)
 				await discountCode.update({
@@ -353,7 +369,7 @@ const priceDryRun = async (
 				})
 			}
 		} else {
-			totals = getDiscount(ticketsPrice, 100 - (body.discountPercent | 0))
+			totals = getDiscount(ticketPrice, 100 - (body.discountPercent | 0))
 		}
 		orderPrice += totals.newTicketsPrice
 		discount = totals.discount
@@ -366,42 +382,25 @@ const priceDryRun = async (
 	}
 }
 
-// for each instance add unique ticket
-const saveTickets = async (
-	user: GetUser,
+const getTicketPrice = async (
 	ticketType: TicketTypeModel,
-	orderId: string,
-	dryRun: boolean,
-	isChildren: boolean,
-	photoRequired: boolean
+	req: Request,
+	ticket: any,
+	loggedUserId: string | null,
+	dryRun: boolean
 ) => {
-	let ticketsPrice = ticketType.price
+	const user = await getUser(req, ticket, loggedUserId, dryRun)
+	let isChildren = getIsChildrenForTicketType(user, ticketType)
+	let ticketPrice = ticketType.price
 	if (
 		isChildren &&
 		ticketType.childrenPrice &&
 		ticketType.childrenPrice != null
 	) {
-		ticketsPrice = ticketType.childrenPrice
-	}
-	// for (const _ of Array(ticket.quantity).keys()) {
-	// 	ticketsPrice +=
-	// 		ticketType.price +
-	// 		(ticketType.childrenPrice || 0) * numberOfChildren;
-	if (!dryRun) {
-		const createdTicket = await createTicketWithProfile(
-			user,
-			ticketType,
-			orderId,
-			isChildren,
-			ticketsPrice,
-			null
-		)
-		if (photoRequired) {
-			await uploadProfilePhotos(createdTicket)
-		}
+		ticketPrice = ticketType.childrenPrice
 	}
 
-	return ticketsPrice
+	return ticketPrice
 }
 
 /**
@@ -510,6 +509,18 @@ const getUser = async (
 		}
 	}
 }
+
+const getIsChildrenForTicketType = (
+	user: GetUser,
+	ticketType: TicketTypeModel
+) => {
+	return (
+		user.age &&
+		user.age >= ticketType.childrenAgeFrom &&
+		user.age <= ticketType.childrenAgeTo
+	)
+}
+
 /**
  * Get price after discount.
  */
