@@ -128,8 +128,6 @@ export const workflow = async (
 			orderNumber: new Date().getTime(),
 		})
 
-		const pricing = await getPrice(req, body.ticketTypeId, false)
-
 		const ticketType = await TicketType.findByPk(body.ticketTypeId)
 
 		// check if ticket type exists
@@ -148,7 +146,13 @@ export const workflow = async (
 				false
 			)
 
-			const user = await getUser(req, ticket, loggedUserId, false)
+			const user = await getUser(req, ticket, loggedUserId)
+			if (ticket.personId === undefined) {
+				if (!body.email) {
+					throw new ErrorBuilder(404, req.t('error:emailIsEmpty'))
+				}
+			}
+
 			let isChildren = getIsChildrenForTicketType(user, ticketType)
 			const createdTicket = await createTicketWithProfile(
 				user,
@@ -162,6 +166,8 @@ export const workflow = async (
 				await uploadProfilePhotos(createdTicket)
 			}
 		}
+		const pricing = await getPrice(req, body.ticketTypeId, false)
+
 		const orderPrice = pricing.orderPrice
 		const discount = pricing.discount
 		const discountCode = pricing.discountCode
@@ -290,7 +296,7 @@ const getPrice = async (
 	// validate number of children
 	let numberOfChildren = 0
 	for (const ticket of body.tickets) {
-		const user = await getUser(req, ticket, loggedUserId, dryRun)
+		const user = await getUser(req, ticket, loggedUserId)
 		if (
 			ticketType.childrenAllowed &&
 			user.age &&
@@ -389,7 +395,7 @@ const getTicketPrice = async (
 	loggedUserId: string | null,
 	dryRun: boolean
 ) => {
-	const user = await getUser(req, ticket, loggedUserId, dryRun)
+	const user = await getUser(req, ticket, loggedUserId)
 	let isChildren = getIsChildrenForTicketType(user, ticketType)
 	let ticketPrice = ticketType.price
 	if (
@@ -409,21 +415,11 @@ const getTicketPrice = async (
 const getUser = async (
 	req: Request,
 	ticket: any,
-	loggedUserId: string | null,
-	dryRun: boolean
+	loggedUserId: string | null
 ): Promise<GetUser> => {
 	const { body } = req
 	if (ticket.personId === undefined) {
-		if (dryRun) {
-			return {
-				associatedSwimmerId: null,
-				loggedUserId: null,
-				email: body.email,
-				name: '',
-				age: ticket.age,
-				zip: ticket.zip,
-			}
-		} else if (body.email) {
+		if (body.email) {
 			return {
 				associatedSwimmerId: null,
 				loggedUserId: null,
@@ -433,7 +429,14 @@ const getUser = async (
 				zip: ticket.zip,
 			}
 		} else {
-			throw new ErrorBuilder(404, req.t('error:emailIsEmpty'))
+			return {
+				associatedSwimmerId: null,
+				loggedUserId: null,
+				email: body.email,
+				name: '',
+				age: ticket.age,
+				zip: ticket.zip,
+			}
 		}
 	} else if (ticket.personId === null) {
 		if (!loggedUserId)
