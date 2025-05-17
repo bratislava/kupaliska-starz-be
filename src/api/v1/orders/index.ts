@@ -53,7 +53,7 @@ export default () => {
 		passport.authenticate('jwt-cognito'),
 		schemaMiddleware(PostOrder.schema),
 		(req: Request, res: Response, next: NextFunction) => {
-			PostOrder.workflowDryRun(req, res, next, true)
+			PostOrder.workflowDryRun(req, res, next)
 		}
 	)
 
@@ -61,7 +61,7 @@ export default () => {
 		'/getPrice/unauthenticated',
 		schemaMiddleware(PostOrder.schema),
 		(req: Request, res: Response, next: NextFunction) => {
-			PostOrder.workflowDryRun(req, res, next, false)
+			PostOrder.workflowDryRun(req, res, next)
 		}
 	)
 

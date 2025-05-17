@@ -83,30 +83,14 @@ export const schema = Joi.object({
 export const workflowDryRun = async (
 	req: Request,
 	res: Response,
-	next: NextFunction,
-	auth: boolean
+	next: NextFunction
 ) => {
 	try {
 		const { body } = req
 
-		const ticketType = await TicketType.findByPk(body.ticketTypeId)
+		await basicChecks(body.ticketTypeId, req)
 
-		if (!ticketType) {
-			throw new ErrorBuilder(
-				404,
-				req.t('error:ticket.notFoundTicketType')
-			)
-		}
-
-		const loggedUserId = getCognitoIdOfLoggedInUser(req)
-
-		const pricing = await priceDryRun(
-			req,
-			ticketType,
-			loggedUserId,
-			true,
-			''
-		)
+		const pricing = await priceDryRun(req, body.ticketTypeId, true, '')
 		return res.json({
 			data: {
 				pricing,
@@ -132,20 +116,12 @@ export const workflow = async (
 	try {
 		const { body } = req
 
+		await basicChecks(body.ticketTypeId, req)
+
 		// check agreement
 		if (body.agreement === undefined || body.agreement !== true) {
 			throw new ErrorBuilder(400, req.t('error:ticket.agreementMissing'))
 		}
-
-		// check maximum tickets
-		if (body.tickets.length > appConfig.maxTicketPurchaseLimit) {
-			throw new ErrorBuilder(
-				400,
-				req.t('error:ticket.maxtTicketsPerOrder')
-			)
-		}
-
-		const loggedUserId = getCognitoIdOfLoggedInUser(req)
 
 		const order = await Order.create({
 			price: 0,
@@ -153,25 +129,9 @@ export const workflow = async (
 			orderNumber: new Date().getTime(),
 		})
 
-		const ticketType = await TicketType.findByPk(body.ticketTypeId)
-		if (!ticketType) {
-			throw new ErrorBuilder(
-				404,
-				req.t('error:ticket.notFoundTicketType')
-			)
-		}
-
-		// check ticket type and logged user
-		if (ticketType.nameRequired && !auth) {
-			throw new ErrorBuilder(
-				400,
-				req.t('error:ticket.notLoggedUserForTicket')
-			)
-		}
 		const pricing = await priceDryRun(
 			req,
-			ticketType,
-			loggedUserId,
+			body.ticketTypeId,
 			false,
 			order.id
 		)
@@ -269,8 +229,7 @@ export const workflow = async (
 // Compute price
 const priceDryRun = async (
 	req: Request,
-	ticketType: TicketTypeModel,
-	loggedUserId: string | null,
+	ticketTypeId: string,
 	dryRun: boolean,
 	orderId: string
 ) => {
@@ -278,6 +237,10 @@ const priceDryRun = async (
 	let orderPrice = 0
 	let discount = 0
 	let discountCode
+
+	const loggedUserId = getCognitoIdOfLoggedInUser(req)
+
+	const ticketType = await TicketType.findByPk(ticketTypeId)
 
 	// check if ticket type exists
 	if (!ticketType) {
@@ -631,6 +594,29 @@ const uploadProfilePhotos = async (ticket: TicketModel) => {
 			relatedId: ticket.profileId,
 			relatedType: 'profile',
 		})
+	}
+}
+
+const basicChecks = async (ticketTypeId: string, req: Request) => {
+	const loggedUserId = getCognitoIdOfLoggedInUser(req)
+
+	const ticketType = await TicketType.findByPk(ticketTypeId)
+
+	if (!ticketType) {
+		throw new ErrorBuilder(404, req.t('error:ticket.notFoundTicketType'))
+	}
+
+	// check ticket type and logged user
+	if (ticketType.nameRequired && !loggedUserId) {
+		throw new ErrorBuilder(
+			400,
+			req.t('error:ticket.notLoggedUserForTicket')
+		)
+	}
+
+	// check maximum tickets
+	if (req.body.tickets.length > appConfig.maxTicketPurchaseLimit) {
+		throw new ErrorBuilder(400, req.t('error:ticket.maxtTicketsPerOrder'))
 	}
 }
 
