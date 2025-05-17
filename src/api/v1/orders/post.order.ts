@@ -378,19 +378,19 @@ const priceDryRun = async (
 		)
 
 		let totals = { newTicketsPrice: ticketsPrice, discount: discount }
+
 		if (!dryRun) {
-			totals = await getDiscount(
-				ticketsPrice,
-				applyDiscount,
-				discount,
-				discountCode
-			)
+			if (applyDiscount) {
+				totals = getDiscount(
+					ticketsPrice,
+					discountCode.getInverseAmount * 100
+				)
+				await discountCode.update({
+					usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
+				})
+			}
 		} else {
-			const priceWithDiscount =
-				Math.floor(ticketsPrice * (100 - (body.discountPercent | 0))) /
-				100
-			totals.newTicketsPrice = priceWithDiscount
-			totals.discount += ticketsPrice - priceWithDiscount
+			totals = getDiscount(ticketsPrice, 100 - (body.discountPercent | 0))
 		}
 		orderPrice += totals.newTicketsPrice
 		discount = totals.discount
@@ -548,25 +548,18 @@ const getUser = async (
 	}
 }
 /**
- * Get price after discount if discount can be applied. Otherwise return the original price.
+ * Get price after discount.
  */
-const getDiscount = async (
+const getDiscount = (
 	ticketsPrice: number,
-	applyDiscount: boolean,
-	discount: number,
-	discountCode: DiscountCodeModel
+	discountCodeInverseAmount: number
 ) => {
-	let newTicketsPrice = ticketsPrice
-	if (applyDiscount) {
-		const priceWithDiscount =
-			Math.floor(ticketsPrice * discountCode.getInverseAmount * 100) / 100
-		newTicketsPrice = priceWithDiscount
-		discount = ticketsPrice - priceWithDiscount
-		await discountCode.update({
-			usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
-		})
+	const priceWithDiscount =
+		Math.floor(ticketsPrice * discountCodeInverseAmount) / 100
+	return {
+		newTicketsPrice: priceWithDiscount,
+		discount: ticketsPrice - priceWithDiscount,
 	}
-	return { newTicketsPrice, discount }
 }
 
 /**
