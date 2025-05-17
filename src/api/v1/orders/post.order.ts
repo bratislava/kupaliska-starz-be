@@ -138,7 +138,7 @@ export const workflow = async (
 		}
 
 		// check maximum tickets
-		if (body.tickets.length > 10) {
+		if (body.tickets.length > appConfig.maxTicketPurchaseLimit) {
 			throw new ErrorBuilder(
 				400,
 				req.t('error:ticket.maxtTicketsPerOrder')
@@ -284,6 +284,15 @@ const priceDryRun = async (
 		throw new ErrorBuilder(404, req.t('error:ticketTypeNotFound'))
 	}
 
+	// user cannot buy a ticket after its expiration
+	validate(
+		true,
+		ticketType.validTo,
+		Joi.date().min('now'),
+		req.t('error:ticket.ticketHasExpired'),
+		'ticketHasExpired'
+	)
+
 	// check if there is discount voucher, if yes, throw error
 	if (body.discountCode && dryRun) {
 		throw new ErrorBuilder(404, req.t('error:checkDiscoundCodeNotAllowed'))
@@ -359,15 +368,6 @@ const priceDryRun = async (
 		) {
 			isChildren = true
 		}
-
-		// user cannot buy a ticket after its expiration
-		validate(
-			true,
-			ticketType.validTo,
-			Joi.date().min('now'),
-			req.t('error:ticket.ticketHasExpired'),
-			'ticketHasExpired'
-		)
 
 		const ticketsPrice = await saveTickets(
 			user,
