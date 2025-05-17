@@ -110,8 +110,7 @@ export const workflowDryRun = async (
 export const workflow = async (
 	req: Request,
 	res: Response,
-	next: NextFunction,
-	auth: boolean
+	next: NextFunction
 ) => {
 	try {
 		const { body } = req
