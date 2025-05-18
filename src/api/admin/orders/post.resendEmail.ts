@@ -45,7 +45,7 @@ export const workflow = async (
 			throw new ErrorBuilder(404, req.t('error:orderMustBeInPaidState'))
 		}
 
-		await sendOrderEmail(req, order)
+		await sendOrderEmail(req, order.id)
 
 		return res.json({
 			data: {},
