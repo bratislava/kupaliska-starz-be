@@ -152,8 +152,7 @@ export const workflow = async (
 				ticketType,
 				req,
 				ticket,
-				loggedUserId,
-				false
+				loggedUserId
 			)
 
 			let isChildren = getIsChildrenForTicketType(user, ticketType)
@@ -352,8 +351,7 @@ const getPrice = async (
 			ticketType,
 			req,
 			ticket,
-			loggedUserId,
-			false
+			loggedUserId
 		)
 
 		let totals = { newTicketsPrice: ticketPrice, discount: discount }
@@ -361,7 +359,7 @@ const getPrice = async (
 			totals = getDiscount(ticketPrice, discountInPercent)
 		}
 		orderPrice += totals.newTicketsPrice
-		discount = totals.discount
+		discount += totals.discount
 	}
 	return {
 		orderPrice: Math.floor(orderPrice * 100) / 100,
@@ -374,8 +372,7 @@ const getTicketPrice = async (
 	ticketType: TicketTypeModel,
 	req: Request,
 	ticket: any,
-	loggedUserId: string | null,
-	dryRun: boolean
+	loggedUserId: string | null
 ) => {
 	const user = await getUser(req, ticket, loggedUserId)
 	let isChildren = getIsChildrenForTicketType(user, ticketType)
@@ -514,11 +511,12 @@ const getIsChildrenForTicketType = (
 /**
  * Get price after discount.
  */
-const getDiscount = (ticketsPrice: number, discountInPercent: number) => {
-	const priceWithDiscount = Math.floor(ticketsPrice * discountInPercent) / 100
+const getDiscount = (ticketPrice: number, discountInPercent: number) => {
+	const priceWithDiscount = Math.floor(ticketPrice * discountInPercent) / 100
+
 	return {
 		newTicketsPrice: priceWithDiscount,
-		discount: ticketsPrice - priceWithDiscount,
+		discount: ticketPrice - priceWithDiscount,
 	}
 }
 
