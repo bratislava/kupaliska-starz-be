@@ -136,12 +136,6 @@ export const workflow = async (
 			throw new ErrorBuilder(400, req.t('error:ticket.agreementMissing'))
 		}
 
-		const order = await Order.create({
-			price: 0,
-			state: ORDER_STATE.CREATED,
-			orderNumber: new Date().getTime(),
-		})
-
 		const ticketType = await TicketType.findByPk(body.ticketTypeId)
 
 		// check if ticket type exists
@@ -150,8 +144,21 @@ export const workflow = async (
 		}
 		const loggedUserId = getCognitoIdOfLoggedInUser(req)
 
+		const order = await Order.create({
+			price: 0,
+			state: ORDER_STATE.CREATED,
+			orderNumber: new Date().getTime(),
+		})
+
 		// for each instance add unique ticket
 		for (const ticket of body.tickets) {
+			const user = await getUser(req, ticket, loggedUserId)
+			if (ticket.personId === undefined) {
+				if (!body.email) {
+					throw new ErrorBuilder(404, req.t('error:emailIsEmpty'))
+				}
+			}
+
 			let ticketPrice = await getTicketPrice(
 				ticketType,
 				req,
@@ -159,13 +166,6 @@ export const workflow = async (
 				loggedUserId,
 				false
 			)
-
-			const user = await getUser(req, ticket, loggedUserId)
-			if (ticket.personId === undefined) {
-				if (!body.email) {
-					throw new ErrorBuilder(404, req.t('error:emailIsEmpty'))
-				}
-			}
 
 			let isChildren = getIsChildrenForTicketType(user, ticketType)
 			const createdTicket = await createTicketWithProfile(
@@ -180,22 +180,23 @@ export const workflow = async (
 				await uploadProfilePhotos(createdTicket)
 			}
 		}
-		let discountCode = await getDiscountCode(
-			body.discountCode,
-			ticketType.id
-		)
-		if (!discountCode) {
+		let discountCode = body.discountCode
+			? await getDiscountCode(body.discountCode, ticketType.id)
+			: undefined
+		if (body.discountCode && !discountCode) {
 			throw new ErrorBuilder(404, req.t('error:discountCodeNotValid'))
 		}
+
 		const pricing = await getPrice(
 			req,
 			body.ticketTypeId,
-			discountCode.getInverseAmount * 100
+			discountCode ? discountCode.getInverseAmount * 100 : undefined
 		)
-
-		await discountCode.update({
-			usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
-		})
+		if (discountCode) {
+			await discountCode.update({
+				usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
+			})
+		}
 		const orderPrice = pricing.orderPrice
 		const discount = pricing.discount
 
@@ -290,8 +291,7 @@ export const workflow = async (
 const getPrice = async (
 	req: Request,
 	ticketTypeId: string,
-	discountInPercent: number
-	// dryRun: boolean
+	discountInPercent: number | undefined
 ) => {
 	const { body } = req
 	let orderPrice = 0
@@ -368,8 +368,9 @@ const getPrice = async (
 		)
 
 		let totals = { newTicketsPrice: ticketPrice, discount: discount }
-
-		totals = getDiscount(ticketPrice, discountInPercent)
+		if (discountInPercent) {
+			totals = getDiscount(ticketPrice, discountInPercent)
+		}
 		orderPrice += totals.newTicketsPrice
 		discount = totals.discount
 	}
@@ -524,12 +525,8 @@ const getIsChildrenForTicketType = (
 /**
  * Get price after discount.
  */
-const getDiscount = (
-	ticketsPrice: number,
-	discountCodeInverseAmount: number
-) => {
-	const priceWithDiscount =
-		Math.floor(ticketsPrice * discountCodeInverseAmount) / 100
+const getDiscount = (ticketsPrice: number, discountInPercent: number) => {
+	const priceWithDiscount = Math.floor(ticketsPrice * discountInPercent) / 100
 	return {
 		newTicketsPrice: priceWithDiscount,
 		discount: ticketsPrice - priceWithDiscount,
