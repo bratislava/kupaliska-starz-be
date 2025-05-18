@@ -190,7 +190,7 @@ export const workflow = async (
 
 		await order.update({
 			price: orderPrice.priceWithTax,
-			discount: discountCode ? discount : 0,
+			discount: discountCode ? discount.priceWithTax : 0,
 			discountCodeId: discountCode ? discountCode.id : undefined,
 		})
 
