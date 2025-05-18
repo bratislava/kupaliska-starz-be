@@ -47,8 +47,11 @@ export class OrderModel extends DatabaseModel {
 					? {
 							name: ticket.ticketType.name,
 							amount: obj.amount + 1,
-							accPrice: obj.accPrice + ticket.price,
-							price: (obj.accPrice + ticket.price).toFixed(2),
+							// this should change
+							accPrice: obj.accPrice + ticket.priceWithTax,
+							price: (obj.accPrice + ticket.priceWithTax).toFixed(
+								2
+							),
 					  }
 					: obj
 			},
@@ -62,8 +65,11 @@ export class OrderModel extends DatabaseModel {
 					? {
 							name: getChildrenTicketName(),
 							amount: obj.amount + 1,
-							accPrice: obj.accPrice + ticket.price,
-							price: (obj.accPrice + ticket.price).toFixed(2),
+							// this should change
+							accPrice: obj.accPrice + ticket.priceWithTax,
+							price: (obj.accPrice + ticket.priceWithTax).toFixed(
+								2
+							),
 					  }
 					: obj
 			},

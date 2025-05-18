@@ -34,7 +34,9 @@ export async function up(queryInterface: QueryInterface) {
 		[
 			{
 				id: ticketId,
-				price: 3.99,
+				priceWithTax: 3.99,
+				priceWithoutTax: 3.0723,
+				priceTax: 0.9177,
 				isChildren: false,
 				remainingEntries: 4,
 				order: {
@@ -66,7 +68,9 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			{
 				id: ticket2Id,
-				price: 3.99,
+				priceWithTax: 3.99,
+				priceWithoutTax: 3.0723,
+				priceTax: 0.9177,
 				isChildren: false,
 				remainingEntries: 0,
 				order: {
@@ -159,7 +163,9 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			{
 				id: ticket3Id,
-				price: 3.99,
+				priceWithTax: 3.99,
+				priceWithoutTax: 3.0723,
+				priceTax: 0.9177,
 				isChildren: false,
 				remainingEntries: 0,
 				order: {

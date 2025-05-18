@@ -35,7 +35,29 @@ export const filtersSchema = Joi.object().keys({
 		showUnspecified: Joi.boolean().default(false),
 		type: Joi.string().valid('range').default('range'),
 	}),
-	price: Joi.object().keys({
+	priceWithTax: Joi.object().keys({
+		from: Joi.number(),
+		to: Joi.number().when('type', {
+			is: Joi.valid('range'),
+			then: Joi.when('from', {
+				is: Joi.required(),
+				otherwise: Joi.required(),
+			}),
+		}),
+		type: Joi.string().valid('range').default('range'),
+	}),
+	priceWithoutTax: Joi.object().keys({
+		from: Joi.number(),
+		to: Joi.number().when('type', {
+			is: Joi.valid('range'),
+			then: Joi.when('from', {
+				is: Joi.required(),
+				otherwise: Joi.required(),
+			}),
+		}),
+		type: Joi.string().valid('range').default('range'),
+	}),
+	priceTax: Joi.object().keys({
 		from: Joi.number(),
 		to: Joi.number().when('type', {
 			is: Joi.valid('range'),
@@ -79,7 +101,9 @@ export const schema = Joi.object().keys({
 		page: Joi.number().integer().min(1).default(1).empty(['', null]),
 		order: Joi.string()
 			.valid(
-				'price',
+				'priceWithTax',
+				'priceWithoutTax',
+				'priceTax',
 				'numberOfVisits',
 				'age',
 				'zip',
@@ -100,7 +124,7 @@ export const schema = Joi.object().keys({
 			.required(),
 	}),
 })
-
+//pouziva sa v fetchTicketsStatistics
 export const workflow = async (
 	req: Request,
 	res: Response,
@@ -167,17 +191,17 @@ export const workflow = async (
 
 			ageFilterSql = `AND ${ageFilterSql}`
 		}
-
+		// this should chnage
 		let tickets = await sequelize.query<TicketModel>(
 			`
 			SELECT
-				tickets.id, tickets.price as "price", tickets."isChildren", tickets."createdAt" as "createdAt", tickets."numberOfVisits" AS "numberOfVisits",
+				tickets.id, tickets.priceWithTax as "priceWithTax", tickets.priceWithoutTax as "priceWithoutTax", tickets.priceTax as "priceTax", tickets."isChildren", tickets."createdAt" as "createdAt", tickets."numberOfVisits" AS "numberOfVisits",
 				profiles.id as "profile.id", profiles.age as "profile.age", profiles.zip as "profile.zip",
 				"ticketTypes".id as "ticketType.id", "ticketTypes".name as "ticketType.name"
 			FROM "ticketTypes"
 			INNER JOIN (
 				SELECT
-					tickets.id, tickets.price, tickets."isChildren", tickets."createdAt", tickets."ticketTypeId", tickets."profileId", COUNT(visits) as "numberOfVisits"
+					tickets.id, tickets.priceWithTax, tickets.priceWithoutTax, tickets.priceTax, tickets."isChildren", tickets."createdAt", tickets."ticketTypeId", tickets."profileId", COUNT(visits) as "numberOfVisits"
 				FROM tickets
 				INNER JOIN (
 					SELECT visits."ticketId" FROM visits
@@ -260,7 +284,9 @@ export const workflow = async (
 				return {
 					id: ticket.id,
 					ticketTypeName: ticket.ticketType.name,
-					price: Number(ticket.price),
+					priceWithTax: Number(ticket.priceWithTax),
+					priceWithoutTax: Number(ticket.priceWithoutTax),
+					priceTax: Number(ticket.priceTax),
 					isChildren: ticket.isChildren,
 					age: ticket.profile.age ? ticket.profile.age : null,
 					zip: ticket.profile.zip ? ticket.profile.zip : null,

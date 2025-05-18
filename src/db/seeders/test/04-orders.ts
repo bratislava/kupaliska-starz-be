@@ -43,7 +43,9 @@ export async function up(queryInterface: QueryInterface) {
 				],
 			},
 			{
-				price: 3.99,
+				priceWithTax: 3.99,
+				priceWithoutTax: 3.0723,
+				priceTax: 0.9177,
 				orderNumber: 49,
 				state: ORDER_STATE.CREATED,
 			},

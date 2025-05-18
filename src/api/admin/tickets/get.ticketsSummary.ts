@@ -90,16 +90,19 @@ export const workflow = async (
 
 		const ticketsSales = await sequelize.query<{
 			ticketTypeId: string
-			amount: string
+			amountWithTax: string
+			amountWithoutTax: string
+			amountTax: string
 			soldTickets: number
 		}>(
+			// this should change
 			`
 			SELECT
-				"ticketTypes".id as "ticketTypeId", COUNT(tickets.id) AS "soldTickets", SUM(tickets.price) AS "amount"
+				"ticketTypes".id as "ticketTypeId", COUNT(tickets.id) AS "soldTickets", SUM(tickets.priceWithTax) AS "amountWithTax", SUM(tickets.priceWithoutTax) AS "amountWithoutTax", SUM(tickets.priceTax) AS "amountTax"
 			FROM "ticketTypes"
 			INNER JOIN (
 				SELECT
-					tickets.id, tickets.price, tickets."ticketTypeId", tickets."profileId"
+					tickets.id, tickets.priceWithTax, tickets.priceWithoutTax, tickets.priceTax, tickets."ticketTypeId", tickets."profileId"
 				FROM tickets
 				INNER JOIN (
 					SELECT visits."ticketId" FROM visits
@@ -154,9 +157,18 @@ export const workflow = async (
 					)
 					return {
 						name: ticketType.name,
-						amount:
-							ticketSale.length > 0 && ticketSale[0].amount
-								? Number(ticketSale[0].amount)
+						amountWithTax:
+							ticketSale.length > 0 && ticketSale[0].amountWithTax
+								? Number(ticketSale[0].amountWithTax)
+								: 0.0,
+						amountWithoutTax:
+							ticketSale.length > 0 &&
+							ticketSale[0].amountWithoutTax
+								? Number(ticketSale[0].amountWithoutTax)
+								: 0.0,
+						amountTax:
+							ticketSale.length > 0 && ticketSale[0].amountTax
+								? Number(ticketSale[0].amountTax)
 								: 0.0,
 						sold:
 							ticketSale.length > 0 && ticketSale[0].soldTickets
@@ -167,11 +179,29 @@ export const workflow = async (
 				[
 					{
 						name: req.t('total'),
-						amount: reduce(
+						amountWithTax: reduce(
 							ticketsSales,
 							(sum, sale) => {
-								return sale.amount
-									? Number(sale.amount) + sum
+								return sale.amountWithTax
+									? Number(sale.amountWithTax) + sum
+									: sum
+							},
+							0
+						),
+						amountWithoutTax: reduce(
+							ticketsSales,
+							(sum, sale) => {
+								return sale.amountWithoutTax
+									? Number(sale.amountWithoutTax) + sum
+									: sum
+							},
+							0
+						),
+						amountTax: reduce(
+							ticketsSales,
+							(sum, sale) => {
+								return sale.amountTax
+									? Number(sale.amountTax) + sum
 									: sum
 							},
 							0

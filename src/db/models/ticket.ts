@@ -14,7 +14,9 @@ import { HookReturn } from 'sequelize/types/hooks'
 export class TicketModel extends DatabaseModel {
 	id: string
 	isChildren: boolean
-	price: number
+	priceWithTax: number
+	priceWithoutTax: number
+	priceTax: number
 	qrCode: string | Buffer
 	remainingEntries: number
 	// foreign
@@ -132,11 +134,27 @@ export default (sequelize: Sequelize) => {
 				allowNull: false,
 				defaultValue: UUIDV4,
 			},
-			price: {
-				type: DataTypes.DECIMAL(10, 2),
+			priceWithTax: {
+				type: DataTypes.DECIMAL(18, 10),
 				allowNull: false,
 				get() {
-					const value = this.getDataValue('price')
+					const value = this.getDataValue('priceWithTax')
+					return value !== undefined ? parseFloat(value) : undefined
+				},
+			},
+			priceWithoutTax: {
+				type: DataTypes.DECIMAL(18, 10),
+				allowNull: true,
+				get() {
+					const value = this.getDataValue('priceWithoutTax')
+					return value !== undefined ? parseFloat(value) : undefined
+				},
+			},
+			priceTax: {
+				type: DataTypes.DECIMAL(18, 10),
+				allowNull: true,
+				get() {
+					const value = this.getDataValue('priceTax')
 					return value !== undefined ? parseFloat(value) : undefined
 				},
 			},

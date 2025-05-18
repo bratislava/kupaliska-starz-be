@@ -189,7 +189,7 @@ export const workflow = async (
 		const discount = pricing.discount
 
 		await order.update({
-			price: orderPrice,
+			price: orderPrice.priceWithTax,
 			discount: discountCode ? discount : 0,
 			discountCodeId: discountCode ? discountCode.id : undefined,
 		})
@@ -282,8 +282,16 @@ const getPrice = async (
 	reverseDiscountInPercent: number | undefined
 ) => {
 	const { body } = req
-	let orderPrice = 0
-	let discount = 0
+	let orderPrice = {
+		priceWithTax: 0,
+		priceWithoutTax: 0,
+		priceTax: 0,
+	}
+	let discount = {
+		priceWithTax: 0,
+		priceWithoutTax: 0,
+		priceTax: 0,
+	}
 
 	const loggedUserId = getCognitoIdOfLoggedInUser(req)
 
@@ -358,16 +366,35 @@ const getPrice = async (
 			loggedUserId
 		)
 
-		let totals = { newTicketsPrice: ticketPrice, discount: discount }
+		let totals = {
+			newTicketsPrice: ticketPrice,
+			discount: {
+				priceWithTax: 0,
+				priceWithoutTax: 0,
+				priceTax: 0,
+			},
+		}
 		if (reverseDiscountInPercent) {
 			totals = getDiscount(ticketPrice, reverseDiscountInPercent)
 		}
-		orderPrice += totals.newTicketsPrice
-		discount += totals.discount
+		orderPrice.priceWithTax += totals.newTicketsPrice.priceWithTax
+		orderPrice.priceWithoutTax += totals.newTicketsPrice.priceWithoutTax
+		orderPrice.priceTax += totals.newTicketsPrice.priceTax
+		discount.priceWithTax += totals.discount.priceWithTax
+		discount.priceWithoutTax += totals.discount.priceWithoutTax
+		discount.priceTax += totals.discount.priceTax
 	}
 	return {
-		orderPrice: Math.floor(orderPrice * 100) / 100,
-		discount: Math.floor(discount * 100) / 100,
+		orderPrice: {
+			priceWithTax: Math.floor(orderPrice.priceWithTax * 100) / 100,
+			priceWithoutTax: Math.floor(orderPrice.priceWithoutTax * 100) / 100,
+			priceTax: Math.floor(orderPrice.priceTax * 100) / 100,
+		},
+		discount: {
+			priceWithTax: Math.floor(discount.priceWithTax * 100) / 100,
+			priceWithoutTax: Math.floor(discount.priceWithoutTax * 100) / 100,
+			priceTax: Math.floor(discount.priceTax * 100) / 100,
+		},
 		numberOfChildren: numberOfChildren,
 	}
 }
@@ -380,13 +407,22 @@ const getTicketPrice = async (
 ) => {
 	const user = await getUser(req, ticket, loggedUserId)
 	let isChildren = getIsChildrenForTicketType(user, ticketType)
-	let ticketPrice = ticketType.price
+	let ticketPrice = {
+		priceWithTax: ticketType.priceWithTax,
+		priceWithoutTax: ticketType.priceWithoutTax,
+		priceTax: ticketType.priceTax,
+	}
+
 	if (
 		isChildren &&
-		ticketType.childrenPrice &&
-		ticketType.childrenPrice != null
+		ticketType.childrenPriceWithTax &&
+		ticketType.childrenPriceWithTax != null
 	) {
-		ticketPrice = ticketType.childrenPrice
+		ticketPrice = {
+			priceWithTax: ticketType.childrenPriceWithTax,
+			priceWithoutTax: ticketType.childrenPriceWithoutTax,
+			priceTax: ticketType.childrenPriceTax,
+		}
 	}
 
 	return ticketPrice
@@ -515,12 +551,28 @@ const getIsChildrenForTicketType = (
 /**
  * Get price after discount.
  */
-const getDiscount = (ticketPrice: number, discountInPercent: number) => {
-	const priceWithDiscount = Math.floor(ticketPrice * discountInPercent) / 100
+const getDiscount = (
+	ticketPrice: {
+		priceWithTax: number
+		priceWithoutTax: number
+		priceTax: number
+	},
+	discountInPercent: number
+) => {
+	const priceWithDiscount =
+		Math.floor(ticketPrice.priceWithTax * discountInPercent) / 100
 
 	return {
-		newTicketsPrice: priceWithDiscount,
-		discount: ticketPrice - priceWithDiscount,
+		newTicketsPrice: {
+			priceWithTax: priceWithDiscount,
+			priceWithoutTax: ticketPrice.priceWithoutTax,
+			priceTax: ticketPrice.priceTax,
+		},
+		discount: {
+			priceWithTax: ticketPrice.priceWithTax - priceWithDiscount,
+			priceWithoutTax: ticketPrice.priceWithoutTax,
+			priceTax: ticketPrice.priceTax,
+		},
 	}
 }
 
@@ -532,7 +584,11 @@ const createTicketWithProfile = async (
 	ticketType: TicketTypeModel,
 	orderId: string,
 	isChildren: boolean,
-	ticketPrice: number,
+	ticketPrice: {
+		priceWithTax: number
+		priceWithoutTax: number
+		priceTax: number
+	},
 	parentTicketId: null | string
 ) => {
 	const profileId = uuidv4()
@@ -543,7 +599,9 @@ const createTicketWithProfile = async (
 			isChildren: isChildren,
 			ticketTypeId: ticketType.id,
 			orderId,
-			price: ticketPrice,
+			priceWithTax: ticketPrice.priceWithTax,
+			priceWithoutTax: ticketPrice.priceWithoutTax,
+			priceTax: ticketPrice.priceTax,
 			parentTicketId: parentTicketId,
 			remainingEntries: ticketType.entriesNumber,
 			swimmingLoggedUserId: user.loggedUserId,
