@@ -235,7 +235,7 @@ export const workflow = async (
 				],
 			})
 
-			await sendOrderEmail(req, orderResult)
+			await sendOrderEmail(req, orderResult.id)
 
 			return res.json({
 				data: {

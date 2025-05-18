@@ -16,16 +16,36 @@ import { textColorsMap } from './enums'
 import i18nextMiddleware from 'i18next-http-middleware'
 import i18nextBackend from 'i18next-node-fs-backend'
 import { CustomFile } from 'mailgun.js'
+import { models } from '../db/models'
 
 const i18NextConfig: InitOptions = config.get('i18next')
 const appConfig: IAppConfig = config.get('app')
 const mailgunConfig: IMailgunserviceConfig = config.get('mailgunService')
 const orderTemplate = mailgunConfig.templates.order
 
+const { Order } = models
+
 export const sendOrderEmail = async (
 	req: Request | undefined,
-	order: OrderModel
+	orderId: string
 ) => {
+	const order = await Order.findByPk(orderId, {
+		include: [
+			{
+				association: 'tickets',
+				order: [['isChildren', 'asc']],
+				separate: true,
+				include: [
+					{
+						association: 'profile',
+					},
+					{
+						association: 'ticketType',
+					},
+				],
+			},
+		],
+	})
 	const parentTicket = order.tickets[0]
 	if (!req) {
 		await i18next
