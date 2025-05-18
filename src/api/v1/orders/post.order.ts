@@ -15,15 +15,12 @@ import {
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { TicketTypeModel } from '../../../db/models/ticketType'
 import { validate } from '../../../utils/validation'
-import uploadFileFromBase64 from '../../../utils/uploader'
 import { createPayment } from '../../../services/webpayService'
 import { getDiscountCode } from '../../../services/discountCodeValidationService'
-import { DiscountCodeModel } from '../../../db/models/discountCode'
 import { createJwt } from '../../../utils/authorization'
 import { sendOrderEmail } from '../../../utils/emailSender'
 import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
 import { getCityAccountData, isDefined } from '../../../utils/helpers'
-import { logger } from '../../../utils/logger'
 import { TicketModel } from '../../../db/models/ticket'
 import { FE_ROUTES } from '../../../utils/constants'
 
@@ -35,10 +32,6 @@ const {
 	TicketType,
 	File,
 } = models
-
-interface TicketTypesHashMap {
-	[key: string]: TicketTypeModel
-}
 
 interface GetUser {
 	associatedSwimmerId: string | null
@@ -52,10 +45,6 @@ interface GetUser {
 
 const appConfig: IAppConfig = config.get('app')
 const passportConfig: IPassportConfig = config.get('passport')
-
-const uploadFolder = 'private/profile-photos'
-const maxFileSize = 5 * 1024 * 1024 // 5MB
-const validExtensions = ['png', 'jpg', 'jpeg']
 
 export const schema = Joi.object({
 	body: Joi.object().keys({
@@ -624,52 +613,5 @@ const basicChecks = async (ticketTypeId: string, req: Request) => {
 	// check maximum tickets
 	if (req.body.tickets.length > appConfig.maxTicketPurchaseLimit) {
 		throw new ErrorBuilder(400, req.t('error:ticket.maxtTicketsPerOrder'))
-	}
-}
-
-// const uploadProfilePhotos = async (
-// 	req: Request,
-// 	tickets: any,
-// ) => {
-// 	for (const ticket of tickets) {
-// 		if (ticket.photo) {
-// 			await uploadAndCreate(
-// 				req,
-// 				ticket.photo,
-// 				ticket.modelIds
-// 			);
-// 		}
-
-// 		for (const oneChildren of ticket.children || []) {
-// 			if (oneChildren.photo) {
-// 				await uploadAndCreate(
-// 					req,
-// 					oneChildren.photo,
-// 					oneChildren.modelIds,
-// 				);
-// 			}
-// 		}
-// 	}
-// };
-
-/**
- * Create files from base64 and persist them for every CREATED ticket ( means if ticket has 5 quantity we are creating profile file for each )
- */
-const uploadAndCreate = async (
-	req: Request,
-	photo: string,
-	modelIds: Array<string>
-) => {
-	for (const modelId of modelIds) {
-		const file = await uploadFileFromBase64(req, photo, uploadFolder)
-
-		await File.create({
-			name: file.fileName,
-			originalPath: file.filePath,
-			mimeType: file.mimeType,
-			size: file.size,
-			relatedId: modelId,
-			relatedType: 'profile',
-		})
 	}
 }
