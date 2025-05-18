@@ -83,17 +83,18 @@ async function generateData() {
 				const ticketId = uuidv4()
 				const addDiscount = faker.random.boolean()
 				const price =
-					(seasonalTicketType.price +
-						numberOfChildren * seasonalTicketType.childrenPrice) *
+					(seasonalTicketType.priceWithTax +
+						numberOfChildren *
+							seasonalTicketType.childrenPriceWithTax) *
 					(addDiscount ? (100 - discountCode.amount) / 100 : 1)
 
 				return {
 					...createOrder(),
 					price: price,
 					discount: addDiscount
-						? (seasonalTicketType.price +
+						? (seasonalTicketType.priceWithTax +
 								numberOfChildren *
-									seasonalTicketType.childrenPrice) *
+									seasonalTicketType.childrenPriceWithTax) *
 						  (discountCode.amount / 100)
 						: 0,
 					discountCodeId: addDiscount ? discountCode.id : null,
@@ -101,7 +102,11 @@ async function generateData() {
 						[
 							{
 								...createTicket(ticketId),
-								price: seasonalTicketType.price,
+
+								priceWithTax: seasonalTicketType.priceWithTax,
+								priceWithoutTax:
+									seasonalTicketType.priceWithoutTax,
+								priceTax: seasonalTicketType.priceTax,
 								remainingEntries: null,
 								profile: {
 									...createProfile(),
@@ -129,7 +134,11 @@ async function generateData() {
 						],
 						map([...Array(numberOfChildren).keys()], () => ({
 							...createChildrenTicket(),
-							price: seasonalTicketType.childrenPrice,
+							priceWithTax:
+								seasonalTicketType.childrenPriceWithTax,
+							priceWithoutTax:
+								seasonalTicketType.childrenPriceWithoutTax,
+							priceTax: seasonalTicketType.childrenPriceTax,
 							remainingEntries: null,
 							profile: {
 								...createProfile(),
@@ -182,19 +191,22 @@ async function generateData() {
 
 				const addDiscount = faker.random.boolean()
 				const price =
-					entriesTicketType.price *
+					entriesTicketType.priceWithTax *
 					(addDiscount ? (100 - discountCode.amount) / 100 : 1)
 
 				return {
 					...createOrder(),
 					price: price,
 					discount: addDiscount
-						? entriesTicketType.price * (discountCode.amount / 100)
+						? entriesTicketType.priceWithTax *
+						  (discountCode.amount / 100)
 						: 0,
 					discountCodeId: addDiscount ? discountCode.id : null,
 					tickets: map([...Array(numberOfTickets).keys()], () => ({
 						...createTicket(),
-						price: entriesTicketType.price,
+						priceWithTax: entriesTicketType.priceWithTax,
+						priceWithoutTax: entriesTicketType.priceWithoutTax,
+						priceTax: entriesTicketType.priceTax,
 						remainingEntries: remainingEntries,
 						profile: {
 							...createProfile(),

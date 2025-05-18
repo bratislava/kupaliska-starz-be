@@ -68,14 +68,18 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Sezónny tiket',
 				description: faker.lorem.paragraph(15),
-				price: 20,
+				priceWithTax: 20,
+				priceWithoutTax: 15.4,
+				priceTax: 4.6,
 				type: TICKET_TYPE.SEASONAL,
 				nameRequired: true,
 				photoRequired: true,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				childrenAllowed: true,
 				childrenMaxNumber: 5,
-				childrenPrice: 1,
+				childrenPriceWithTax: 1,
+				childrenPriceWithoutTax: 0.77,
+				childrenPriceTax: 0.23,
 				childrenAgeFrom: 3,
 				childrenAgeTo: 18,
 				childrenAgeToWithAdult: 10,
@@ -99,7 +103,9 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithTax: 40,
+				priceWithoutTax: 30.8,
+				priceTax: 9.2,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: false,
@@ -127,7 +133,9 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithTax: 40,
+				priceWithoutTax: 30.8,
+				priceTax: 9.2,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: true,
@@ -152,7 +160,9 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithTax: 40,
+				priceWithoutTax: 30.8,
+				priceTax: 9.2,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: true,
@@ -174,7 +184,21 @@ describe(`[POST] ${endpoint})`, () => {
 		)
 		expect(response.body.messages).toEqual(
 			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.childrenPrice' }),
+				expect.objectContaining({ path: 'body.childrenPriceWithTax' }),
+			])
+		)
+		expect(response.body.messages).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					path: 'body.childrenPriceWithoutTax',
+				}),
+			])
+		)
+		expect(response.body.messages).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					path: 'body.childrenPriceTax',
+				}),
 			])
 		)
 		expect(response.body.messages).toEqual(
@@ -209,7 +233,9 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithTax: 40,
+				priceWithoutTax: 30.8,
+				priceTax: 9.2,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: true,
@@ -241,7 +267,9 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithTax: 40,
+				priceWithoutTax: 30.8,
+				priceTax: 9.2,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: [
 					'c70954c7-970d-4f1a-acf4-12b91acabe05',
@@ -269,7 +297,9 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Časovy listok tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithTax: 40,
+				priceWithoutTax: 30.8,
+				priceTax: 9.2,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: true,
@@ -299,7 +329,9 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Časovy listok tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithTax: 40,
+				priceWithoutTax: 30.8,
+				priceTax: 9.2,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: true,
@@ -334,7 +366,9 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Časovy listok tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithTax: 40,
+				priceWithoutTax: 30.8,
+				priceTax: 9.2,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: true,
@@ -367,7 +401,9 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithTax: 40,
+				priceWithoutTax: 30.8,
+				priceTax: 9.2,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: true,

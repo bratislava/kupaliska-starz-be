@@ -12,7 +12,15 @@ export const schema = Joi.object().keys({
 		limit: Joi.number().integer().min(1).default(20).empty(['', null]),
 		page: Joi.number().integer().min(1).default(1).empty(['', null]),
 		order: Joi.string()
-			.valid('name', 'description', 'price', 'type', 'createdAt')
+			.valid(
+				'name',
+				'description',
+				'priceWithTax',
+				'priceWithoutTax',
+				'priceTax',
+				'type',
+				'createdAt'
+			)
 			.empty(['', null])
 			.default('name'),
 		direction: Joi.string()
@@ -50,7 +58,9 @@ export const workflow = async (
 				'id',
 				'name',
 				'description',
-				'price',
+				'priceWithTax',
+				'priceWithoutTax',
+				'priceTax',
 				'type',
 				'entriesNumber',
 				'hasEntranceConstraints',
@@ -62,7 +72,9 @@ export const workflow = async (
 				'validTo',
 				'isSeniorIsDisabled',
 				'childrenAllowed',
-				'childrenPrice',
+				'childrenPriceWithTax',
+				'childrenPriceWithoutTax',
+				'childrenPriceTax',
 				'photoRequired',
 				'nameRequired',
 				'createdAt',

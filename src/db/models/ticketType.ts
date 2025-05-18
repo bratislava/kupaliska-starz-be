@@ -8,7 +8,9 @@ export class TicketTypeModel extends DatabaseModel {
 	id: string
 	name: string
 	description: string
-	price: number
+	priceWithTax: number
+	priceWithoutTax: number
+	priceTax: number
 	type: TICKET_TYPE
 	nameRequired: boolean
 	photoRequired: boolean
@@ -16,7 +18,9 @@ export class TicketTypeModel extends DatabaseModel {
 	// children
 	childrenAllowed: boolean
 	childrenMaxNumber: number
-	childrenPrice: number
+	childrenPriceWithTax: number
+	childrenPriceWithoutTax: number
+	childrenPriceTax: number
 	childrenAgeFrom: number
 	childrenAgeTo: number
 	childrenAgeToWithAdult: number
@@ -65,11 +69,27 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.TEXT,
 				allowNull: true,
 			},
-			price: {
-				type: DataTypes.DECIMAL(10, 2),
+			priceWithTax: {
+				type: DataTypes.DECIMAL(18, 10),
 				allowNull: false,
 				get() {
-					const value = this.getDataValue('price')
+					const value = this.getDataValue('priceWithTax')
+					return value !== undefined ? parseFloat(value) : undefined
+				},
+			},
+			priceWithoutTax: {
+				type: DataTypes.DECIMAL(18, 10),
+				allowNull: false,
+				get() {
+					const value = this.getDataValue('priceWithoutTax')
+					return value !== undefined ? parseFloat(value) : undefined
+				},
+			},
+			priceTax: {
+				type: DataTypes.DECIMAL(18, 10),
+				allowNull: false,
+				get() {
+					const value = this.getDataValue('priceTax')
 					return value !== undefined ? parseFloat(value) : undefined
 				},
 			},
@@ -93,11 +113,27 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.SMALLINT,
 				allowNull: true,
 			},
-			childrenPrice: {
-				type: DataTypes.DECIMAL(10, 2),
+			childrenPriceWithTax: {
+				type: DataTypes.DECIMAL(18, 10),
 				allowNull: true,
 				get() {
-					const value = this.getDataValue('childrenPrice')
+					const value = this.getDataValue('childrenPriceWithTax')
+					return value !== undefined ? parseFloat(value) : undefined
+				},
+			},
+			childrenPriceWithoutTax: {
+				type: DataTypes.DECIMAL(18, 10),
+				allowNull: true,
+				get() {
+					const value = this.getDataValue('childrenPriceWithoutTax')
+					return value !== undefined ? parseFloat(value) : undefined
+				},
+			},
+			childrenPriceTax: {
+				type: DataTypes.DECIMAL(18, 10),
+				allowNull: true,
+				get() {
+					const value = this.getDataValue('childrenPriceTax')
 					return value !== undefined ? parseFloat(value) : undefined
 				},
 			},
