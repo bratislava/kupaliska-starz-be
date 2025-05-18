@@ -279,7 +279,7 @@ export const workflow = async (
 const getPrice = async (
 	req: Request,
 	ticketTypeId: string,
-	discountInPercent: number | undefined
+	reverseDiscountInPercent: number | undefined
 ) => {
 	const { body } = req
 	let orderPrice = 0
@@ -337,7 +337,11 @@ const getPrice = async (
 			throw new ErrorBuilder(400, req.t('error:ticket.minimumIsOneAdult'))
 		}
 		// if discount in seasonpass, only for one user
-		if (numberOfAdults > 1 && discountInPercent && discountInPercent > 0) {
+		if (
+			numberOfAdults > 1 &&
+			reverseDiscountInPercent &&
+			reverseDiscountInPercent > 0
+		) {
 			throw new ErrorBuilder(
 				400,
 				req.t('error:ticket.discountOnlyForOneUser')
@@ -355,8 +359,8 @@ const getPrice = async (
 		)
 
 		let totals = { newTicketsPrice: ticketPrice, discount: discount }
-		if (discountInPercent) {
-			totals = getDiscount(ticketPrice, discountInPercent)
+		if (reverseDiscountInPercent) {
+			totals = getDiscount(ticketPrice, reverseDiscountInPercent)
 		}
 		orderPrice += totals.newTicketsPrice
 		discount += totals.discount
