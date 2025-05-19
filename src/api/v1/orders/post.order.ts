@@ -341,8 +341,9 @@ const getPrice = async (
 		if (
 			numberOfAdults > 1 &&
 			reverseDiscountInPercent &&
-			reverseDiscountInPercent > 0
+			reverseDiscountInPercent !== 100
 		) {
+			console.log('reverseDiscountInPercent', reverseDiscountInPercent)
 			throw new ErrorBuilder(
 				400,
 				req.t('error:ticket.discountOnlyForOneUser')
