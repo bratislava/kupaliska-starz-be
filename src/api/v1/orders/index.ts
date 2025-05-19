@@ -28,17 +28,18 @@ export default () => {
 		recaptchaMiddleware,
 		schemaMiddleware(PostOrder.schema),
 		(req: Request, res: Response, next: NextFunction) => {
-			PostOrder.workflow(req, res, next, true)
+			PostOrder.workflow(req, res, next)
 		}
 	)
 
+	// TODO: remove this route after FE removes it's usage
 	router.post(
 		'/unauthenticated',
 		offseasonMiddleware,
 		recaptchaMiddleware,
 		schemaMiddleware(PostOrder.schema),
 		(req: Request, res: Response, next: NextFunction) => {
-			PostOrder.workflow(req, res, next, false)
+			PostOrder.workflow(req, res, next)
 		}
 	)
 
@@ -53,15 +54,16 @@ export default () => {
 		passport.authenticate('jwt-cognito'),
 		schemaMiddleware(PostOrder.schema),
 		(req: Request, res: Response, next: NextFunction) => {
-			PostOrder.workflowDryRun(req, res, next, true)
+			PostOrder.workflowDryRun(req, res, next)
 		}
 	)
 
+	// TODO: remove this route after FE removes it's usage
 	router.post(
 		'/getPrice/unauthenticated',
 		schemaMiddleware(PostOrder.schema),
 		(req: Request, res: Response, next: NextFunction) => {
-			PostOrder.workflowDryRun(req, res, next, false)
+			PostOrder.workflowDryRun(req, res, next)
 		}
 	)
 

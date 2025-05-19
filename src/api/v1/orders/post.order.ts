@@ -15,15 +15,12 @@ import {
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { TicketTypeModel } from '../../../db/models/ticketType'
 import { validate } from '../../../utils/validation'
-import uploadFileFromBase64 from '../../../utils/uploader'
 import { createPayment } from '../../../services/webpayService'
 import { getDiscountCode } from '../../../services/discountCodeValidationService'
-import { DiscountCodeModel } from '../../../db/models/discountCode'
 import { createJwt } from '../../../utils/authorization'
 import { sendOrderEmail } from '../../../utils/emailSender'
 import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
 import { getCityAccountData, isDefined } from '../../../utils/helpers'
-import { logger } from '../../../utils/logger'
 import { TicketModel } from '../../../db/models/ticket'
 import { FE_ROUTES } from '../../../utils/constants'
 
@@ -35,10 +32,6 @@ const {
 	TicketType,
 	File,
 } = models
-
-interface TicketTypesHashMap {
-	[key: string]: TicketTypeModel
-}
 
 interface GetUser {
 	associatedSwimmerId: string | null
@@ -52,10 +45,6 @@ interface GetUser {
 
 const appConfig: IAppConfig = config.get('app')
 const passportConfig: IPassportConfig = config.get('passport')
-
-const uploadFolder = 'private/profile-photos'
-const maxFileSize = 5 * 1024 * 1024 // 5MB
-const validExtensions = ['png', 'jpg', 'jpeg']
 
 export const schema = Joi.object({
 	body: Joi.object().keys({
@@ -83,29 +72,27 @@ export const schema = Joi.object({
 export const workflowDryRun = async (
 	req: Request,
 	res: Response,
-	next: NextFunction,
-	auth: boolean
+	next: NextFunction
 ) => {
 	try {
 		const { body } = req
 
-		const ticketType = await TicketType.findByPk(body.ticketTypeId)
+		await basicChecks(body.ticketTypeId, req)
 
-		if (!ticketType) {
+		// check if there is discount voucher, if yes, throw error
+		// in dry run we don't want to check the discount code, we check for body.discountPercent
+		// TODO refactor FE and this to use discount code in dry run as well
+		if (body.discountCode) {
 			throw new ErrorBuilder(
 				404,
-				req.t('error:ticket.notFoundTicketType')
+				req.t('error:checkDiscoundCodeNotAllowed')
 			)
 		}
 
-		const loggedUserId = getCognitoIdOfLoggedInUser(req)
-
-		const pricing = await priceDryRun(
+		const pricing = await getPrice(
 			req,
-			ticketType,
-			loggedUserId,
-			true,
-			''
+			body.ticketTypeId,
+			100 - (body.discountPercent | 0)
 		)
 		return res.json({
 			data: {
@@ -126,25 +113,24 @@ export const workflowDryRun = async (
 export const workflow = async (
 	req: Request,
 	res: Response,
-	next: NextFunction,
-	auth: boolean
+	next: NextFunction
 ) => {
 	try {
 		const { body } = req
+
+		await basicChecks(body.ticketTypeId, req)
 
 		// check agreement
 		if (body.agreement === undefined || body.agreement !== true) {
 			throw new ErrorBuilder(400, req.t('error:ticket.agreementMissing'))
 		}
 
-		// check maximum tickets
-		if (body.tickets.length > 10) {
-			throw new ErrorBuilder(
-				400,
-				req.t('error:ticket.maxtTicketsPerOrder')
-			)
-		}
+		const ticketType = await TicketType.findByPk(body.ticketTypeId)
 
+		// check if ticket type exists
+		if (!ticketType) {
+			throw new ErrorBuilder(404, req.t('error:ticketTypeNotFound'))
+		}
 		const loggedUserId = getCognitoIdOfLoggedInUser(req)
 
 		const order = await Order.create({
@@ -153,31 +139,54 @@ export const workflow = async (
 			orderNumber: new Date().getTime(),
 		})
 
-		const ticketType = await TicketType.findByPk(body.ticketTypeId)
-		if (!ticketType) {
-			throw new ErrorBuilder(
-				404,
-				req.t('error:ticket.notFoundTicketType')
+		// for each instance add unique ticket
+		for (const ticket of body.tickets) {
+			const user = await getUser(req, ticket, loggedUserId)
+			if (ticket.personId === undefined) {
+				if (!body.email) {
+					throw new ErrorBuilder(404, req.t('error:emailIsEmpty'))
+				}
+			}
+
+			let ticketPrice = await getTicketPrice(
+				ticketType,
+				req,
+				ticket,
+				loggedUserId
 			)
+
+			let isChildren = getIsChildrenForTicketType(user, ticketType)
+			const createdTicket = await createTicketWithProfile(
+				user,
+				ticketType,
+				order.id,
+				isChildren,
+				ticketPrice,
+				null
+			)
+			if (ticketType.photoRequired) {
+				await uploadProfilePhotos(createdTicket)
+			}
+		}
+		let discountCode = body.discountCode
+			? await getDiscountCode(body.discountCode, ticketType.id)
+			: undefined
+		if (body.discountCode && !discountCode) {
+			throw new ErrorBuilder(404, req.t('error:discountCodeNotValid'))
 		}
 
-		// check ticket type and logged user
-		if (ticketType.nameRequired && !auth) {
-			throw new ErrorBuilder(
-				400,
-				req.t('error:ticket.notLoggedUserForTicket')
-			)
-		}
-		const pricing = await priceDryRun(
+		const pricing = await getPrice(
 			req,
-			ticketType,
-			loggedUserId,
-			false,
-			order.id
+			body.ticketTypeId,
+			discountCode ? discountCode.getInverseAmount * 100 : undefined
 		)
+		if (discountCode) {
+			await discountCode.update({
+				usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
+			})
+		}
 		const orderPrice = pricing.orderPrice
 		const discount = pricing.discount
-		const discountCode = pricing.discountCode
 
 		await order.update({
 			price: orderPrice,
@@ -267,38 +276,38 @@ export const workflow = async (
 }
 
 // Compute price
-const priceDryRun = async (
+const getPrice = async (
 	req: Request,
-	ticketType: TicketTypeModel,
-	loggedUserId: string | null,
-	dryRun: boolean,
-	orderId: string
+	ticketTypeId: string,
+	reverseDiscountInPercent: number | undefined
 ) => {
 	const { body } = req
 	let orderPrice = 0
 	let discount = 0
-	let discountCode
+
+	const loggedUserId = getCognitoIdOfLoggedInUser(req)
+
+	const ticketType = await TicketType.findByPk(ticketTypeId)
 
 	// check if ticket type exists
 	if (!ticketType) {
 		throw new ErrorBuilder(404, req.t('error:ticketTypeNotFound'))
 	}
 
-	// check if there is discount voucher, if yes, throw error
-	if (body.discountCode && dryRun) {
-		throw new ErrorBuilder(404, req.t('error:checkDiscoundCodeNotAllowed'))
-	}
+	// user cannot buy a ticket after its expiration
+	validate(
+		true,
+		ticketType.validTo,
+		Joi.date().min('now'),
+		req.t('error:ticket.ticketHasExpired'),
+		'ticketHasExpired'
+	)
 
 	// validate number of children
 	let numberOfChildren = 0
 	for (const ticket of body.tickets) {
-		const user = await getUser(req, ticket, loggedUserId, dryRun)
-		if (
-			ticketType.childrenAllowed &&
-			user.age &&
-			user.age >= ticketType.childrenAgeFrom &&
-			user.age <= ticketType.childrenAgeTo
-		) {
+		const user = await getUser(req, ticket, loggedUserId)
+		if (getIsChildrenForTicketType(user, ticketType)) {
 			numberOfChildren += 1
 		}
 		if (
@@ -313,18 +322,6 @@ const priceDryRun = async (
 		}
 	}
 
-	// discount code check
-	let applyDiscount = false
-	if (body.discountCode && !dryRun) {
-		discountCode = await getDiscountCode(body.discountCode, ticketType.id)
-		if (!discountCode) {
-			throw new ErrorBuilder(404, req.t('error:discountCodeNotValid'))
-		}
-		applyDiscount = true
-	} else if (body.discountPercent > 0 && dryRun) {
-		applyDiscount = true
-	}
-
 	// children allowed rules
 	if (ticketType.childrenAllowed) {
 		validate(
@@ -334,12 +331,17 @@ const priceDryRun = async (
 			req.t('error:ticket.numberOfChildrenExceeded'),
 			'numberOfChildrenExceeded'
 		)
+		const numberOfAdults = body.tickets.length - numberOfChildren
 		// minimum is one adult
-		if (!(numberOfChildren < body.tickets.length)) {
+		if (numberOfAdults < 1) {
 			throw new ErrorBuilder(400, req.t('error:ticket.minimumIsOneAdult'))
 		}
 		// if discount in seasonpass, only for one user
-		if (numberOfChildren + 1 < body.tickets.length && applyDiscount) {
+		if (
+			numberOfAdults > 1 &&
+			reverseDiscountInPercent &&
+			reverseDiscountInPercent > 0
+		) {
 			throw new ErrorBuilder(
 				400,
 				req.t('error:ticket.discountOnlyForOneUser')
@@ -349,96 +351,45 @@ const priceDryRun = async (
 
 	//price computation
 	for (const ticket of body.tickets) {
-		const user = await getUser(req, ticket, loggedUserId, dryRun)
-		let isChildren = false
-		if (
-			user.age &&
-			user.age >= ticketType.childrenAgeFrom &&
-			user.age <= ticketType.childrenAgeTo
-		) {
-			isChildren = true
-		}
-
-		// user cannot buy a ticket after its expiration
-		validate(
-			true,
-			ticketType.validTo,
-			Joi.date().min('now'),
-			req.t('error:ticket.ticketHasExpired'),
-			'ticketHasExpired'
-		)
-
-		const ticketsPrice = await saveTickets(
-			user,
+		const ticketPrice = await getTicketPrice(
 			ticketType,
-			orderId,
-			dryRun,
-			isChildren,
-			ticketType.photoRequired
+			req,
+			ticket,
+			loggedUserId
 		)
 
-		let totals = { newTicketsPrice: ticketsPrice, discount: discount }
-		if (!dryRun) {
-			totals = await getDiscount(
-				ticketsPrice,
-				applyDiscount,
-				discount,
-				discountCode
-			)
-		} else {
-			const priceWithDiscount =
-				Math.floor(ticketsPrice * (100 - (body.discountPercent | 0))) /
-				100
-			totals.newTicketsPrice = priceWithDiscount
-			totals.discount += ticketsPrice - priceWithDiscount
+		let totals = { newTicketsPrice: ticketPrice, discount: discount }
+		if (reverseDiscountInPercent) {
+			totals = getDiscount(ticketPrice, reverseDiscountInPercent)
 		}
 		orderPrice += totals.newTicketsPrice
-		discount = totals.discount
+		discount += totals.discount
 	}
 	return {
 		orderPrice: Math.floor(orderPrice * 100) / 100,
 		discount: Math.floor(discount * 100) / 100,
-		discountCode: discountCode,
 		numberOfChildren: numberOfChildren,
 	}
 }
 
-// for each instance add unique ticket
-const saveTickets = async (
-	user: GetUser,
+const getTicketPrice = async (
 	ticketType: TicketTypeModel,
-	orderId: string,
-	dryRun: boolean,
-	isChildren: boolean,
-	photoRequired: boolean
+	req: Request,
+	ticket: any,
+	loggedUserId: string | null
 ) => {
-	let ticketsPrice = ticketType.price
+	const user = await getUser(req, ticket, loggedUserId)
+	let isChildren = getIsChildrenForTicketType(user, ticketType)
+	let ticketPrice = ticketType.price
 	if (
 		isChildren &&
 		ticketType.childrenPrice &&
 		ticketType.childrenPrice != null
 	) {
-		ticketsPrice = ticketType.childrenPrice
-	}
-	// for (const _ of Array(ticket.quantity).keys()) {
-	// 	ticketsPrice +=
-	// 		ticketType.price +
-	// 		(ticketType.childrenPrice || 0) * numberOfChildren;
-	if (!dryRun) {
-		const createdTicket = await createTicketWithProfile(
-			user,
-			ticketType,
-			orderId,
-			isChildren,
-			ticketsPrice,
-			null
-		)
-		if (photoRequired) {
-			await uploadProfilePhotos(createdTicket)
-		}
+		ticketPrice = ticketType.childrenPrice
 	}
 
-	return ticketsPrice
+	return ticketPrice
 }
 
 /**
@@ -447,21 +398,11 @@ const saveTickets = async (
 const getUser = async (
 	req: Request,
 	ticket: any,
-	loggedUserId: string | null,
-	dryRun: boolean
+	loggedUserId: string | null
 ): Promise<GetUser> => {
 	const { body } = req
 	if (ticket.personId === undefined) {
-		if (dryRun) {
-			return {
-				associatedSwimmerId: null,
-				loggedUserId: null,
-				email: body.email,
-				name: '',
-				age: ticket.age,
-				zip: ticket.zip,
-			}
-		} else if (body.email) {
+		if (body.email) {
 			return {
 				associatedSwimmerId: null,
 				loggedUserId: null,
@@ -471,7 +412,14 @@ const getUser = async (
 				zip: ticket.zip,
 			}
 		} else {
-			throw new ErrorBuilder(404, req.t('error:emailIsEmpty'))
+			return {
+				associatedSwimmerId: null,
+				loggedUserId: null,
+				email: body.email,
+				name: '',
+				age: ticket.age,
+				zip: ticket.zip,
+			}
 		}
 	} else if (ticket.personId === null) {
 		if (!loggedUserId)
@@ -547,26 +495,33 @@ const getUser = async (
 		}
 	}
 }
-/**
- * Get price after discount if discount can be applied. Otherwise return the original price.
- */
-const getDiscount = async (
-	ticketsPrice: number,
-	applyDiscount: boolean,
-	discount: number,
-	discountCode: DiscountCodeModel
+
+const getIsChildrenForTicketType = (
+	user: GetUser,
+	ticketType: TicketTypeModel
 ) => {
-	let newTicketsPrice = ticketsPrice
-	if (applyDiscount) {
-		const priceWithDiscount =
-			Math.floor(ticketsPrice * discountCode.getInverseAmount * 100) / 100
-		newTicketsPrice = priceWithDiscount
-		discount = ticketsPrice - priceWithDiscount
-		await discountCode.update({
-			usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
-		})
+	let isChildren = false
+	if (
+		ticketType.childrenAllowed &&
+		user.age &&
+		user.age >= ticketType.childrenAgeFrom &&
+		user.age <= ticketType.childrenAgeTo
+	) {
+		isChildren = true
 	}
-	return { newTicketsPrice, discount }
+	return isChildren
+}
+
+/**
+ * Get price after discount.
+ */
+const getDiscount = (ticketPrice: number, discountInPercent: number) => {
+	const priceWithDiscount = Math.floor(ticketPrice * discountInPercent) / 100
+
+	return {
+		newTicketsPrice: priceWithDiscount,
+		discount: ticketPrice - priceWithDiscount,
+	}
 }
 
 /**
@@ -640,49 +595,25 @@ const uploadProfilePhotos = async (ticket: TicketModel) => {
 	}
 }
 
-// const uploadProfilePhotos = async (
-// 	req: Request,
-// 	tickets: any,
-// ) => {
-// 	for (const ticket of tickets) {
-// 		if (ticket.photo) {
-// 			await uploadAndCreate(
-// 				req,
-// 				ticket.photo,
-// 				ticket.modelIds
-// 			);
-// 		}
+const basicChecks = async (ticketTypeId: string, req: Request) => {
+	const loggedUserId = getCognitoIdOfLoggedInUser(req)
 
-// 		for (const oneChildren of ticket.children || []) {
-// 			if (oneChildren.photo) {
-// 				await uploadAndCreate(
-// 					req,
-// 					oneChildren.photo,
-// 					oneChildren.modelIds,
-// 				);
-// 			}
-// 		}
-// 	}
-// };
+	const ticketType = await TicketType.findByPk(ticketTypeId)
 
-/**
- * Create files from base64 and persist them for every CREATED ticket ( means if ticket has 5 quantity we are creating profile file for each )
- */
-const uploadAndCreate = async (
-	req: Request,
-	photo: string,
-	modelIds: Array<string>
-) => {
-	for (const modelId of modelIds) {
-		const file = await uploadFileFromBase64(req, photo, uploadFolder)
+	if (!ticketType) {
+		throw new ErrorBuilder(404, req.t('error:ticket.notFoundTicketType'))
+	}
 
-		await File.create({
-			name: file.fileName,
-			originalPath: file.filePath,
-			mimeType: file.mimeType,
-			size: file.size,
-			relatedId: modelId,
-			relatedType: 'profile',
-		})
+	// check ticket type and logged user
+	if (ticketType.nameRequired && !loggedUserId) {
+		throw new ErrorBuilder(
+			400,
+			req.t('error:ticket.notLoggedUserForTicket')
+		)
+	}
+
+	// check maximum tickets
+	if (req.body.tickets.length > appConfig.maxTicketPurchaseLimit) {
+		throw new ErrorBuilder(400, req.t('error:ticket.maxtTicketsPerOrder'))
 	}
 }
