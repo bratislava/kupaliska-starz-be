@@ -285,6 +285,8 @@ export const generatePdfTaxes = async (
 	const fontSizeMedium = 8
 	const fontSizeLarge = 12
 
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
 	doc.table({
 		rowStyles: {
 			padding: { left: '1em', right: '1em' },
@@ -341,6 +343,8 @@ export const generatePdfTaxes = async (
 
 	doc.moveDown()
 
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
 	doc.table({
 		defaultStyle: { border: false, width: 110 },
 		rowStyles: {
@@ -388,6 +392,8 @@ export const generatePdfTaxes = async (
 	) // Platiteľ DPH
 	doc.moveDown()
 
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
 	doc.table({
 		defaultStyle: { border: false, width: 110 },
 		rowStyles: {
@@ -421,6 +427,8 @@ export const generatePdfTaxes = async (
 	})
 	doc.moveDown()
 
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
 	doc.table({
 		defaultStyle: { border: false, width: 110 },
 		rowStyles: {
@@ -461,6 +469,8 @@ export const generatePdfTaxes = async (
 
 	doc.font('resources/fonts/WorkSans-Bold.ttf')
 
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
 	doc.table({
 		defaultStyle: { border: false },
 		columnStyles: [200, '*', '*', '*', '*', '*'],
@@ -585,6 +595,8 @@ export const generatePdfTaxes = async (
 		]
 	})
 
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
 	doc.table({
 		defaultStyle: { border: false },
 		columnStyles: [200, '*', '*', '*', '*', '*'],
@@ -615,6 +627,8 @@ export const generatePdfTaxes = async (
 		0
 	)
 
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
 	doc.table({
 		defaultStyle: { border: [1, 1, 1, 1] },
 		columnStyles: [200, '*', '*', '*'],
@@ -665,6 +679,9 @@ export const generatePdfTaxes = async (
 	// rozkol
 	// je dan orderPriceTax alebo orderPriceWithTax - orderPriceWithoutTax
 	// horizontal line
+
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
 	doc.table({
 		rowStyles: {
 			border: [1, 0, 0, 0],
@@ -673,6 +690,8 @@ export const generatePdfTaxes = async (
 		data: [['']],
 	})
 
+	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+	// @ts-ignore
 	doc.table({
 		defaultStyle: { border: false, width: 100 },
 		rowStyles: {
