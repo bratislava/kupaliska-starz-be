@@ -10,7 +10,7 @@ import {
 import config from 'config'
 import { OrderModel } from '../db/models/order'
 import { Request } from 'express'
-import { generatePdf } from './pdfGenerator'
+import { generatePdf, generatePdfTaxes } from './pdfGenerator'
 import i18next, { InitOptions } from 'i18next'
 import { textColorsMap } from './enums'
 import i18nextMiddleware from 'i18next-http-middleware'
@@ -86,7 +86,11 @@ export const sendOrderEmail = async (
 		orderTemplate,
 		getOrderEmailData(parentTicket, order),
 		await getOrderEmailInlineAttachments(order.tickets),
-		await getOrderEmailAttachments(order.tickets)
+		await getOrderEmailAttachments(
+			order.tickets,
+			order.price,
+			order.discount
+		)
 	)
 }
 
@@ -108,7 +112,9 @@ const getOrderEmailInlineAttachments = async (
 }
 
 const getOrderEmailAttachments = async (
-	tickets: TicketModel[]
+	tickets: TicketModel[],
+	orderPrice: number,
+	orderDiscount: number
 ): Promise<CustomFile[]> => {
 	return concat(
 		await Promise.all(
@@ -138,7 +144,14 @@ const getOrderEmailAttachments = async (
 						filename: `${i18next.t('allTickets')}.pdf`,
 					},
 			  ]
-			: []
+			: [],
+		{
+			data: Buffer.from(
+				await generatePdfTaxes(tickets, orderPrice, orderDiscount),
+				'base64'
+			),
+			filename: `danovy-doklad.pdf`,
+		}
 	)
 }
 
