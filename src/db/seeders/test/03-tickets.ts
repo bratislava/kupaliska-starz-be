@@ -34,7 +34,8 @@ export async function up(queryInterface: QueryInterface) {
 		[
 			{
 				id: ticketId,
-				price: 3.99,
+				priceWithVat: 3.99,
+				vatPercentage: 23,
 				isChildren: false,
 				remainingEntries: 4,
 				order: {
@@ -65,7 +66,8 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			{
 				id: ticket2Id,
-				price: 3.99,
+				priceWithVat: 3.99,
+				vatPercentage: 23,
 				isChildren: false,
 				remainingEntries: 0,
 				order: {
@@ -157,7 +159,8 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			{
 				id: ticket3Id,
-				price: 3.99,
+				priceWithVat: 3.99,
+				vatPercentage: 23,
 				isChildren: false,
 				remainingEntries: 0,
 				order: {

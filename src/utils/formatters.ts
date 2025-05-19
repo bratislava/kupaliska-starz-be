@@ -51,7 +51,8 @@ export const formatTicket = (ticket: TicketModel) => {
 
 	return {
 		id: ticket.id,
-		price: ticket.price,
+		priceWithVat: ticket.priceWithVat,
+		vatPercentage: ticket.vatPercentage,
 		isChildren: ticket.isChildren,
 		email: ticket.profile.email,
 		name: ticket.profile.name,

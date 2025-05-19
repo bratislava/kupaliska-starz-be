@@ -22,7 +22,8 @@ interface GetTicket {
 	usedDate: string
 	entries: GetEntry[]
 	qrCode: string | Buffer
-	price: number
+	priceWithVat: number
+	vatPercentage: number
 	ticketColor: TicketColors | null
 	age: null | number
 	validTo: Date | null
@@ -65,7 +66,8 @@ export const workflow = async (
 				usedDate: '',
 				entries: [],
 				qrCode: '',
-				price: 0,
+				priceWithVat: 0,
+				vatPercentage: 0,
 				ticketColor: null,
 				age: null,
 				validTo: null,
@@ -74,7 +76,8 @@ export const workflow = async (
 			const order = await Order.findByPk(ticket.orderId)
 			if (order.state === ORDER_STATE.PAID) {
 				ticketResult.id = ticket.id
-				ticketResult.price = ticket.price
+				ticketResult.priceWithVat = ticket.priceWithVat
+				ticketResult.vatPercentage = ticket.vatPercentage
 				ticketResult.remainingEntries = ticket.remainingEntries
 
 				const ticketType = await TicketType.findByPk(

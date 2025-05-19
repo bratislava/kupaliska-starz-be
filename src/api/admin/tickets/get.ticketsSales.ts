@@ -49,7 +49,8 @@ interface SwimmingPoolRecord {
 interface TicketTypeRecord {
 	ticketTypeName: string
 	isChildren: boolean
-	price: string
+	priceWithVat: string
+	vatPercentage: string
 	entryPrice: string
 	numberOfUses: number
 	swimmingPools: SwimmingPoolRecord[]
@@ -75,8 +76,8 @@ export const workflow = async (
 		const computeRealPriceSql = `
 			CASE
 				WHEN dc.amount IS NULL
-				THEN tickets.price
-				ELSE (tickets.price * (1 - dc.amount / 100))
+				THEN tickets.priceWithVat
+				ELSE (tickets.priceWithVat * (1 - dc.amount / 100))
 			END AS "realPrice"`
 
 		// CASE
@@ -93,7 +94,8 @@ export const workflow = async (
 		// Ticket types in this endpoint are different
 		// they are not defined by ID, but by their PRICE and ID (because of ticket types with discounts)
 		const result = await sequelize.query<{
-			price: string
+			priceWithVat: string
+			vatPercentage: string
 			swimmingPoolId: string
 			ticketTypeName: string
 			ticketTypeId: string
@@ -126,7 +128,7 @@ export const workflow = async (
 								(
 									SELECT
 										tickets.id, tickets."orderId", tickets."ticketTypeId",
-										tickets.price, tickets."isChildren", count(*) filter (where "visits"."ticketId" is not null) as "numberOfUses",
+										tickets.priceWithVat, tickets."isChildren", count(*) filter (where "visits"."ticketId" is not null) as "numberOfUses",
 										visits."swimmingPoolId"
 									FROM tickets
 									LEFT JOIN
@@ -193,7 +195,8 @@ export const workflow = async (
 					...others
 				} = data
 				const ticketType = find(arr, {
-					price: data.price,
+					priceWithVat: data.priceWithVat,
+					vatPercentage: data.vatPercentage,
 					ticketTypeName: data.ticketTypeName,
 				})
 				if (ticketType) {
@@ -238,7 +241,8 @@ export const workflow = async (
 
 		return res.json({
 			data: map(filteredResponseData, (ticketType: TicketTypeRecord) => {
-				const { price, entryPrice, ...other } = ticketType
+				const { priceWithVat, vatPercentage, entryPrice, ...other } =
+					ticketType
 				const finalPrice =
 					Math.round(
 						Number(entryPrice) * ticketType.numberOfUses * 100
@@ -252,7 +256,8 @@ export const workflow = async (
 					commission,
 					cleanPrice:
 						Math.round((finalPrice - commission) * 100) / 100,
-					price: Number(price),
+					priceWithVat: Number(priceWithVat),
+					vatPercentage: Number(vatPercentage),
 					entryPrice: Number(entryPrice),
 					...other,
 				}

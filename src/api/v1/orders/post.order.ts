@@ -162,6 +162,7 @@ export const workflow = async (
 				order.id,
 				isChildren,
 				ticketPrice,
+				ticketType.vatPercentage,
 				null
 			)
 			if (ticketType.photoRequired) {
@@ -380,16 +381,17 @@ const getTicketPrice = async (
 ) => {
 	const user = await getUser(req, ticket, loggedUserId)
 	let isChildren = getIsChildrenForTicketType(user, ticketType)
-	let ticketPrice = ticketType.price
+	let ticketPriceWithVat = ticketType.priceWithVat
+
 	if (
 		isChildren &&
-		ticketType.childrenPrice &&
-		ticketType.childrenPrice != null
+		ticketType.childrenPriceWithVat &&
+		ticketType.childrenPriceWithVat != null
 	) {
-		ticketPrice = ticketType.childrenPrice
+		ticketPriceWithVat = ticketType.childrenPriceWithVat
 	}
 
-	return ticketPrice
+	return ticketPriceWithVat
 }
 
 /**
@@ -515,12 +517,13 @@ const getIsChildrenForTicketType = (
 /**
  * Get price after discount.
  */
-const getDiscount = (ticketPrice: number, discountInPercent: number) => {
-	const priceWithDiscount = Math.floor(ticketPrice * discountInPercent) / 100
+const getDiscount = (ticketPriceWithVat: number, discountInPercent: number) => {
+	const priceWithDiscount =
+		Math.floor(ticketPriceWithVat * discountInPercent) / 100
 
 	return {
 		newTicketsPrice: priceWithDiscount,
-		discount: ticketPrice - priceWithDiscount,
+		discount: ticketPriceWithVat - priceWithDiscount,
 	}
 }
 
@@ -532,7 +535,8 @@ const createTicketWithProfile = async (
 	ticketType: TicketTypeModel,
 	orderId: string,
 	isChildren: boolean,
-	ticketPrice: number,
+	ticketPriceWithVat: number,
+	vatPercentage: number,
 	parentTicketId: null | string
 ) => {
 	const profileId = uuidv4()
@@ -543,7 +547,8 @@ const createTicketWithProfile = async (
 			isChildren: isChildren,
 			ticketTypeId: ticketType.id,
 			orderId,
-			price: ticketPrice,
+			priceWithVat: ticketPriceWithVat,
+			vatPercentage: vatPercentage,
 			parentTicketId: parentTicketId,
 			remainingEntries: ticketType.entriesNumber,
 			swimmingLoggedUserId: user.loggedUserId,
