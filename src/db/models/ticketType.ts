@@ -8,7 +8,8 @@ export class TicketTypeModel extends DatabaseModel {
 	id: string
 	name: string
 	description: string
-	price: number
+	priceWithVat: number
+	vatPercentage: number
 	type: TICKET_TYPE
 	nameRequired: boolean
 	photoRequired: boolean
@@ -16,7 +17,8 @@ export class TicketTypeModel extends DatabaseModel {
 	// children
 	childrenAllowed: boolean
 	childrenMaxNumber: number
-	childrenPrice: number
+	childrenPriceWithVat: number
+	childrenVatPercentage: number
 	childrenAgeFrom: number
 	childrenAgeTo: number
 	childrenAgeToWithAdult: number
@@ -65,11 +67,19 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.TEXT,
 				allowNull: true,
 			},
-			price: {
+			priceWithVat: {
 				type: DataTypes.DECIMAL(10, 2),
 				allowNull: false,
 				get() {
-					const value = this.getDataValue('price')
+					const value = this.getDataValue('priceWithVat')
+					return value !== undefined ? parseFloat(value) : undefined
+				},
+			},
+			vatPercentage: {
+				type: DataTypes.DECIMAL(10, 2),
+				allowNull: false,
+				get() {
+					const value = this.getDataValue('vatPercentage')
 					return value !== undefined ? parseFloat(value) : undefined
 				},
 			},
@@ -93,7 +103,15 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.SMALLINT,
 				allowNull: true,
 			},
-			childrenPrice: {
+			childrenPriceWithVat: {
+				type: DataTypes.DECIMAL(10, 2),
+				allowNull: true,
+				get() {
+					const value = this.getDataValue('childrenPrice')
+					return value !== undefined ? parseFloat(value) : undefined
+				},
+			},
+			childrenVatPercentage: {
 				type: DataTypes.DECIMAL(10, 2),
 				allowNull: true,
 				get() {

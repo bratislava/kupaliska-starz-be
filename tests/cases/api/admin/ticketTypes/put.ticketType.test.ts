@@ -77,7 +77,8 @@ describe(`[PUT] ${endpoint})`, () => {
 			.send({
 				name: 'Novy nazov',
 				description: 'Novy popis',
-				price: 100.23,
+				priceWithVat: 100.23,
+				vatPercentage: 23,
 				nameRequired: false,
 				photoRequired: false,
 				validFrom: '2021-09-12',
@@ -94,7 +95,8 @@ describe(`[PUT] ${endpoint})`, () => {
 		)) as TicketTypeModel
 		expect(ticketType.name).toBe('Novy nazov')
 		expect(ticketType.description).toBe('Novy popis')
-		expect(ticketType.price).toBe(100.23)
+		expect(ticketType.priceWithVat).toBe(100.23)
+		expect(ticketType.vatPercentage).toBe(23)
 		expect(ticketType.nameRequired).toBe(false)
 		expect(ticketType.photoRequired).toBe(false)
 		expect(ticketType.validFrom).toBe('2021-09-12')

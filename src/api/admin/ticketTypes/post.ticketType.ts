@@ -14,7 +14,8 @@ const JoiExtended = Joi.extend(joiCustomTimeRules())
 export const ticketTypeAddSchema = {
 	name: Joi.string().max(255).required(),
 	description: Joi.string().allow(null),
-	price: Joi.number().min(0).precision(2).required(),
+	priceWithVat: Joi.number().min(0).precision(2).required(),
+	vatPercentage: Joi.number().min(0).precision(2).required(),
 	type: Joi.string()
 		.uppercase()
 		.valid(...TICKET_TYPES)
@@ -35,11 +36,23 @@ export const ticketTypeAddSchema = {
 		then: Joi.required(),
 		otherwise: Joi.forbidden(),
 	}),
-	childrenPrice: Joi.number().min(0).precision(2).when('childrenAllowed', {
-		is: true,
-		then: Joi.required(),
-		otherwise: Joi.forbidden(),
-	}),
+	childrenPriceWithVat: Joi.number()
+		.min(0)
+		.precision(2)
+		.when('childrenAllowed', {
+			is: true,
+			then: Joi.required(),
+			otherwise: Joi.forbidden(),
+		}),
+	childrenVatPercentage: Joi.number()
+		.min(0)
+		.precision(2)
+		.when('childrenAllowed', {
+			is: true,
+			then: Joi.required(),
+			otherwise: Joi.forbidden(),
+		}),
+
 	childrenAgeFrom: Joi.number().min(0).max(150).when('childrenAllowed', {
 		is: true,
 		then: Joi.required(),

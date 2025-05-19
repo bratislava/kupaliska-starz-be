@@ -46,7 +46,8 @@ export async function up(queryInterface: QueryInterface) {
 				ticketType: {
 					name: 'Sezónny tiket',
 					description: faker.lorem.paragraph(15),
-					price: 20,
+					priceWithVat: 20,
+					vatPercentage: 23,
 					type: TICKET_TYPE.ENTRIES,
 					entriesNumber: 10,
 					nameRequired: true,
@@ -76,7 +77,8 @@ export async function up(queryInterface: QueryInterface) {
 				ticketType: {
 					name: 'Vstupovy',
 					description: faker.lorem.paragraph(15),
-					price: 20,
+					priceWithVat: 20,
+					vatPercentage: 23,
 					type: TICKET_TYPE.ENTRIES,
 					nameRequired: true,
 					photoRequired: true,
@@ -167,7 +169,8 @@ export async function up(queryInterface: QueryInterface) {
 				ticketType: {
 					name: 'Vstupovy',
 					description: faker.lorem.paragraph(15),
-					price: 20,
+					priceWithVat: 20,
+					vatPercentage: 23,
 					type: TICKET_TYPE.ENTRIES,
 					nameRequired: true,
 					photoRequired: true,
