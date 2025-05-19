@@ -83,17 +83,18 @@ async function generateData() {
 				const ticketId = uuidv4()
 				const addDiscount = faker.random.boolean()
 				const price =
-					(seasonalTicketType.price +
-						numberOfChildren * seasonalTicketType.childrenPrice) *
+					(seasonalTicketType.priceWithVat +
+						numberOfChildren *
+							seasonalTicketType.childrenPriceWithVat) *
 					(addDiscount ? (100 - discountCode.amount) / 100 : 1)
 
 				return {
 					...createOrder(),
 					price: price,
 					discount: addDiscount
-						? (seasonalTicketType.price +
+						? (seasonalTicketType.priceWithVat +
 								numberOfChildren *
-									seasonalTicketType.childrenPrice) *
+									seasonalTicketType.childrenPriceWithVat) *
 						  (discountCode.amount / 100)
 						: 0,
 					discountCodeId: addDiscount ? discountCode.id : null,
@@ -101,7 +102,7 @@ async function generateData() {
 						[
 							{
 								...createTicket(ticketId),
-								price: seasonalTicketType.price,
+								price: seasonalTicketType.priceWithVat,
 								remainingEntries: null,
 								profile: {
 									...createProfile(),
@@ -129,7 +130,7 @@ async function generateData() {
 						],
 						map([...Array(numberOfChildren).keys()], () => ({
 							...createChildrenTicket(),
-							price: seasonalTicketType.childrenPrice,
+							price: seasonalTicketType.childrenPriceWithVat,
 							remainingEntries: null,
 							profile: {
 								...createProfile(),
@@ -182,19 +183,20 @@ async function generateData() {
 
 				const addDiscount = faker.random.boolean()
 				const price =
-					entriesTicketType.price *
+					entriesTicketType.priceWithVat *
 					(addDiscount ? (100 - discountCode.amount) / 100 : 1)
 
 				return {
 					...createOrder(),
 					price: price,
 					discount: addDiscount
-						? entriesTicketType.price * (discountCode.amount / 100)
+						? entriesTicketType.priceWithVat *
+						  (discountCode.amount / 100)
 						: 0,
 					discountCodeId: addDiscount ? discountCode.id : null,
 					tickets: map([...Array(numberOfTickets).keys()], () => ({
 						...createTicket(),
-						price: entriesTicketType.price,
+						price: entriesTicketType.priceWithVat,
 						remainingEntries: remainingEntries,
 						profile: {
 							...createProfile(),

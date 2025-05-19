@@ -14,13 +14,13 @@ import { DiscountCodeModel } from './discountCode'
 export interface OrderItem {
 	name: string
 	amount: number
-	price: string
-	accPrice: number
+	priceWithVat: string
+	accPriceWithVat: number
 }
 
 export class OrderModel extends DatabaseModel {
 	id: string
-	price: number
+	priceWithVat: number
 	discount: number
 	orderNumber: number
 	state: ORDER_STATE
@@ -47,12 +47,15 @@ export class OrderModel extends DatabaseModel {
 					? {
 							name: ticket.ticketType.name,
 							amount: obj.amount + 1,
-							accPrice: obj.accPrice + ticket.price,
-							price: (obj.accPrice + ticket.price).toFixed(2),
+							accPriceWithVat:
+								obj.accPriceWithVat + ticket.priceWithVat,
+							priceWithVat: (
+								obj.accPriceWithVat + ticket.priceWithVat
+							).toFixed(2),
 					  }
 					: obj
 			},
-			{ name: '', amount: 0, price: '0.00', accPrice: 0 }
+			{ name: '', amount: 0, priceWithVat: '0.00', accPriceWithVat: 0 }
 		)
 
 		const children = reduce<TicketModel[], OrderItem>(
@@ -62,19 +65,22 @@ export class OrderModel extends DatabaseModel {
 					? {
 							name: getChildrenTicketName(),
 							amount: obj.amount + 1,
-							accPrice: obj.accPrice + ticket.price,
-							price: (obj.accPrice + ticket.price).toFixed(2),
+							accPriceWithVat:
+								obj.accPriceWithVat + ticket.priceWithVat,
+							priceWithVat: (
+								obj.accPriceWithVat + ticket.priceWithVat
+							).toFixed(2),
 					  }
 					: obj
 			},
-			{ name: '', amount: 0, price: '0.00', accPrice: 0 }
+			{ name: '', amount: 0, priceWithVat: '0.00', accPriceWithVat: 0 }
 		)
 
 		const discount = {
 			name: i18next.t('discountItem'),
 			amount: 1,
-			accPrice: -1 * self.discount,
-			price: `-${self.discount.toFixed(2)}`,
+			accPriceWithVat: -1 * self.discount,
+			priceWithVat: `-${self.discount.toFixed(2)}`,
 		}
 
 		return { adults, children, discount }
@@ -100,7 +106,7 @@ export default (sequelize: Sequelize) => {
 				allowNull: false,
 				defaultValue: ORDER_STATE.CREATED,
 			},
-			price: {
+			priceWithVat: {
 				type: DataTypes.DECIMAL(10, 2),
 				allowNull: false,
 				get() {

@@ -396,8 +396,8 @@ describe('[POST] /api/v1/orders', () => {
 			const order = await OrderModel.findByPk(response.body.data.id, {
 				include: { association: 'tickets' },
 			})
-			expect(order.price).toStrictEqual(22)
-			expect(order.tickets[0].price).toStrictEqual(20)
+			expect(order.priceWithVat).toStrictEqual(22)
+			expect(order.tickets[0].priceWithVat).toStrictEqual(20)
 		})
 
 		it('Should have correct price (Ticket with quantity)', async () => {
@@ -425,9 +425,9 @@ describe('[POST] /api/v1/orders', () => {
 					{ association: 'paymentOrder' },
 				],
 			})
-			expect(order.price).toStrictEqual(159.96)
+			expect(order.priceWithVat).toStrictEqual(159.96)
 			order.tickets.forEach((ticket: any) => {
-				expect(ticket.price).toStrictEqual(39.99)
+				expect(ticket.priceWithVat).toStrictEqual(39.99)
 			})
 			expect(order.paymentOrder.paymentAmount).toBe(159.96)
 			expect(response.body.data.data.AMOUNT).toStrictEqual(15996)
@@ -508,7 +508,7 @@ describe('[POST] /api/v1/orders', () => {
 				})
 			expect(response.status).toBe(200)
 			const order = await OrderModel.findByPk(response.body.data.id)
-			expect(order.price).toStrictEqual(127.96)
+			expect(order.priceWithVat).toStrictEqual(127.96)
 			expect(order.discount).toStrictEqual(32)
 
 			const discountCodeInstance = await DiscountCodeModel.findByPk(

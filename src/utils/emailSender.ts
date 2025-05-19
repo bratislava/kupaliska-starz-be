@@ -136,14 +136,14 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 		{
 			name: items.adults.name, // ticket name
 			amount: items.adults.amount,
-			price: items.adults.price,
+			priceWithVat: items.adults.priceWithVat,
 		},
 	]
 	if (items.children.amount > 0) {
 		summaryItems.push({
 			name: items.children.name, // ticket name for children is always same
 			amount: items.children.amount,
-			price: items.children.price,
+			priceWithVat: items.children.priceWithVat,
 		})
 	}
 	return {
@@ -174,7 +174,7 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 		}),
 		summary: {
 			items: summaryItems, // sorted by adult/children condition
-			totalPrice: order.price.toFixed(2), // could be omitted
+			totalPrice: order.priceWithVat.toFixed(2), // could be omitted
 		},
 	}
 }
