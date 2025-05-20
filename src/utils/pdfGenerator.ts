@@ -417,7 +417,7 @@ export const generatePdfVatDocument = async (
 			[
 				{
 					font: { size: fontSizeMedium },
-					text: i18next.t('translation:pdfVatIcDph'), // Platiteľ DPH
+					text: i18next.t('translation:pdfVatVatPayer'), // Platiteľ DPH
 				},
 				{
 					align: { x: 'right', y: 'top' },
