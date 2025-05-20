@@ -10,7 +10,8 @@ import { Op, Transaction } from 'sequelize'
 export const ticketTypePutSchema = {
 	name: Joi.string().max(255).required(),
 	description: Joi.string().allow(null),
-	price: Joi.number().min(0).precision(2).required(),
+	priceWithVat: Joi.number().min(0).precision(2).required(),
+	vatPercentage: Joi.number().min(0).precision(2).required(),
 	nameRequired: Joi.boolean().required(),
 	photoRequired: Joi.boolean().required(),
 	validFrom: Joi.date().required(),

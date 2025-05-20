@@ -169,7 +169,7 @@ export const createPayment = async (
 	const { PaymentOrder } = models
 
 	const paymentOrder = await PaymentOrder.create({
-		paymentAmount: order.price,
+		paymentAmount: order.priceWithVat,
 		orderId: order.id,
 	})
 

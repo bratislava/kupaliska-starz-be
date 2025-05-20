@@ -68,14 +68,16 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Sezónny tiket',
 				description: faker.lorem.paragraph(15),
-				price: 20,
+				priceWithVat: 20,
+				vatPercentage: 23,
 				type: TICKET_TYPE.SEASONAL,
 				nameRequired: true,
 				photoRequired: true,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				childrenAllowed: true,
 				childrenMaxNumber: 5,
-				childrenPrice: 1,
+				childrenPriceWithVat: 1,
+				childrenVatPercentage: 23,
 				childrenAgeFrom: 3,
 				childrenAgeTo: 18,
 				childrenAgeToWithAdult: 10,
@@ -99,7 +101,8 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithVat: 40,
+				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: false,
@@ -127,7 +130,8 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithVat: 40,
+				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: true,
@@ -152,7 +156,8 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithVat: 40,
+				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: true,
@@ -174,7 +179,12 @@ describe(`[POST] ${endpoint})`, () => {
 		)
 		expect(response.body.messages).toEqual(
 			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.childrenPrice' }),
+				expect.objectContaining({ path: 'body.childrenPriceWithVat' }),
+			])
+		)
+		expect(response.body.messages).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({ path: 'body.childrenVatPercentage' }),
 			])
 		)
 		expect(response.body.messages).toEqual(
@@ -209,7 +219,8 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithVat: 40,
+				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: true,
@@ -241,7 +252,8 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithVat: 40,
+				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: [
 					'c70954c7-970d-4f1a-acf4-12b91acabe05',
@@ -269,7 +281,8 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Časovy listok tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithVat: 40,
+				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: true,
@@ -299,7 +312,8 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Časovy listok tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithVat: 40,
+				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: true,
@@ -334,7 +348,8 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Časovy listok tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithVat: 40,
+				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: true,
@@ -367,7 +382,8 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				price: 40,
+				priceWithVat: 40,
+				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				nameRequired: true,

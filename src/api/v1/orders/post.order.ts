@@ -134,7 +134,7 @@ export const workflow = async (
 		const loggedUserId = getCognitoIdOfLoggedInUser(req)
 
 		const order = await Order.create({
-			price: 0,
+			priceWithVat: 0,
 			state: ORDER_STATE.CREATED,
 			orderNumber: new Date().getTime(),
 		})
@@ -162,6 +162,7 @@ export const workflow = async (
 				order.id,
 				isChildren,
 				ticketPrice,
+				ticketType.vatPercentage,
 				null
 			)
 			if (ticketType.photoRequired) {
@@ -185,11 +186,11 @@ export const workflow = async (
 				usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
 			})
 		}
-		const orderPrice = pricing.orderPrice
+		const orderPriceWithVat = pricing.orderPriceWithVat
 		const discount = pricing.discount
 
 		await order.update({
-			price: orderPrice,
+			priceWithVat: orderPriceWithVat,
 			discount: discountCode ? discount : 0,
 			discountCodeId: discountCode ? discountCode.id : undefined,
 		})
@@ -235,7 +236,7 @@ export const workflow = async (
 				],
 			})
 
-			await sendOrderEmail(req, orderResult)
+			await sendOrderEmail(req, orderResult.id)
 
 			return res.json({
 				data: {
@@ -340,8 +341,9 @@ const getPrice = async (
 		if (
 			numberOfAdults > 1 &&
 			reverseDiscountInPercent &&
-			reverseDiscountInPercent > 0
+			reverseDiscountInPercent !== 100
 		) {
+			console.log('reverseDiscountInPercent', reverseDiscountInPercent)
 			throw new ErrorBuilder(
 				400,
 				req.t('error:ticket.discountOnlyForOneUser')
@@ -366,7 +368,7 @@ const getPrice = async (
 		discount += totals.discount
 	}
 	return {
-		orderPrice: Math.floor(orderPrice * 100) / 100,
+		orderPriceWithVat: Math.floor(orderPrice * 100) / 100,
 		discount: Math.floor(discount * 100) / 100,
 		numberOfChildren: numberOfChildren,
 	}
@@ -380,16 +382,17 @@ const getTicketPrice = async (
 ) => {
 	const user = await getUser(req, ticket, loggedUserId)
 	let isChildren = getIsChildrenForTicketType(user, ticketType)
-	let ticketPrice = ticketType.price
+	let ticketPriceWithVat = ticketType.priceWithVat
+
 	if (
 		isChildren &&
-		ticketType.childrenPrice &&
-		ticketType.childrenPrice != null
+		ticketType.childrenPriceWithVat &&
+		ticketType.childrenPriceWithVat != null
 	) {
-		ticketPrice = ticketType.childrenPrice
+		ticketPriceWithVat = ticketType.childrenPriceWithVat
 	}
 
-	return ticketPrice
+	return ticketPriceWithVat
 }
 
 /**
@@ -515,12 +518,13 @@ const getIsChildrenForTicketType = (
 /**
  * Get price after discount.
  */
-const getDiscount = (ticketPrice: number, discountInPercent: number) => {
-	const priceWithDiscount = Math.floor(ticketPrice * discountInPercent) / 100
+const getDiscount = (ticketPriceWithVat: number, discountInPercent: number) => {
+	const priceWithDiscount =
+		Math.floor(ticketPriceWithVat * discountInPercent) / 100
 
 	return {
 		newTicketsPrice: priceWithDiscount,
-		discount: ticketPrice - priceWithDiscount,
+		discount: ticketPriceWithVat - priceWithDiscount,
 	}
 }
 
@@ -532,7 +536,8 @@ const createTicketWithProfile = async (
 	ticketType: TicketTypeModel,
 	orderId: string,
 	isChildren: boolean,
-	ticketPrice: number,
+	ticketPriceWithVat: number,
+	vatPercentage: number,
 	parentTicketId: null | string
 ) => {
 	const profileId = uuidv4()
@@ -543,7 +548,8 @@ const createTicketWithProfile = async (
 			isChildren: isChildren,
 			ticketTypeId: ticketType.id,
 			orderId,
-			price: ticketPrice,
+			priceWithVat: ticketPriceWithVat,
+			vatPercentage: vatPercentage,
 			parentTicketId: parentTicketId,
 			remainingEntries: ticketType.entriesNumber,
 			swimmingLoggedUserId: user.loggedUserId,

@@ -43,7 +43,7 @@ export async function up(queryInterface: QueryInterface) {
 				],
 			},
 			{
-				price: 3.99,
+				priceWithVat: 3.99,
 				orderNumber: 49,
 				state: ORDER_STATE.CREATED,
 			},

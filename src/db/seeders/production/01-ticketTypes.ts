@@ -12,13 +12,15 @@ export async function up(queryInterface: QueryInterface) {
 			description: `Neobmedzený vstup počas celej sezóny na všetky
 			z našich kúpalísk v Bratislave. Možnosť pridať dieťa
 			za zvýhodnenú cenu 1€.`,
-			price: 99,
+			priceWithVat: 99,
+			vatPercentage: 23,
 			type: TICKET_TYPE.SEASONAL,
 			nameRequired: true,
 			photoRequired: true,
 			childrenAllowed: true,
 			childrenMaxNumber: 5,
-			childrenPrice: 1,
+			childrenPriceWithVat: 1,
+			childrenVatPercentage: 23,
 			childrenAgeFrom: 3,
 			childrenAgeTo: 17,
 			childrenAgeToWithAdult: 10,
@@ -33,7 +35,8 @@ export async function up(queryInterface: QueryInterface) {
 			name: 'Jednorazový lístok',
 			description:
 				'Platí na ktoromkoľvek z našich kúpalísk v Bratislave počas celej sezóny.',
-			price: 3.99,
+			priceWithVat: 3.99,
+			vatPercentage: 23,
 			type: TICKET_TYPE.ENTRIES,
 			nameRequired: false,
 			photoRequired: false,
@@ -49,7 +52,8 @@ export async function up(queryInterface: QueryInterface) {
 			name: 'Permanentka na 10 vstupov',
 			description: `Platí na 10 vstupov počas celej sezóny. Možnosť využiť ho na všetkých našich kúpaliskách
 			v Bratislave!`,
-			price: 34,
+			priceWithVat: 34,
+			vatPercentage: 23,
 			type: TICKET_TYPE.ENTRIES,
 			nameRequired: true,
 			photoRequired: true,
@@ -65,7 +69,8 @@ export async function up(queryInterface: QueryInterface) {
 			name: 'Permanentka na 10 vstupov po 17:00',
 			description: `Platí na 10 vstupov po 17:00 počas celej sezóny. Možnosť využiť ho na všetkých našich kúpaliskách
 			v Bratislave!`,
-			price: 24,
+			priceWithVat: 24,
+			vatPercentage: 23,
 			type: TICKET_TYPE.ENTRIES,
 			nameRequired: true,
 			photoRequired: true,

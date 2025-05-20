@@ -10,22 +10,42 @@ import {
 import config from 'config'
 import { OrderModel } from '../db/models/order'
 import { Request } from 'express'
-import { generatePdf } from './pdfGenerator'
+import { generatePdf, generatePdfVatDocument } from './pdfGenerator'
 import i18next, { InitOptions } from 'i18next'
 import { textColorsMap } from './enums'
 import i18nextMiddleware from 'i18next-http-middleware'
 import i18nextBackend from 'i18next-node-fs-backend'
 import { CustomFile } from 'mailgun.js'
+import { models } from '../db/models'
 
 const i18NextConfig: InitOptions = config.get('i18next')
 const appConfig: IAppConfig = config.get('app')
 const mailgunConfig: IMailgunserviceConfig = config.get('mailgunService')
 const orderTemplate = mailgunConfig.templates.order
 
+const { Order } = models
+
 export const sendOrderEmail = async (
 	req: Request | undefined,
-	order: OrderModel
+	orderId: string
 ) => {
+	const order = await Order.findByPk(orderId, {
+		include: [
+			{
+				association: 'tickets',
+				order: [['isChildren', 'asc']],
+				separate: true,
+				include: [
+					{
+						association: 'profile',
+					},
+					{
+						association: 'ticketType',
+					},
+				],
+			},
+		],
+	})
 	const parentTicket = order.tickets[0]
 	if (!req) {
 		await i18next
@@ -66,7 +86,11 @@ export const sendOrderEmail = async (
 		orderTemplate,
 		getOrderEmailData(parentTicket, order),
 		await getOrderEmailInlineAttachments(order.tickets),
-		await getOrderEmailAttachments(order.tickets)
+		await getOrderEmailAttachments(
+			order.tickets,
+			order.priceWithVat,
+			order.discount
+		)
 	)
 }
 
@@ -88,7 +112,9 @@ const getOrderEmailInlineAttachments = async (
 }
 
 const getOrderEmailAttachments = async (
-	tickets: TicketModel[]
+	tickets: TicketModel[],
+	orderPriceWithVat: number,
+	orderDiscount: number
 ): Promise<CustomFile[]> => {
 	return concat(
 		await Promise.all(
@@ -118,7 +144,18 @@ const getOrderEmailAttachments = async (
 						filename: `${i18next.t('allTickets')}.pdf`,
 					},
 			  ]
-			: []
+			: [],
+		{
+			data: Buffer.from(
+				await generatePdfVatDocument(
+					tickets,
+					orderPriceWithVat,
+					orderDiscount
+				),
+				'base64'
+			),
+			filename: `danovy-doklad.pdf`,
+		}
 	)
 }
 
@@ -136,14 +173,14 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 		{
 			name: items.adults.name, // ticket name
 			amount: items.adults.amount,
-			price: items.adults.price,
+			priceWithVat: items.adults.priceWithVat,
 		},
 	]
 	if (items.children.amount > 0) {
 		summaryItems.push({
 			name: items.children.name, // ticket name for children is always same
 			amount: items.children.amount,
-			price: items.children.price,
+			priceWithVat: items.children.priceWithVat,
 		})
 	}
 	return {
@@ -174,7 +211,7 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 		}),
 		summary: {
 			items: summaryItems, // sorted by adult/children condition
-			totalPrice: order.price.toFixed(2), // could be omitted
+			totalPrice: order.priceWithVat.toFixed(2), // could be omitted
 		},
 	}
 }

@@ -137,7 +137,7 @@ process.on('message', async () => {
 								`Found PAID order without proper status in order - id: ${orderNumber} changing status to PAID and sending email`
 							)
 							await order.update({ state: ORDER_STATE.PAID })
-							await sendOrderEmail(undefined, order)
+							await sendOrderEmail(undefined, order.id)
 						}
 					}
 				} catch (error) {

@@ -35,7 +35,18 @@ export const filtersSchema = Joi.object().keys({
 		showUnspecified: Joi.boolean().default(false),
 		type: Joi.string().valid('range').default('range'),
 	}),
-	price: Joi.object().keys({
+	priceWithVat: Joi.object().keys({
+		from: Joi.number(),
+		to: Joi.number().when('type', {
+			is: Joi.valid('range'),
+			then: Joi.when('from', {
+				is: Joi.required(),
+				otherwise: Joi.required(),
+			}),
+		}),
+		type: Joi.string().valid('range').default('range'),
+	}),
+	vatPercentage: Joi.object().keys({
 		from: Joi.number(),
 		to: Joi.number().when('type', {
 			is: Joi.valid('range'),
@@ -79,7 +90,8 @@ export const schema = Joi.object().keys({
 		page: Joi.number().integer().min(1).default(1).empty(['', null]),
 		order: Joi.string()
 			.valid(
-				'price',
+				'priceWithVat',
+				'vatPercentage',
 				'numberOfVisits',
 				'age',
 				'zip',
@@ -171,13 +183,13 @@ export const workflow = async (
 		let tickets = await sequelize.query<TicketModel>(
 			`
 			SELECT
-				tickets.id, tickets.price as "price", tickets."isChildren", tickets."createdAt" as "createdAt", tickets."numberOfVisits" AS "numberOfVisits",
+				tickets.id, tickets.priceWithVat as "priceWithVat", tickets.vatPercentage as "vatPercentage", tickets."isChildren", tickets."createdAt" as "createdAt", tickets."numberOfVisits" AS "numberOfVisits",
 				profiles.id as "profile.id", profiles.age as "profile.age", profiles.zip as "profile.zip",
 				"ticketTypes".id as "ticketType.id", "ticketTypes".name as "ticketType.name"
 			FROM "ticketTypes"
 			INNER JOIN (
 				SELECT
-					tickets.id, tickets.price, tickets."isChildren", tickets."createdAt", tickets."ticketTypeId", tickets."profileId", COUNT(visits) as "numberOfVisits"
+					tickets.id, tickets.priceWithVat, tickets.vatPercentage, tickets."isChildren", tickets."createdAt", tickets."ticketTypeId", tickets."profileId", COUNT(visits) as "numberOfVisits"
 				FROM tickets
 				INNER JOIN (
 					SELECT visits."ticketId" FROM visits
@@ -260,7 +272,8 @@ export const workflow = async (
 				return {
 					id: ticket.id,
 					ticketTypeName: ticket.ticketType.name,
-					price: Number(ticket.price),
+					priceWithVat: Number(ticket.priceWithVat),
+					vatPercentage: Number(ticket.vatPercentage),
 					isChildren: ticket.isChildren,
 					age: ticket.profile.age ? ticket.profile.age : null,
 					zip: ticket.profile.zip ? ticket.profile.zip : null,

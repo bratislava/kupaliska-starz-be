@@ -162,7 +162,7 @@ export const workflow = async (
 			}
 		)
 
-		await sendOrderEmail(req, order)
+		await sendOrderEmail(req, order.id)
 
 		const queryParams = formurlencoded(
 			{

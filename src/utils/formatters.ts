@@ -51,7 +51,8 @@ export const formatTicket = (ticket: TicketModel) => {
 
 	return {
 		id: ticket.id,
-		price: ticket.price,
+		priceWithVat: ticket.priceWithVat,
+		vatPercentage: ticket.vatPercentage,
 		isChildren: ticket.isChildren,
 		email: ticket.profile.email,
 		name: ticket.profile.name,
@@ -117,13 +118,15 @@ export const formatTicketType = (ticketType: TicketTypeModel) => {
 		id: ticketType.id,
 		name: ticketType.name,
 		description: ticketType.description,
-		price: ticketType.price,
+		priceWithVat: ticketType.priceWithVat,
+		vatPercentage: ticketType.vatPercentage,
 		type: ticketType.type,
 		nameRequired: ticketType.nameRequired,
 		photoRequired: ticketType.photoRequired,
 		childrenAllowed: ticketType.childrenAllowed,
 		childrenMaxNumber: ticketType.childrenMaxNumber,
-		childrenPrice: ticketType.childrenPrice,
+		childrenPriceWithVat: ticketType.childrenPriceWithVat,
+		childrenVatPercentage: ticketType.childrenVatPercentage,
 		childrenAgeFrom: ticketType.childrenAgeFrom,
 		childrenAgeTo: ticketType.childrenAgeTo,
 		childrenAgeToWithAdult: ticketType.childrenAgeToWithAdult,
@@ -193,7 +196,7 @@ export const formatOrder = (order: OrderModel) => {
 
 	return {
 		id: order.id,
-		price: order.price,
+		price: order.priceWithVat,
 		discount: order.discount,
 		state: order.state,
 		orderNumber: order.orderNumber,
