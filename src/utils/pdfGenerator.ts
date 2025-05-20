@@ -524,7 +524,7 @@ export const generatePdfVatDocument = async (
 				{
 					align: { x: 'right', y: 'top' },
 					font: { size: fontSizeSmall },
-					text: i18next.t('translation:pdfVatTotalWithVatHeading'), // Celkom s DPH
+					text: i18next.t('translation:pdfVatTotalVatHeading'), // Celkom s DPH
 				},
 				{
 					align: { x: 'right', y: 'top' },
@@ -559,19 +559,20 @@ export const generatePdfVatDocument = async (
 			sumPriceWithoutVat: sumPriceWithoutVat,
 			vatPercentage: `${ticketType.vatPercentage}%`,
 			sumVatAmount: sumVatAmount,
-			sumPriceWithVat: sumPriceVat,
+			sumPriceWithVat: sumPriceVat.toFixed(2),
 		})
 	}
 
 	if (numberOfChildren > 0) {
-		const vatBasePercentage = 100 + ticketType.vatPercentage
+		const vatBasePercentage = 100 + ticketType.childrenVatPercentage
 		const vatBase = 100 / vatBasePercentage
-		const sumPriceVat = numberOfAdults * ticketType.priceWithVat
+		const sumPriceVat = numberOfChildren * ticketType.childrenPriceWithVat
 		const sumVatAmount = round(
-			(sumPriceVat * ticketType.vatPercentage) / vatBasePercentage,
+			(sumPriceVat * ticketType.childrenVatPercentage) /
+				vatBasePercentage,
 			2
 		)
-		const ticketPrice = round(ticketType.priceWithVat * vatBase, 2)
+		const ticketPrice = round(ticketType.childrenPriceWithVat * vatBase, 2)
 		const sumPriceWithoutVat = round(sumPriceVat - sumVatAmount, 2)
 
 		ticketsRowData.push({
@@ -582,7 +583,7 @@ export const generatePdfVatDocument = async (
 			sumPriceWithoutVat: sumPriceWithoutVat,
 			vatPercentage: `${ticketType.childrenVatPercentage}%`,
 			sumVatAmount: sumVatAmount,
-			sumPriceWithVat: sumPriceVat,
+			sumPriceWithVat: sumPriceVat.toFixed(2),
 		})
 	}
 
@@ -653,13 +654,19 @@ export const generatePdfVatDocument = async (
 		],
 	})
 
-	const orderPriceWithoutVat = ticketsRowData.reduce(
-		(acc, ticket) => acc + ticket.sumPriceWithoutVat,
-		0
+	const orderPriceWithoutVat = round(
+		ticketsRowData.reduce(
+			(acc, ticket) => acc + round(ticket.sumPriceWithoutVat, 2),
+			0
+		),
+		2
 	)
-	const orderPriceVat = ticketsRowData.reduce(
-		(acc, ticket) => acc + ticket.sumVatAmount,
-		0
+	const orderVat = round(
+		ticketsRowData.reduce(
+			(acc, ticket) => acc + round(ticket.sumVatAmount, 2),
+			0
+		),
+		2
 	)
 
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -692,12 +699,12 @@ export const generatePdfVatDocument = async (
 				{
 					align: { x: 'right', y: 'top' },
 					font: { size: fontSizeSmall },
-					text: `${orderPriceWithoutVat}`,
+					text: ``,
 				},
 				{
 					align: { x: 'right', y: 'top' },
 					font: { size: fontSizeSmall },
-					text: ``,
+					text: `${orderPriceWithoutVat}`,
 				},
 				{
 					align: { x: 'right', y: 'top' },
@@ -707,12 +714,12 @@ export const generatePdfVatDocument = async (
 				{
 					align: { x: 'right', y: 'top' },
 					font: { size: fontSizeSmall },
-					text: `${orderPriceVat}`,
+					text: `${orderVat.toFixed(2)}`,
 				},
 				{
 					align: { x: 'right', y: 'top' },
 					font: { size: fontSizeSmall },
-					text: `${orderPriceWithVat}`,
+					text: `${orderPriceWithVat.toFixed(2)}`,
 				},
 			],
 		],
@@ -768,7 +775,7 @@ export const generatePdfVatDocument = async (
 				i18next.t('translation:pdfVatTotalWithVat'), // Celková suma s DPH:
 				{
 					align: { x: 'right', y: 'top' },
-					text: `${orderPriceWithVat} EUR`,
+					text: `${orderPriceWithVat.toFixed(2)} EUR`,
 				},
 			],
 			[
@@ -778,7 +785,7 @@ export const generatePdfVatDocument = async (
 				i18next.t('translation:pdfVatPaid'), // Uhradené:
 				{
 					align: { x: 'right', y: 'top' },
-					text: `${orderPriceWithVat} EUR`,
+					text: `${orderPriceWithVat.toFixed(2)} EUR`,
 				},
 			],
 		],

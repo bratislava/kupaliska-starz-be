@@ -86,6 +86,7 @@
 	"pdfVatPriceWithoutVatHeading": "Cena za MJ bez DPH",
 	"pdfVatTotalWithoutVatHeading": "Celkom bez DPH",
 	"pdfVatVatPercentageHeading": "DPH",
+	"pdfVatTotalVatHeading": "Celkom DPH",
 	"pdfVatTotalWithVatHeading": "Celkom s DPH",
 	"pdfVatQuantity": "ks",
 	"pdfVatTotal": "Spolu:",
