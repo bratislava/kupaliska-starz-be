@@ -780,6 +780,8 @@ export const generatePdfVatDocument = async (
 		],
 	})
 
+	doc.moveDown(3)
+
 	const thankYouPadding = 350
 
 	doc.fontSize(fontSizeMedium)
