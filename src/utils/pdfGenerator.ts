@@ -472,10 +472,10 @@ export const generatePdfVatDocument = async (
 					align: { x: 'right', y: 'top' },
 					text:
 						ticketsForPdf.length > 0
-							? ticketsForPdf[0].createdAt.toLocaleDateString(
-									'sk-SK'
-							  )
-							: '', // 18.05.2025
+							? ticketsForPdf[0].createdAt
+									.toLocaleDateString('sk-SK') // 18. 05. 2025
+									.replace(/\.\s+/g, '.') // 18.05.2025
+							: '',
 				},
 			],
 			[
