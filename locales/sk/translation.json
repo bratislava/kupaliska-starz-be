@@ -80,7 +80,7 @@
 	"pdfVatPaymentMethod": "Forma úhrady:",
 	"pdfVatPaymentMethodCard": "online platobnou kartou",
 	"pdfVatDescription": "Popis položky",
-	"pdfVatQuantityHeading": "Množstvo/MJ",
+	"pdfVatQuantityHeading": "Množstvo / MJ",
 	"pdfVatPriceWithVatHeading": "Cena za MJ",
 	"pdfVatPriceWithoutVatHeading": "Cena za MJ bez DPH",
 	"pdfVatTotalWithoutVatHeading": "Celkom bez DPH",
