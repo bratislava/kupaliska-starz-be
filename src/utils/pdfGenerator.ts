@@ -768,7 +768,7 @@ export const generatePdfVatDocument = async (
 				i18next.t('translation:pdfVatTotalWithoutVat'), // Celková suma bez DPH:
 				{
 					align: { x: 'right', y: 'top' },
-					text: `${orderPriceWithoutVat} EUR`,
+					text: `${printDecimal2(orderPriceWithoutVat)} EUR`,
 				},
 			],
 			[
