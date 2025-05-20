@@ -488,7 +488,7 @@ export const generatePdfVatDocument = async (
 				{
 					align: { x: 'right', y: 'top' },
 					font: { size: fontSizeSmall },
-					text: i18next.t('translation:pdfVatQuantityHeading'), // Množstvo/MJ
+					text: i18next.t('translation:pdfVatQuantityHeading'), // Množstvo / MJ
 				},
 				{
 					align: { x: 'right', y: 'top' },
