@@ -134,7 +134,7 @@ export const workflow = async (
 		const loggedUserId = getCognitoIdOfLoggedInUser(req)
 
 		const order = await Order.create({
-			price: 0,
+			priceWithVat: 0,
 			state: ORDER_STATE.CREATED,
 			orderNumber: new Date().getTime(),
 		})
@@ -186,11 +186,11 @@ export const workflow = async (
 				usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
 			})
 		}
-		const orderPrice = pricing.orderPrice
+		const orderPriceWithVat = pricing.orderPriceWithVat
 		const discount = pricing.discount
 
 		await order.update({
-			price: orderPrice,
+			priceWithVat: orderPriceWithVat,
 			discount: discountCode ? discount : 0,
 			discountCodeId: discountCode ? discountCode.id : undefined,
 		})
@@ -368,7 +368,7 @@ const getPrice = async (
 		discount += totals.discount
 	}
 	return {
-		orderPrice: Math.floor(orderPrice * 100) / 100,
+		orderPriceWithVat: Math.floor(orderPrice * 100) / 100,
 		discount: Math.floor(discount * 100) / 100,
 		numberOfChildren: numberOfChildren,
 	}
