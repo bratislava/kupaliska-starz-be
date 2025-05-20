@@ -107,7 +107,7 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.DECIMAL(10, 2),
 				allowNull: true,
 				get() {
-					const value = this.getDataValue('childrenPrice')
+					const value = this.getDataValue('childrenPriceWithVat')
 					return value !== undefined ? parseFloat(value) : undefined
 				},
 			},
@@ -115,7 +115,7 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.DECIMAL(10, 2),
 				allowNull: true,
 				get() {
-					const value = this.getDataValue('childrenPrice')
+					const value = this.getDataValue('childrenVatPercentage')
 					return value !== undefined ? parseFloat(value) : undefined
 				},
 			},
