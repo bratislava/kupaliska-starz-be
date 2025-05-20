@@ -196,7 +196,7 @@ export const formatOrder = (order: OrderModel) => {
 
 	return {
 		id: order.id,
-		price: order.price,
+		price: order.priceWithVat,
 		discount: order.discount,
 		state: order.state,
 		orderNumber: order.orderNumber,
