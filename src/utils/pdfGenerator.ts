@@ -778,7 +778,7 @@ export const generatePdfVatDocument = async (
 				i18next.t('translation:pdfVatVat'), // DPH:
 				{
 					align: { x: 'right', y: 'top' },
-					text: `${printDecimal2(orderPriceWithoutVat)} EUR`,
+					text: `${printDecimal2(orderVat)} EUR`,
 				},
 			],
 			[
