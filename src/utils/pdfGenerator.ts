@@ -412,13 +412,19 @@ export const generatePdfVatDocument = async (
 					text: ' SK2020801695',
 				},
 			],
+			[
+				{
+					font: { size: fontSizeMedium },
+					text: i18next.t('translation:pdfVatIcDph'), // Platiteľ DPH
+				},
+				{
+					align: { x: 'right', y: 'top' },
+					text: '',
+				},
+			],
 		],
 	})
 
-	doc.fontSize(fontSizeMedium).text(
-		i18next.t('translation:pdfVatVatPayer'),
-		leftPadding
-	) // Platiteľ DPH
 	doc.moveDown()
 
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
