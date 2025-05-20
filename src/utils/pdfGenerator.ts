@@ -244,6 +244,34 @@ const sortTickets = (ticketsForPdf: TicketModel[]) => {
 	return ticketsForPdf
 }
 
+const getTicketRowData = (
+	name: string,
+	quantity: number,
+	priceWithVat: number,
+	vatPercentage: number
+) => {
+	const vatBasePercentage = 100 + vatPercentage
+	const vatBase = 100 / vatBasePercentage
+	const sumPriceVat = quantity * priceWithVat
+	const sumVatAmount = round(
+		(sumPriceVat * vatPercentage) / vatBasePercentage,
+		2
+	)
+	const ticketPrice = round(priceWithVat * vatBase, 2)
+	const sumPriceWithoutVat = round(sumPriceVat - sumVatAmount, 2)
+
+	return {
+		ticketName: name,
+		quantity: quantity,
+		ticketPriceWithVat: priceWithVat,
+		ticketPriceWithoutVat: ticketPrice,
+		sumPriceWithoutVat: sumPriceWithoutVat,
+		vatPercentage: `${vatPercentage}%`,
+		sumVatAmount: sumVatAmount,
+		sumPriceWithVat: sumPriceVat.toFixed(2),
+	}
+}
+
 export const generatePdfVatDocument = async (
 	tickets: TicketModel[],
 	orderPriceWithVat: number,
@@ -530,50 +558,25 @@ export const generatePdfVatDocument = async (
 
 	const ticketsRowData = []
 	if (numberOfAdults > 0) {
-		const vatBasePercentage = 100 + ticketType.vatPercentage
-		const vatBase = 100 / vatBasePercentage
-		const sumPriceVat = numberOfAdults * ticketType.priceWithVat
-		const sumVatAmount = round(
-			(sumPriceVat * ticketType.vatPercentage) / vatBasePercentage,
-			2
+		ticketsRowData.push(
+			getTicketRowData(
+				ticketsForPdf[0].ticketType.name,
+				numberOfAdults,
+				ticketType.priceWithVat,
+				ticketType.vatPercentage
+			)
 		)
-		const ticketPrice = round(ticketType.priceWithVat * vatBase, 2)
-		const sumPriceWithoutVat = round(sumPriceVat - sumVatAmount, 2)
-
-		ticketsRowData.push({
-			ticketName: ticketsForPdf[0].ticketType.name,
-			quantity: numberOfAdults,
-			ticketPriceWithVat: ticketType.priceWithVat,
-			ticketPriceWithoutVat: ticketPrice,
-			sumPriceWithoutVat: sumPriceWithoutVat,
-			vatPercentage: `${ticketType.vatPercentage}%`,
-			sumVatAmount: sumVatAmount,
-			sumPriceWithVat: sumPriceVat.toFixed(2),
-		})
 	}
 
 	if (numberOfChildren > 0) {
-		const vatBasePercentage = 100 + ticketType.childrenVatPercentage
-		const vatBase = 100 / vatBasePercentage
-		const sumPriceVat = numberOfChildren * ticketType.childrenPriceWithVat
-		const sumVatAmount = round(
-			(sumPriceVat * ticketType.childrenVatPercentage) /
-				vatBasePercentage,
-			2
+		ticketsRowData.push(
+			getTicketRowData(
+				getChildrenTicketName(),
+				numberOfChildren,
+				ticketType.childrenPriceWithVat,
+				ticketType.childrenVatPercentage
+			)
 		)
-		const ticketPrice = round(ticketType.childrenPriceWithVat * vatBase, 2)
-		const sumPriceWithoutVat = round(sumPriceVat - sumVatAmount, 2)
-
-		ticketsRowData.push({
-			ticketName: getChildrenTicketName(),
-			quantity: numberOfChildren,
-			ticketPriceWithVat: ticketType.priceWithVat,
-			ticketPriceWithoutVat: ticketPrice,
-			sumPriceWithoutVat: sumPriceWithoutVat,
-			vatPercentage: `${ticketType.childrenVatPercentage}%`,
-			sumVatAmount: sumVatAmount,
-			sumPriceWithVat: sumPriceVat.toFixed(2),
-		})
 	}
 
 	const ticketsRowDataFormatted = ticketsRowData.map((row) => {
