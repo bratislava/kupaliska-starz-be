@@ -20,7 +20,11 @@ import { getDiscountCode } from '../../../services/discountCodeValidationService
 import { createJwt } from '../../../utils/authorization'
 import { sendOrderEmail } from '../../../utils/emailSender'
 import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
-import { getCityAccountData, isDefined } from '../../../utils/helpers'
+import {
+	getDiscount,
+	getCityAccountData,
+	isDefined,
+} from '../../../utils/helpers'
 import { TicketModel } from '../../../db/models/ticket'
 import { FE_ROUTES } from '../../../utils/constants'
 
@@ -513,19 +517,6 @@ const getIsChildrenForTicketType = (
 		isChildren = true
 	}
 	return isChildren
-}
-
-/**
- * Get price after discount.
- */
-const getDiscount = (ticketPriceWithVat: number, discountInPercent: number) => {
-	const priceWithDiscount =
-		Math.floor(ticketPriceWithVat * discountInPercent) / 100
-
-	return {
-		newTicketsPrice: priceWithDiscount,
-		discount: ticketPriceWithVat - priceWithDiscount,
-	}
 }
 
 /**

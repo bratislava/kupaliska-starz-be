@@ -23,7 +23,7 @@ const appConfig: IAppConfig = config.get('app')
 const mailgunConfig: IMailgunserviceConfig = config.get('mailgunService')
 const orderTemplate = mailgunConfig.templates.order
 
-const { Order } = models
+const { Order, DiscountCode } = models
 
 export const sendOrderEmail = async (
 	req: Request | undefined,
@@ -46,6 +46,9 @@ export const sendOrderEmail = async (
 			},
 		],
 	})
+
+	const discountCode = await DiscountCode.findByPk(order.discountCodeId)
+	const discountInPercent = discountCode?.amount || 0
 	const parentTicket = order.tickets[0]
 	if (!req) {
 		await i18next
@@ -89,7 +92,7 @@ export const sendOrderEmail = async (
 		await getOrderEmailAttachments(
 			order.tickets,
 			order.priceWithVat,
-			order.discount
+			discountInPercent
 		)
 	)
 }
@@ -114,7 +117,7 @@ const getOrderEmailInlineAttachments = async (
 const getOrderEmailAttachments = async (
 	tickets: TicketModel[],
 	orderPriceWithVat: number,
-	orderDiscount: number
+	orderDiscountPercentage: number
 ): Promise<CustomFile[]> => {
 	return concat(
 		await Promise.all(
@@ -150,7 +153,7 @@ const getOrderEmailAttachments = async (
 				await generatePdfVatDocument(
 					tickets,
 					orderPriceWithVat,
-					orderDiscount
+					orderDiscountPercentage
 				),
 				'base64'
 			),

@@ -5,7 +5,7 @@ import i18next from 'i18next'
 import { Base64Encode } from 'base64-stream'
 import { getChildrenTicketName } from './translationsHelpers'
 import { round } from 'lodash'
-import { printDecimal2 } from './helpers'
+import { getDiscount, printDecimal2 } from './helpers'
 
 export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 	let ticketsForPdf = [...tickets]
@@ -269,14 +269,14 @@ const getTicketRowData = (
 		sumPriceWithoutVat: sumPriceWithoutVat,
 		vatPercentage: `${vatPercentage}%`,
 		sumVatAmount: sumVatAmount,
-		sumPriceWithVat: sumPriceVat.toFixed(2),
+		sumPriceWithVat: sumPriceVat,
 	}
 }
 
 export const generatePdfVatDocument = async (
 	tickets: TicketModel[],
 	orderPriceWithVat: number,
-	discount: number
+	orderDiscountPercentage: number
 ): Promise<string> => {
 	let ticketsForPdf = [...tickets]
 
@@ -561,26 +561,46 @@ export const generatePdfVatDocument = async (
 
 	doc.font('resources/fonts/WorkSans-Medium.ttf')
 
+	const reverseDiscountInPercent = 100 - orderDiscountPercentage
+
 	const ticketType = ticketsForPdf[0].ticketType
 
 	const ticketsRowData = []
 	if (numberOfAdults > 0) {
+		let priceVat = ticketType.priceWithVat
+		let ticketName = ticketsForPdf[0].ticketType.name
+		if (orderDiscountPercentage > 0) {
+			ticketName = `Zľava ${orderDiscountPercentage} % – ${ticketName}`
+			priceVat = getDiscount(
+				ticketType.priceWithVat,
+				reverseDiscountInPercent
+			).newTicketsPrice
+		}
 		ticketsRowData.push(
 			getTicketRowData(
-				ticketsForPdf[0].ticketType.name,
+				ticketName,
 				numberOfAdults,
-				ticketType.priceWithVat,
+				priceVat,
 				ticketType.vatPercentage
 			)
 		)
 	}
 
 	if (numberOfChildren > 0) {
+		let priceVat = ticketType.childrenPriceWithVat
+		let ticketName = getChildrenTicketName()
+		if (orderDiscountPercentage > 0) {
+			ticketName = `Zľava ${orderDiscountPercentage} % – ${ticketName}`
+			priceVat = getDiscount(
+				ticketType.childrenPriceWithVat,
+				reverseDiscountInPercent
+			).newTicketsPrice
+		}
 		ticketsRowData.push(
 			getTicketRowData(
-				getChildrenTicketName(),
+				ticketName,
 				numberOfChildren,
-				ticketType.childrenPriceWithVat,
+				priceVat,
 				ticketType.childrenVatPercentage
 			)
 		)
@@ -643,17 +663,7 @@ export const generatePdfVatDocument = async (
 			padding: { left: '1em', right: '1em' },
 			backgroundColor: '#FFFFFF',
 		},
-		data: [
-			...ticketsRowDataFormatted,
-			[
-				{
-					font: { size: fontSizeSmall },
-					text: discount
-						? i18next.t('translation:pdfVatDiscount') // Zlava
-						: '',
-				},
-			],
-		],
+		data: ticketsRowDataFormatted,
 	})
 
 	const orderPriceWithoutVat = round(
