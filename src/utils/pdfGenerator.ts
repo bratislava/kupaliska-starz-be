@@ -499,7 +499,7 @@ export const generatePdfVatDocument = async (
 	// @ts-ignore
 	doc.table({
 		defaultStyle: { border: false },
-		columnStyles: [180, '1.1*', '*', '*', '*', '*'],
+		columnStyles: [180, '*', '*', '*', '*', '*'],
 		rowStyles: (i: number) => {
 			if (i === 0) {
 				return {
