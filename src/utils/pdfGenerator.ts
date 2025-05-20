@@ -5,6 +5,7 @@ import i18next from 'i18next'
 import { Base64Encode } from 'base64-stream'
 import { getChildrenTicketName } from './translationsHelpers'
 import { round } from 'lodash'
+import { getDiscount, printDecimal2 } from './helpers'
 
 export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 	let ticketsForPdf = [...tickets]
@@ -268,14 +269,14 @@ const getTicketRowData = (
 		sumPriceWithoutVat: sumPriceWithoutVat,
 		vatPercentage: `${vatPercentage}%`,
 		sumVatAmount: sumVatAmount,
-		sumPriceWithVat: sumPriceVat.toFixed(2),
+		sumPriceWithVat: sumPriceVat,
 	}
 }
 
 export const generatePdfVatDocument = async (
 	tickets: TicketModel[],
 	orderPriceWithVat: number,
-	discount: number,
+	orderDiscountPercentage: number,
 	orderVatDocumentNumber: string
 ): Promise<string> => {
 	let ticketsForPdf = [...tickets]
@@ -327,7 +328,7 @@ export const generatePdfVatDocument = async (
 			[
 				{
 					font: { size: fontSizeLarge },
-					text: i18next.t('translation:pdfVatTitle'), // ZJEDNODUŠENÝ DAŇOVÝ DOKLAD
+					text: i18next.t('translation:pdfVatTitle'), // Doklad o úhrade vstupného na kúpaliská
 				},
 				{
 					font: { size: fontSizeLarge },
@@ -413,13 +414,19 @@ export const generatePdfVatDocument = async (
 					text: ' SK2020801695',
 				},
 			],
+			[
+				{
+					font: { size: fontSizeMedium },
+					text: i18next.t('translation:pdfVatIcDph'), // Platiteľ DPH
+				},
+				{
+					align: { x: 'right', y: 'top' },
+					text: '',
+				},
+			],
 		],
 	})
 
-	doc.fontSize(fontSizeMedium).text(
-		i18next.t('translation:pdfVatVatPayer'),
-		leftPadding
-	) // Platiteľ DPH
 	doc.moveDown()
 
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -492,7 +499,7 @@ export const generatePdfVatDocument = async (
 	// @ts-ignore
 	doc.table({
 		defaultStyle: { border: false },
-		columnStyles: [200, '*', '*', '*', '*', '*'],
+		columnStyles: [180, '1.1*', '*', '*', '*', '*'],
 		rowStyles: (i: number) => {
 			if (i === 0) {
 				return {
@@ -555,26 +562,46 @@ export const generatePdfVatDocument = async (
 
 	doc.font('resources/fonts/WorkSans-Medium.ttf')
 
+	const reverseDiscountInPercent = 100 - orderDiscountPercentage
+
 	const ticketType = ticketsForPdf[0].ticketType
 
 	const ticketsRowData = []
 	if (numberOfAdults > 0) {
+		let priceVat = ticketType.priceWithVat
+		let ticketName = ticketsForPdf[0].ticketType.name
+		if (orderDiscountPercentage > 0) {
+			ticketName = `Zľava ${orderDiscountPercentage} % – ${ticketName}`
+			priceVat = getDiscount(
+				ticketType.priceWithVat,
+				reverseDiscountInPercent
+			).newTicketsPrice
+		}
 		ticketsRowData.push(
 			getTicketRowData(
-				ticketsForPdf[0].ticketType.name,
+				ticketName,
 				numberOfAdults,
-				ticketType.priceWithVat,
+				priceVat,
 				ticketType.vatPercentage
 			)
 		)
 	}
 
 	if (numberOfChildren > 0) {
+		let priceVat = ticketType.childrenPriceWithVat
+		let ticketName = getChildrenTicketName()
+		if (orderDiscountPercentage > 0) {
+			ticketName = `Zľava ${orderDiscountPercentage} % – ${ticketName}`
+			priceVat = getDiscount(
+				ticketType.childrenPriceWithVat,
+				reverseDiscountInPercent
+			).newTicketsPrice
+		}
 		ticketsRowData.push(
 			getTicketRowData(
-				getChildrenTicketName(),
+				ticketName,
 				numberOfChildren,
-				ticketType.childrenPriceWithVat,
+				priceVat,
 				ticketType.childrenVatPercentage
 			)
 		)
@@ -587,39 +614,42 @@ export const generatePdfVatDocument = async (
 				text: row.ticketName,
 			},
 			{
-				font: { size: fontSizeSmall },
+				font: { name: 'Courier', size: fontSizeSmall },
 				align: { x: 'right', y: 'top' },
-				text: row.quantity + i18next.t('translation:pdfVatQuantity'), // ks
+				text:
+					row.quantity +
+					' ' +
+					i18next.t('translation:pdfVatQuantity'), // ks
 			},
 			{
-				font: { size: fontSizeSmall },
+				font: { name: 'Courier', size: fontSizeSmall },
 				align: { x: 'right', y: 'top' },
-				text: row.ticketPriceWithVat,
+				text: printDecimal2(row.ticketPriceWithVat),
 			},
 			{
-				font: { size: fontSizeSmall },
+				font: { name: 'Courier', size: fontSizeSmall },
 				align: { x: 'right', y: 'top' },
-				text: row.ticketPriceWithoutVat,
+				text: printDecimal2(row.ticketPriceWithoutVat),
 			},
 			{
-				font: { size: fontSizeSmall },
+				font: { name: 'Courier', size: fontSizeSmall },
 				align: { x: 'right', y: 'top' },
-				text: row.sumPriceWithoutVat,
+				text: printDecimal2(row.sumPriceWithoutVat),
 			},
 			{
-				font: { size: fontSizeSmall },
+				font: { name: 'Courier', size: fontSizeSmall },
 				align: { x: 'right', y: 'top' },
 				text: row.vatPercentage,
 			},
 			{
-				font: { size: fontSizeSmall },
+				font: { name: 'Courier', size: fontSizeSmall },
 				align: { x: 'right', y: 'top' },
-				text: row.sumVatAmount,
+				text: printDecimal2(row.sumVatAmount),
 			},
 			{
-				font: { size: fontSizeSmall },
+				font: { name: 'Courier', size: fontSizeSmall },
 				align: { x: 'right', y: 'top' },
-				text: row.sumPriceWithVat,
+				text: printDecimal2(row.sumPriceWithVat),
 			},
 		]
 	})
@@ -628,23 +658,13 @@ export const generatePdfVatDocument = async (
 	// @ts-ignore
 	doc.table({
 		defaultStyle: { border: false },
-		columnStyles: [200, '*', '*', '*', '*', '*'],
+		columnStyles: [180, '1.1*', '*', '*', '*', '*'],
 		rowStyles: {
 			border: false,
 			padding: { left: '1em', right: '1em' },
 			backgroundColor: '#FFFFFF',
 		},
-		data: [
-			...ticketsRowDataFormatted,
-			[
-				{
-					font: { size: fontSizeSmall },
-					text: discount
-						? i18next.t('translation:pdfVatDiscount') // Zlava
-						: '',
-				},
-			],
-		],
+		data: ticketsRowDataFormatted,
 	})
 
 	const orderPriceWithoutVat = round(
@@ -666,7 +686,7 @@ export const generatePdfVatDocument = async (
 	// @ts-ignore
 	doc.table({
 		defaultStyle: { border: [1, 1, 1, 1] },
-		columnStyles: [200, '*', '*', '*'],
+		columnStyles: [180, '1.1*', '*', '*', '*', '*'],
 		rowStyles: {
 			border: [1, 0, 0, 0],
 			padding: { left: '1em', right: '1em' },
@@ -681,38 +701,38 @@ export const generatePdfVatDocument = async (
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { size: fontSizeSmall },
+					font: { name: 'Courier', size: fontSizeSmall },
 					text: '',
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { size: fontSizeSmall },
+					font: { name: 'Courier', size: fontSizeSmall },
 					text: '',
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { size: fontSizeSmall },
+					font: { name: 'Courier', size: fontSizeSmall },
 					text: ``,
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { size: fontSizeSmall },
-					text: `${orderPriceWithoutVat}`,
+					font: { name: 'Courier', size: fontSizeSmall },
+					text: printDecimal2(orderPriceWithoutVat),
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { size: fontSizeSmall },
+					font: { name: 'Courier', size: fontSizeSmall },
 					text: '',
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { size: fontSizeSmall },
-					text: `${orderVat.toFixed(2)}`,
+					font: { name: 'Courier', size: fontSizeSmall },
+					text: printDecimal2(orderVat),
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { size: fontSizeSmall },
-					text: `${orderPriceWithVat.toFixed(2)}`,
+					font: { name: 'Courier', size: fontSizeSmall },
+					text: printDecimal2(orderPriceWithVat),
 				},
 			],
 		],
@@ -758,7 +778,7 @@ export const generatePdfVatDocument = async (
 				i18next.t('translation:pdfVatVat'), // DPH:
 				{
 					align: { x: 'right', y: 'top' },
-					text: `${orderPriceWithoutVat} EUR`,
+					text: `${printDecimal2(orderVat)} EUR`,
 				},
 			],
 			[
@@ -768,7 +788,7 @@ export const generatePdfVatDocument = async (
 				i18next.t('translation:pdfVatTotalWithVat'), // Celková suma s DPH:
 				{
 					align: { x: 'right', y: 'top' },
-					text: `${orderPriceWithVat.toFixed(2)} EUR`,
+					text: `${printDecimal2(orderPriceWithVat)} EUR`,
 				},
 			],
 			[
@@ -778,7 +798,7 @@ export const generatePdfVatDocument = async (
 				i18next.t('translation:pdfVatPaid'), // Uhradené:
 				{
 					align: { x: 'right', y: 'top' },
-					text: `${orderPriceWithVat.toFixed(2)} EUR`,
+					text: `${printDecimal2(orderPriceWithVat)} EUR`,
 				},
 			],
 		],

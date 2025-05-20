@@ -1,5 +1,5 @@
-import { map } from 'lodash'
-import { Op, QueryInterface } from 'sequelize'
+import { map, round } from 'lodash'
+import { QueryInterface } from 'sequelize'
 import fetch from 'node-fetch'
 import { CityAccountUser } from './cityAccountDto'
 import ErrorBuilder from './ErrorBuilder'
@@ -96,6 +96,28 @@ export const getWalletPassTicketDescription = (ticket: TicketModel) =>
 		  ''
 export function isDefined<T>(value: T | undefined | null): value is T {
 	return value !== undefined && value !== null
+}
+
+/**
+ * Get price after discount.
+ */
+export const getDiscount = (
+	ticketPriceWithVat: number,
+	reverseDiscountInPercent: number
+) => {
+	const priceWithDiscount = round(
+		(ticketPriceWithVat * reverseDiscountInPercent) / 100,
+		2
+	)
+
+	return {
+		newTicketsPrice: priceWithDiscount,
+		discount: ticketPriceWithVat - priceWithDiscount,
+	}
+}
+
+export const printDecimal2 = (value: number) => {
+	return value.toFixed(2).replace('.', ',')
 }
 
 export const payOrderWithNextOrderNumber = async (order: OrderModel) => {

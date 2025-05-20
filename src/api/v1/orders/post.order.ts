@@ -21,6 +21,7 @@ import { createJwt } from '../../../utils/authorization'
 import { sendOrderEmail } from '../../../utils/emailSender'
 import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
 import {
+	getDiscount,
 	getCityAccountData,
 	payOrderWithNextOrderNumber,
 	isDefined,
@@ -514,19 +515,6 @@ const getIsChildrenForTicketType = (
 		isChildren = true
 	}
 	return isChildren
-}
-
-/**
- * Get price after discount.
- */
-const getDiscount = (ticketPriceWithVat: number, discountInPercent: number) => {
-	const priceWithDiscount =
-		Math.floor(ticketPriceWithVat * discountInPercent) / 100
-
-	return {
-		newTicketsPrice: priceWithDiscount,
-		discount: ticketPriceWithVat - priceWithDiscount,
-	}
 }
 
 /**
