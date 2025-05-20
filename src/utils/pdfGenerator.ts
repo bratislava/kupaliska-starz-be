@@ -326,7 +326,7 @@ export const generatePdfVatDocument = async (
 			[
 				{
 					font: { size: fontSizeLarge },
-					text: i18next.t('translation:pdfVatTitle'), // ZJEDNODUŠENÝ DAŇOVÝ DOKLAD
+					text: i18next.t('translation:pdfVatTitle'), // Doklad o úhrade vstupného na kúpaliská
 				},
 				{
 					font: { size: fontSizeLarge },
