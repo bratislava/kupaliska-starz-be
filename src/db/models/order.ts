@@ -110,7 +110,7 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.DECIMAL(10, 2),
 				allowNull: false,
 				get() {
-					const value = this.getDataValue('price')
+					const value = this.getDataValue('priceWithVat')
 					return value !== undefined ? parseFloat(value) : undefined
 				},
 			},
