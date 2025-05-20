@@ -405,17 +405,6 @@ export const generatePdfVatDocument = async (
 			[
 				{
 					font: { size: fontSizeMedium },
-					text: i18next.t('translation:pdfVatPhone'), // TELEFÓN: +421 2 443 733 27
-				},
-				{
-					font: { size: fontSizeMedium },
-					align: { x: 'right', y: 'top' },
-					text: '+421 2 443 733 27',
-				},
-			],
-			[
-				{
-					font: { size: fontSizeMedium },
 					text: i18next.t('translation:pdfVatEmail'), // EMAIL: starz@starz.sk
 				},
 				{
