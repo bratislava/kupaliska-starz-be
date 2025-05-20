@@ -1,13 +1,15 @@
 import { map } from 'lodash'
-import { QueryInterface } from 'sequelize'
+import { Op, QueryInterface } from 'sequelize'
 import fetch from 'node-fetch'
 import { CityAccountUser } from './cityAccountDto'
 import ErrorBuilder from './ErrorBuilder'
 import i18next from 'i18next'
-import { TICKET_CATEGORY } from './enums'
+import { ORDER_STATE, TICKET_CATEGORY } from './enums'
 import { TicketModel } from '../db/models/ticket'
 import '@js-joda/timezone'
 import { ChronoUnit, ZoneId, ZonedDateTime } from '@js-joda/core'
+import sequelize, { models } from '../db/models'
+import { OrderModel } from '../db/models/order'
 
 export const checkTableExists = async (
 	queryInterface: QueryInterface,
@@ -94,4 +96,33 @@ export const getWalletPassTicketDescription = (ticket: TicketModel) =>
 		  ''
 export function isDefined<T>(value: T | undefined | null): value is T {
 	return value !== undefined && value !== null
+}
+
+export const payOrderWithNextOrderNumber = async (order: OrderModel) => {
+	const { Order } = models
+	const now = new Date().getFullYear()
+
+	await sequelize.transaction(async (t) => {
+		const latestOrder = await Order.findOne({
+			where: {
+				orderPaidInYear: now,
+			},
+			order: [['orderNumberInYear', 'DESC']],
+			lock: t.LOCK.UPDATE,
+			transaction: t,
+		})
+
+		const nextOrderNumber = latestOrder
+			? latestOrder.orderNumberInYear + 1
+			: 1
+
+		await order.update(
+			{
+				state: ORDER_STATE.PAID,
+				orderNumberInYear: nextOrderNumber,
+				orderPaidInYear: now,
+			},
+			{ transaction: t }
+		)
+	})
 }

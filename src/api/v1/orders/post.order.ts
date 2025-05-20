@@ -20,7 +20,11 @@ import { getDiscountCode } from '../../../services/discountCodeValidationService
 import { createJwt } from '../../../utils/authorization'
 import { sendOrderEmail } from '../../../utils/emailSender'
 import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
-import { getCityAccountData, isDefined } from '../../../utils/helpers'
+import {
+	getCityAccountData,
+	payOrderWithNextOrderNumber,
+	isDefined,
+} from '../../../utils/helpers'
 import { TicketModel } from '../../../db/models/ticket'
 import { FE_ROUTES } from '../../../utils/constants'
 
@@ -196,10 +200,7 @@ export const workflow = async (
 		})
 
 		if (discountCode && discountCode.amount === 100) {
-			await order.update({
-				state: ORDER_STATE.PAID,
-			})
-
+			await payOrderWithNextOrderNumber(order)
 			const orderAccessToken = await createJwt(
 				{
 					uid: order.id,
