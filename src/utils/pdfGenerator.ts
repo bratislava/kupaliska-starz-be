@@ -5,6 +5,7 @@ import i18next from 'i18next'
 import { Base64Encode } from 'base64-stream'
 import { getChildrenTicketName } from './translationsHelpers'
 import { round } from 'lodash'
+import { printDecimal2 } from './helpers'
 
 export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 	let ticketsForPdf = [...tickets]
@@ -592,39 +593,42 @@ export const generatePdfVatDocument = async (
 				text: row.ticketName,
 			},
 			{
-				font: { size: fontSizeSmall },
+				font: { name: 'Courier', size: fontSizeSmall },
 				align: { x: 'right', y: 'top' },
-				text: row.quantity + i18next.t('translation:pdfVatQuantity'), // ks
+				text:
+					row.quantity +
+					' ' +
+					i18next.t('translation:pdfVatQuantity'), // ks
 			},
 			{
-				font: { size: fontSizeSmall },
+				font: { name: 'Courier', size: fontSizeSmall },
 				align: { x: 'right', y: 'top' },
-				text: row.ticketPriceWithVat,
+				text: printDecimal2(row.ticketPriceWithVat),
 			},
 			{
-				font: { size: fontSizeSmall },
+				font: { name: 'Courier', size: fontSizeSmall },
 				align: { x: 'right', y: 'top' },
-				text: row.ticketPriceWithoutVat,
+				text: printDecimal2(row.ticketPriceWithoutVat),
 			},
 			{
-				font: { size: fontSizeSmall },
+				font: { name: 'Courier', size: fontSizeSmall },
 				align: { x: 'right', y: 'top' },
-				text: row.sumPriceWithoutVat,
+				text: printDecimal2(row.sumPriceWithoutVat),
 			},
 			{
-				font: { size: fontSizeSmall },
+				font: { name: 'Courier', size: fontSizeSmall },
 				align: { x: 'right', y: 'top' },
 				text: row.vatPercentage,
 			},
 			{
-				font: { size: fontSizeSmall },
+				font: { name: 'Courier', size: fontSizeSmall },
 				align: { x: 'right', y: 'top' },
-				text: row.sumVatAmount,
+				text: printDecimal2(row.sumVatAmount),
 			},
 			{
-				font: { size: fontSizeSmall },
+				font: { name: 'Courier', size: fontSizeSmall },
 				align: { x: 'right', y: 'top' },
-				text: row.sumPriceWithVat,
+				text: printDecimal2(row.sumPriceWithVat),
 			},
 		]
 	})
@@ -686,38 +690,38 @@ export const generatePdfVatDocument = async (
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { size: fontSizeSmall },
+					font: { name: 'Courier', size: fontSizeSmall },
 					text: '',
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { size: fontSizeSmall },
+					font: { name: 'Courier', size: fontSizeSmall },
 					text: '',
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { size: fontSizeSmall },
+					font: { name: 'Courier', size: fontSizeSmall },
 					text: ``,
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { size: fontSizeSmall },
-					text: `${orderPriceWithoutVat}`,
+					font: { name: 'Courier', size: fontSizeSmall },
+					text: printDecimal2(orderPriceWithoutVat),
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { size: fontSizeSmall },
+					font: { name: 'Courier', size: fontSizeSmall },
 					text: '',
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { size: fontSizeSmall },
-					text: `${orderVat.toFixed(2)}`,
+					font: { name: 'Courier', size: fontSizeSmall },
+					text: printDecimal2(orderVat),
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { size: fontSizeSmall },
-					text: `${orderPriceWithVat.toFixed(2)}`,
+					font: { name: 'Courier', size: fontSizeSmall },
+					text: printDecimal2(orderPriceWithVat),
 				},
 			],
 		],
@@ -763,7 +767,7 @@ export const generatePdfVatDocument = async (
 				i18next.t('translation:pdfVatVat'), // DPH:
 				{
 					align: { x: 'right', y: 'top' },
-					text: `${orderPriceWithoutVat} EUR`,
+					text: `${printDecimal2(orderPriceWithoutVat)} EUR`,
 				},
 			],
 			[
@@ -773,7 +777,7 @@ export const generatePdfVatDocument = async (
 				i18next.t('translation:pdfVatTotalWithVat'), // Celková suma s DPH:
 				{
 					align: { x: 'right', y: 'top' },
-					text: `${orderPriceWithVat.toFixed(2)} EUR`,
+					text: `${printDecimal2(orderPriceWithVat)} EUR`,
 				},
 			],
 			[
@@ -783,7 +787,7 @@ export const generatePdfVatDocument = async (
 				i18next.t('translation:pdfVatPaid'), // Uhradené:
 				{
 					align: { x: 'right', y: 'top' },
-					text: `${orderPriceWithVat.toFixed(2)} EUR`,
+					text: `${printDecimal2(orderPriceWithVat)} EUR`,
 				},
 			],
 		],
