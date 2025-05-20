@@ -11,7 +11,7 @@ import { IPassportConfig, IGPWebpayConfig } from '../../../types/interfaces'
 import { ORDER_STATE } from '../../../utils/enums'
 import { sendOrderEmail } from '../../../utils/emailSender'
 import { FE_ROUTES } from '../../../utils/constants'
-import { getNextOrderNumberInYear } from '../../../utils/helpers'
+import { payOrderWithNextOrderNumber } from '../../../utils/helpers'
 
 const passwordConfig: IPassportConfig = config.get('passport')
 const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
@@ -150,12 +150,8 @@ export const workflow = async (
 			)
 		}
 
-		const getNextOrderNumber = await getNextOrderNumberInYear()
-		await order.update({
-			state: ORDER_STATE.PAID,
-			orderNumberInYear: getNextOrderNumber.orderNumberInYear,
-			orderPaidInYear: getNextOrderNumber.orderPaidInYear,
-		})
+		await payOrderWithNextOrderNumber(order)
+
 		// Generate JWT for getting order`s info
 		const orderAccessToken = await createJwt(
 			{

@@ -22,7 +22,7 @@ import { sendOrderEmail } from '../../../utils/emailSender'
 import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
 import {
 	getCityAccountData,
-	getNextOrderNumberInYear,
+	payOrderWithNextOrderNumber,
 	isDefined,
 } from '../../../utils/helpers'
 import { TicketModel } from '../../../db/models/ticket'
@@ -200,13 +200,7 @@ export const workflow = async (
 		})
 
 		if (discountCode && discountCode.amount === 100) {
-			const getNextOrderNumber = await getNextOrderNumberInYear()
-			await order.update({
-				state: ORDER_STATE.PAID,
-				orderNumberInYear: getNextOrderNumber.orderNumberInYear,
-				orderPaidInYear: getNextOrderNumber.orderPaidInYear,
-			})
-
+			await payOrderWithNextOrderNumber(order)
 			const orderAccessToken = await createJwt(
 				{
 					uid: order.id,
