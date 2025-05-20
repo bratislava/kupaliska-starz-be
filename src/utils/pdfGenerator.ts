@@ -247,7 +247,8 @@ const sortTickets = (ticketsForPdf: TicketModel[]) => {
 export const generatePdfVatDocument = async (
 	tickets: TicketModel[],
 	orderPriceWithVat: number,
-	discount: number
+	discount: number,
+	orderVatDocumentNumber: string
 ): Promise<string> => {
 	let ticketsForPdf = [...tickets]
 
@@ -303,7 +304,7 @@ export const generatePdfVatDocument = async (
 				{
 					font: { size: fontSizeLarge },
 					align: { x: 'right', y: 'top' },
-					text: 'TODO ciselny rad',
+					text: orderVatDocumentNumber,
 				},
 			],
 		],

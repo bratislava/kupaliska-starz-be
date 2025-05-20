@@ -1,5 +1,5 @@
 import { map } from 'lodash'
-import { QueryInterface } from 'sequelize'
+import { Op, QueryInterface } from 'sequelize'
 import fetch from 'node-fetch'
 import { CityAccountUser } from './cityAccountDto'
 import ErrorBuilder from './ErrorBuilder'
@@ -8,6 +8,7 @@ import { TICKET_CATEGORY } from './enums'
 import { TicketModel } from '../db/models/ticket'
 import '@js-joda/timezone'
 import { ChronoUnit, ZoneId, ZonedDateTime } from '@js-joda/core'
+import { models } from '../db/models'
 
 export const checkTableExists = async (
 	queryInterface: QueryInterface,
@@ -94,4 +95,30 @@ export const getWalletPassTicketDescription = (ticket: TicketModel) =>
 		  ''
 export function isDefined<T>(value: T | undefined | null): value is T {
 	return value !== undefined && value !== null
+}
+
+export const getNextOrderNumberInYear = async () => {
+	const { Order } = models
+
+	const now = new Date().getFullYear()
+	const latestOrderPaidInYear = await Order.findOne({
+		where: {
+			orderPaidInYear: {
+				[Op.eq]: now,
+			},
+		},
+		order: [['orderNumberInYear', 'DESC']],
+		include: [],
+	})
+	if (latestOrderPaidInYear) {
+		return {
+			orderNumberInYear: latestOrderPaidInYear.orderNumberInYear + 1,
+			orderPaidInYear: now,
+		}
+	} else {
+		return {
+			orderNumberInYear: 1,
+			orderPaidInYear: now,
+		}
+	}
 }

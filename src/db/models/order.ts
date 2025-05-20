@@ -30,6 +30,9 @@ export class OrderModel extends DatabaseModel {
 	paymentOrder: PaymentOrderModel
 	discountCodeId: string
 	discountCode: DiscountCodeModel
+	//vat document
+	orderNumberInYear: number
+	orderPaidInYear: number
 	// meta
 	createdAt: Date
 	updatedAt: Date
@@ -120,6 +123,22 @@ export default (sequelize: Sequelize) => {
 				defaultValue: 0,
 				get() {
 					const value = this.getDataValue('discount')
+					return value !== undefined ? parseFloat(value) : undefined
+				},
+			},
+			orderNumberInYear: {
+				type: DataTypes.BIGINT,
+				allowNull: true,
+				get() {
+					const value = this.getDataValue('orderNumberInYear')
+					return value !== undefined ? parseFloat(value) : undefined
+				},
+			},
+			orderPaidInYear: {
+				type: DataTypes.INTEGER,
+				allowNull: true,
+				get() {
+					const value = this.getDataValue('orderPaidInYear')
 					return value !== undefined ? parseFloat(value) : undefined
 				},
 			},

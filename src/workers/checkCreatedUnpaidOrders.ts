@@ -9,6 +9,7 @@ import {
 	verifyDataGetPaymentStatusWebserviceResponse,
 } from '../services/webpayService'
 import { sendOrderEmail } from '../utils/emailSender'
+import { getNextOrderNumberInYear } from '../utils/helpers'
 
 const gpWebserviceSchema = Joi.object({
 	'soapenv:Envelope': Joi.object().keys({
@@ -136,7 +137,15 @@ process.on('message', async () => {
 							logger.info(
 								`Found PAID order without proper status in order - id: ${orderNumber} changing status to PAID and sending email`
 							)
-							await order.update({ state: ORDER_STATE.PAID })
+							const getNextOrderNumber =
+								await getNextOrderNumberInYear()
+							await order.update({
+								state: ORDER_STATE.PAID,
+								orderNumberInYear:
+									getNextOrderNumber.orderNumberInYear,
+								orderPaidInYear:
+									getNextOrderNumber.orderPaidInYear,
+							})
 							await sendOrderEmail(undefined, order.id)
 						}
 					}

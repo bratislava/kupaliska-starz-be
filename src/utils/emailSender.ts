@@ -65,6 +65,9 @@ export const sendOrderEmail = async (
 			),
 		},
 	]
+	const zerofilled =
+		order.orderPaidInYear + `00000000${order.orderNumberInYear}`.slice(-8)
+
 	await sendEmail(
 		req,
 		parentTicket.profile.email,
@@ -89,7 +92,8 @@ export const sendOrderEmail = async (
 		await getOrderEmailAttachments(
 			order.tickets,
 			order.priceWithVat,
-			order.discount
+			order.discount,
+			zerofilled
 		)
 	)
 }
@@ -114,7 +118,8 @@ const getOrderEmailInlineAttachments = async (
 const getOrderEmailAttachments = async (
 	tickets: TicketModel[],
 	orderPriceWithVat: number,
-	orderDiscount: number
+	orderDiscount: number,
+	orderVatDocumentNumber: string
 ): Promise<CustomFile[]> => {
 	return concat(
 		await Promise.all(
@@ -150,7 +155,8 @@ const getOrderEmailAttachments = async (
 				await generatePdfVatDocument(
 					tickets,
 					orderPriceWithVat,
-					orderDiscount
+					orderDiscount,
+					orderVatDocumentNumber
 				),
 				'base64'
 			),
