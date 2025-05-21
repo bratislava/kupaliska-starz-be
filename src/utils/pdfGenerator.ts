@@ -417,7 +417,7 @@ export const generatePdfVatDocument = async (
 			[
 				{
 					font: { size: fontSizeMedium },
-					text: i18next.t('translation:pdfVatIcDph'), // Platiteľ DPH
+					text: i18next.t('translation:pdfVatVatPayer'), // Platiteľ DPH
 				},
 				{
 					align: { x: 'right', y: 'top' },
@@ -472,10 +472,10 @@ export const generatePdfVatDocument = async (
 					align: { x: 'right', y: 'top' },
 					text:
 						ticketsForPdf.length > 0
-							? ticketsForPdf[0].createdAt.toLocaleDateString(
-									'sk-SK'
-							  )
-							: '', // 18.05.2025
+							? ticketsForPdf[0].createdAt
+									.toLocaleDateString('sk-SK') // 18. 05. 2025
+									.replace(/\.\s+/g, '.') // 18.05.2025
+							: '',
 				},
 			],
 			[
@@ -499,7 +499,7 @@ export const generatePdfVatDocument = async (
 	// @ts-ignore
 	doc.table({
 		defaultStyle: { border: false },
-		columnStyles: [180, '1.1*', '*', '*', '*', '*'],
+		columnStyles: [180, '*', '*', '*', '*', '*'],
 		rowStyles: (i: number) => {
 			if (i === 0) {
 				return {
@@ -571,7 +571,9 @@ export const generatePdfVatDocument = async (
 		let priceVat = ticketType.priceWithVat
 		let ticketName = ticketsForPdf[0].ticketType.name
 		if (orderDiscountPercentage > 0) {
-			ticketName = `Zľava ${orderDiscountPercentage} % – ${ticketName}`
+			ticketName = `${i18next.t(
+				'translation:pdfVatDiscount'
+			)} ${orderDiscountPercentage} % – ${ticketName}`
 			priceVat = getDiscount(
 				ticketType.priceWithVat,
 				reverseDiscountInPercent
@@ -591,7 +593,9 @@ export const generatePdfVatDocument = async (
 		let priceVat = ticketType.childrenPriceWithVat
 		let ticketName = getChildrenTicketName()
 		if (orderDiscountPercentage > 0) {
-			ticketName = `Zľava ${orderDiscountPercentage} % – ${ticketName}`
+			ticketName = `${i18next.t(
+				'translation:pdfVatDiscount'
+			)} ${orderDiscountPercentage} % – ${ticketName}`
 			priceVat = getDiscount(
 				ticketType.childrenPriceWithVat,
 				reverseDiscountInPercent
@@ -768,7 +772,7 @@ export const generatePdfVatDocument = async (
 				i18next.t('translation:pdfVatTotalWithoutVat'), // Celková suma bez DPH:
 				{
 					align: { x: 'right', y: 'top' },
-					text: `${orderPriceWithoutVat} EUR`,
+					text: `${printDecimal2(orderPriceWithoutVat)} EUR`,
 				},
 			],
 			[
