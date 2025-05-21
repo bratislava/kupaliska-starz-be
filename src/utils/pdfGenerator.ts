@@ -616,11 +616,11 @@ export const generatePdfVatDocument = async (
 	const ticketsRowDataFormatted = ticketsRowData.map((row) => {
 		return [
 			{
-				font: { size: fontSizeSmall },
+				font: { size: fontSizeMedium },
 				text: row.ticketName,
 			},
 			{
-				font: { name: 'Courier', size: fontSizeSmall },
+				font: { size: fontSizeMedium },
 				align: { x: 'right', y: 'top' },
 				text:
 					row.quantity +
@@ -628,37 +628,39 @@ export const generatePdfVatDocument = async (
 					i18next.t('translation:pdfVatQuantity'), // ks
 			},
 			{
-				font: { name: 'Courier', size: fontSizeSmall },
+				font: { size: fontSizeMedium },
 				align: { x: 'right', y: 'top' },
 				text: printDecimal2(row.ticketPriceWithVat),
 			},
 			{
-				font: { name: 'Courier', size: fontSizeSmall },
+				font: { size: fontSizeMedium },
 				align: { x: 'right', y: 'top' },
 				text: printDecimal2(row.ticketPriceWithoutVat),
 			},
 			{
-				font: { name: 'Courier', size: fontSizeSmall },
+				font: { size: fontSizeMedium },
 				align: { x: 'right', y: 'top' },
 				text: printDecimal2(row.sumPriceWithoutVat),
 			},
 			{
-				font: { name: 'Courier', size: fontSizeSmall },
+				font: { size: fontSizeMedium },
 				align: { x: 'right', y: 'top' },
 				text: row.vatPercentage,
 			},
 			{
-				font: { name: 'Courier', size: fontSizeSmall },
+				font: { size: fontSizeMedium },
 				align: { x: 'right', y: 'top' },
 				text: printDecimal2(row.sumVatAmount),
 			},
 			{
-				font: { name: 'Courier', size: fontSizeSmall },
+				font: { size: fontSizeMedium },
 				align: { x: 'right', y: 'top' },
 				text: printDecimal2(row.sumPriceWithVat),
 			},
 		]
 	})
+
+	doc.font('resources/fonts/Inconsolata-Regular.ttf')
 
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	// @ts-ignore
@@ -702,47 +704,49 @@ export const generatePdfVatDocument = async (
 			[
 				{
 					align: { x: 'right', y: 'top' },
-					font: { size: fontSizeSmall },
+					font: { size: fontSizeMedium },
+					text: '',
+				},
+				{
+					align: { x: 'right', y: 'top' },
+					font: { size: fontSizeMedium },
 					text: i18next.t('translation:pdfVatTotal'), // Spolu:
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { name: 'Courier', size: fontSizeSmall },
+					font: { size: fontSizeMedium },
 					text: '',
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { name: 'Courier', size: fontSizeSmall },
-					text: '',
-				},
-				{
-					align: { x: 'right', y: 'top' },
-					font: { name: 'Courier', size: fontSizeSmall },
+					font: { size: fontSizeMedium },
 					text: ``,
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { name: 'Courier', size: fontSizeSmall },
+					font: { size: fontSizeMedium },
 					text: printDecimal2(orderPriceWithoutVat),
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { name: 'Courier', size: fontSizeSmall },
+					font: { size: fontSizeMedium },
 					text: '',
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { name: 'Courier', size: fontSizeSmall },
+					font: { size: fontSizeMedium },
 					text: printDecimal2(orderVat),
 				},
 				{
 					align: { x: 'right', y: 'top' },
-					font: { name: 'Courier', size: fontSizeSmall },
+					font: { size: fontSizeMedium },
 					text: printDecimal2(orderPriceWithVat),
 				},
 			],
 		],
 	})
+
+	doc.font('resources/fonts/WorkSans-Medium.ttf')
 
 	doc.moveDown()
 	doc.moveDown()
@@ -757,6 +761,8 @@ export const generatePdfVatDocument = async (
 		},
 		data: [['']],
 	})
+
+	doc.font('resources/fonts/Inconsolata-Regular.ttf')
 
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	// @ts-ignore
@@ -809,6 +815,8 @@ export const generatePdfVatDocument = async (
 			],
 		],
 	})
+
+	doc.font('resources/fonts/WorkSans-Medium.ttf')
 
 	doc.moveDown(3)
 
