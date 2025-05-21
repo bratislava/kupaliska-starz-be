@@ -571,7 +571,9 @@ export const generatePdfVatDocument = async (
 		let priceVat = ticketType.priceWithVat
 		let ticketName = ticketsForPdf[0].ticketType.name
 		if (orderDiscountPercentage > 0) {
-			ticketName = `Zľava ${orderDiscountPercentage} % – ${ticketName}`
+			ticketName = `${i18next.t(
+				'translation:pdfVatDiscount'
+			)} ${orderDiscountPercentage} % – ${ticketName}`
 			priceVat = getDiscount(
 				ticketType.priceWithVat,
 				reverseDiscountInPercent
@@ -591,7 +593,9 @@ export const generatePdfVatDocument = async (
 		let priceVat = ticketType.childrenPriceWithVat
 		let ticketName = getChildrenTicketName()
 		if (orderDiscountPercentage > 0) {
-			ticketName = `Zľava ${orderDiscountPercentage} % – ${ticketName}`
+			ticketName = `${i18next.t(
+				'translation:pdfVatDiscount'
+			)} ${orderDiscountPercentage} % – ${ticketName}`
 			priceVat = getDiscount(
 				ticketType.childrenPriceWithVat,
 				reverseDiscountInPercent
