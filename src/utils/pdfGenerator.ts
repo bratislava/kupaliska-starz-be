@@ -495,11 +495,13 @@ export const generatePdfVatDocument = async (
 
 	doc.font('resources/fonts/WorkSans-Bold.ttf')
 
+	const columnStyles = [180, '*', '*', '*', '*', '30', '*', '*']
+
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	// @ts-ignore
 	doc.table({
 		defaultStyle: { border: false },
-		columnStyles: [180, '*', '*', '*', '*', '*'],
+		columnStyles: columnStyles,
 		rowStyles: (i: number) => {
 			if (i === 0) {
 				return {
@@ -662,7 +664,7 @@ export const generatePdfVatDocument = async (
 	// @ts-ignore
 	doc.table({
 		defaultStyle: { border: false },
-		columnStyles: [180, '1.1*', '*', '*', '*', '*'],
+		columnStyles: columnStyles,
 		rowStyles: {
 			border: false,
 			padding: { left: '1em', right: '1em' },
@@ -690,7 +692,7 @@ export const generatePdfVatDocument = async (
 	// @ts-ignore
 	doc.table({
 		defaultStyle: { border: [1, 1, 1, 1] },
-		columnStyles: [180, '1.1*', '*', '*', '*', '*'],
+		columnStyles: columnStyles,
 		rowStyles: {
 			border: [1, 0, 0, 0],
 			padding: { left: '1em', right: '1em' },
