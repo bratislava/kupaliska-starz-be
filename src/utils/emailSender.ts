@@ -126,24 +126,29 @@ const getOrderEmailAttachments = async (
 ): Promise<CustomFile[]> => {
 	return concat(
 		await Promise.all(
-			map(tickets, async (ticket) => {
-				const ticketProfileName = ticket.profile.name
-					? `${ticket.profile.name}_`
-					: ''
-				ticket.qrCode = await generateQrCodeBuffer(ticket.id)
-				return {
-					data: Buffer.from(await generatePdf([ticket]), 'base64'),
+			tickets.length <= 5
+				? map(tickets, async (ticket) => {
+						const ticketProfileName = ticket.profile.name
+							? `${ticket.profile.name}_`
+							: ''
+						ticket.qrCode = await generateQrCodeBuffer(ticket.id)
+						return {
+							data: Buffer.from(
+								await generatePdf([ticket]),
+								'base64'
+							),
 
-					// when filename contains "/" it will be deleted with everything before it therefore we need to replace it with something else
-					filename: `${ticketProfileName
-						.toString()
-						.replace('/', ', ')}${ticket.ticketType.name
-						.toString()
-						.replace('/', ', ')}_${ticket.id.substr(
-						ticket.id.length - 8
-					)}.pdf`,
-				}
-			})
+							// when filename contains "/" it will be deleted with everything before it therefore we need to replace it with something else
+							filename: `${ticketProfileName
+								.toString()
+								.replace('/', ', ')}${ticket.ticketType.name
+								.toString()
+								.replace('/', ', ')}_${ticket.id.substr(
+								ticket.id.length - 8
+							)}.pdf`,
+						}
+				  })
+				: []
 		),
 		tickets.length > 1
 			? [
