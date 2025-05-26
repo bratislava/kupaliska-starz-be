@@ -28,6 +28,7 @@ import {
 } from '../../../utils/helpers'
 import { TicketModel } from '../../../db/models/ticket'
 import { FE_ROUTES } from '../../../utils/constants'
+import { CityAccountUser } from '../../../utils/cityAccountDto'
 
 const {
 	SwimmingLoggedUser,
@@ -143,10 +144,18 @@ export const workflow = async (
 			state: ORDER_STATE.CREATED,
 			orderNumber: new Date().getTime(),
 		})
+		const cityAccountData = req.headers.authorization
+			? await getCityAccountData(req.headers.authorization)
+			: null
 
 		// for each instance add unique ticket
 		for (const ticket of body.tickets) {
-			const user = await getUser(req, ticket, loggedUserId)
+			const user = await getUser(
+				req,
+				ticket,
+				loggedUserId,
+				cityAccountData
+			)
 			if (ticket.personId === undefined) {
 				if (!body.email) {
 					throw new ErrorBuilder(404, req.t('error:emailIsEmpty'))
@@ -157,7 +166,8 @@ export const workflow = async (
 				ticketType,
 				req,
 				ticket,
-				loggedUserId
+				loggedUserId,
+				cityAccountData
 			)
 
 			let isChildren = getIsChildrenForTicketType(user, ticketType)
@@ -306,10 +316,14 @@ const getPrice = async (
 		'ticketHasExpired'
 	)
 
+	const cityAccountData = req.headers.authorization
+		? await getCityAccountData(req.headers.authorization)
+		: null
+
 	// validate number of children
 	let numberOfChildren = 0
 	for (const ticket of body.tickets) {
-		const user = await getUser(req, ticket, loggedUserId)
+		const user = await getUser(req, ticket, loggedUserId, cityAccountData)
 		if (getIsChildrenForTicketType(user, ticketType)) {
 			numberOfChildren += 1
 		}
@@ -345,7 +359,6 @@ const getPrice = async (
 			reverseDiscountInPercent &&
 			reverseDiscountInPercent !== 100
 		) {
-			console.log('reverseDiscountInPercent', reverseDiscountInPercent)
 			throw new ErrorBuilder(
 				400,
 				req.t('error:ticket.discountOnlyForOneUser')
@@ -359,7 +372,8 @@ const getPrice = async (
 			ticketType,
 			req,
 			ticket,
-			loggedUserId
+			loggedUserId,
+			cityAccountData
 		)
 
 		let totals = { newTicketsPrice: ticketPrice, discount: discount }
@@ -380,9 +394,10 @@ const getTicketPrice = async (
 	ticketType: TicketTypeModel,
 	req: Request,
 	ticket: any,
-	loggedUserId: string | null
+	loggedUserId: string | null,
+	cityAccountData: Partial<CityAccountUser> | null
 ) => {
-	const user = await getUser(req, ticket, loggedUserId)
+	const user = await getUser(req, ticket, loggedUserId, cityAccountData)
 	let isChildren = getIsChildrenForTicketType(user, ticketType)
 	let ticketPriceWithVat = ticketType.priceWithVat
 
@@ -403,7 +418,8 @@ const getTicketPrice = async (
 const getUser = async (
 	req: Request,
 	ticket: any,
-	loggedUserId: string | null
+	loggedUserId: string | null,
+	cityAccountData: Partial<CityAccountUser> | null
 ): Promise<GetUser> => {
 	const { body } = req
 	if (ticket.personId === undefined) {
@@ -438,9 +454,6 @@ const getUser = async (
 		if (!swimmingLoggedUser)
 			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
 
-		const cityAccountData = await getCityAccountData(
-			req.headers.authorization
-		)
 		if (!cityAccountData)
 			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
 		if (!cityAccountData.email)
@@ -471,9 +484,6 @@ const getUser = async (
 		})
 		if (!swimmingLoggedUser)
 			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
-		const cityAccountData = await getCityAccountData(
-			req.headers.authorization
-		)
 		if (!cityAccountData)
 			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
 		if (!cityAccountData.email)
