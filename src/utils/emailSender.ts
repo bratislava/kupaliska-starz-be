@@ -71,6 +71,13 @@ export const sendOrderEmail = async (
 	const zerofilled =
 		order.orderPaidInYear + `00000000${order.orderNumberInYear}`.slice(-8)
 
+	for (const ticket of order.tickets) {
+		ticket.qrCode = await generateQrCodeBuffer(ticket.id, {
+			width: 264,
+			margin: 0,
+		})
+	}
+
 	await sendEmail(
 		req,
 		parentTicket.profile.email,
@@ -91,7 +98,9 @@ export const sendOrderEmail = async (
 			  }),
 		orderTemplate,
 		getOrderEmailData(parentTicket, order),
-		await getOrderEmailInlineAttachments(order.tickets),
+		order.tickets.length < 10
+			? await getOrderEmailInlineAttachments(order.tickets)
+			: undefined,
 		await getOrderEmailAttachments(
 			order.tickets,
 			order.priceWithVat,
@@ -106,10 +115,6 @@ const getOrderEmailInlineAttachments = async (
 ): Promise<CustomFile[]> => {
 	return await Promise.all(
 		map(tickets, async (ticket, index) => {
-			ticket.qrCode = await generateQrCodeBuffer(ticket.id, {
-				width: 264,
-				margin: 0,
-			})
 			return {
 				data: ticket.qrCode,
 				filename: `qr-code-${index + 1}.png`,
@@ -201,28 +206,35 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 		name: parentTicket.profile.name,
 		type: parentTicket.ticketType.type,
 		disposable: parentTicket.ticketType.isDisposable,
-		tickets: map(order.tickets, (ticket, index) => {
-			const appleWalletUrl = `${appConfig.host}/api/v1/orders/appleWallet/${ticket.id}`
-			const googleWalletUrl = `${appConfig.host}/api/v1/orders/googlePay/${ticket.id}`
-			return {
-				heading: ticket.isChildren
-					? getChildrenTicketName()
-					: ticket.ticketType.name,
-				subheading: !ticket.ticketType.isDisposable
-					? ticket.profile.name +
-					  `, ${i18next.t('year', {
-							count: ticket.profile.age,
-					  })}`
-					: null,
-				qrCode: `cid:qr-code-${index + 1}.png`,
-				backgroundColor: textColorsMap[ticket.getCategory()].background,
-				textColor: textColorsMap[ticket.getCategory()].text,
-				appleWalletUrl: appleWalletUrl,
-				googleWalletUrl: googleWalletUrl,
-				hasWalletTicket:
-					appleWalletUrl || googleWalletUrl ? true : false,
-			}
-		}),
+		hasManyTickets: order.tickets.length > 10,
+		tickets:
+			order.tickets.length < 10
+				? map(order.tickets, (ticket, index) => {
+						const appleWalletUrl = `${appConfig.host}/api/v1/orders/appleWallet/${ticket.id}`
+						const googleWalletUrl = `${appConfig.host}/api/v1/orders/googlePay/${ticket.id}`
+						return {
+							heading: ticket.isChildren
+								? getChildrenTicketName()
+								: ticket.ticketType.name,
+							subheading: !ticket.ticketType.isDisposable
+								? ticket.profile.name +
+								  `, ${i18next.t('year', {
+										count: ticket.profile.age,
+								  })}`
+								: null,
+							qrCode: `cid:qr-code-${index + 1}.png`,
+							backgroundColor:
+								textColorsMap[ticket.getCategory()].background,
+							textColor: textColorsMap[ticket.getCategory()].text,
+							appleWalletUrl: appleWalletUrl,
+							googleWalletUrl: googleWalletUrl,
+							hasWalletTicket:
+								appleWalletUrl || googleWalletUrl
+									? true
+									: false,
+						}
+				  })
+				: [],
 		summary: {
 			items: summaryItems, // sorted by adult/children condition
 			totalPrice: order.priceWithVat.toFixed(2), // could be omitted
