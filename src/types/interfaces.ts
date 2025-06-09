@@ -29,6 +29,7 @@ export interface IWorkersConfig {
 		visitsComputation: string
 		refreshCustomersView: string
 		checkCreatedUnpaidOrders: string
+		updateAge: string
 	}
 }
 
