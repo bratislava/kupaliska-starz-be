@@ -26,6 +26,7 @@ export = {
 				process.env.SCHEDULE_VISITS_COMPUTATION || '00 00 23 * * *', // Run visits computation at 23:00 every day
 			refreshCustomersView:
 				process.env.SCHEDULE_REFRESH_CUSTOMERS_VIEW || '00 00 23 * * *', // Refresh customers views at 23:00 every day
+			updateAge: process.env.SCHEDULE_UPDATE_AGE || '00 00 23 * * *', // Run update age at 23:00 every day
 			checkCreatedUnpaidOrders:
 				process.env.SCHEDULE_CHECK_CREATED_UNPAID_ORDERS ||
 				'0 */5 * * * *', // check created unpaid orders every 5 minutes

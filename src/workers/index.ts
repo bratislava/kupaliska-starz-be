@@ -61,4 +61,11 @@ export default async () => {
 			true,
 			'Europe/Bratislava'
 		).start()
+	new CronJob(
+		workersConfig.schedule.updateAge,
+		() => workerCallback('updateAge', {}),
+		null,
+		true,
+		'Europe/Bratislava'
+	).start()
 }

@@ -10,6 +10,7 @@ export class AssociatedSwimmerModel extends DatabaseModel {
 	swimmingLoggedUserId: string
 	firstname: string
 	lastname: string
+	dateOfBirth: Date
 	age: number
 	zip: string
 	image: FileModel
