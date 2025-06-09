@@ -11,6 +11,7 @@ import { AssociatedSwimmerModel } from '../../../db/models/associatedSwimmer'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { getDataAboutCurrentUser } from '../../../utils/getDataCurrentUser'
 import readAsBase64 from '../../../utils/reader'
+import { calculateAge } from '../../../utils/helpers'
 
 export const associatedSwimmerUploadFolder = 'private/associated-swimmer'
 
@@ -41,13 +42,16 @@ export const workflow = async (
 				req.t('error:associatedSwimmerNotFound')
 			)
 		}
+		const age = calculateAge(body.dateOfBirth)
+
 		if (associatedSwimmer.swimmingLoggedUserId === swimmingLoggedUser.id) {
 			transaction = await DB.transaction()
 			await associatedSwimmer.update(
 				{
 					firstname: body.firstname,
 					lastname: body.lastname,
-					age: body.age,
+					dateOfBirth: body.dateOfBirth,
+					age: age,
 					zip: body.zip,
 					// TODO update updateAt
 					// updatedAt: body.updatedAt,

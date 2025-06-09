@@ -41,6 +41,10 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.SMALLINT,
 				allowNull: true,
 			},
+			dateOfBirth: {
+				type: DataTypes.DATE,
+				allowNull: true,
+			},
 			zip: {
 				type: DataTypes.STRING(10),
 				allowNull: true,

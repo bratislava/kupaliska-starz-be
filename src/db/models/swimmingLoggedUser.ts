@@ -13,6 +13,7 @@ export class SwimmingLoggedUserModel extends DatabaseModel {
 	updatedAt: Date
 	deletedAt: Date
 	age: number
+	dateOfBirth: Date
 	zip: string
 	image: FileModel
 	// lastLoginAt: Date
@@ -40,6 +41,10 @@ export default (sequelize: Sequelize) => {
 			},
 			age: {
 				type: DataTypes.SMALLINT,
+				allowNull: true,
+			},
+			dateOfBirth: {
+				type: DataTypes.DATE,
 				allowNull: true,
 			},
 			zip: {

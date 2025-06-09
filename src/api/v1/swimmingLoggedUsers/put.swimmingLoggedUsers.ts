@@ -9,11 +9,12 @@ import { MESSAGE_TYPE } from '../../../utils/enums'
 import { uploadImage } from '../../../utils/imageUpload'
 import { SwimmingLoggedUserModel } from '../../../db/models/swimmingLoggedUser'
 import readAsBase64 from '../../../utils/reader'
+import { calculateAge } from '../../../utils/helpers'
 
 export const swimmingLoggedUserUploadFolder = 'private/swimming-logged-user'
 export const schema = Joi.object().keys({
 	body: Joi.object().keys({
-		age: Joi.number(),
+		dateOfBirth: Joi.date().required(),
 		zip: Joi.string().allow(null, ''),
 		// TODO uncomment once we give feedback on error on FE
 		// .pattern(
@@ -38,7 +39,14 @@ export const workflow = async (
 		const sub = await getCognitoIdOfLoggedInUser(req)
 		if (sub) {
 			const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
-				attributes: ['id', 'externalCognitoId', 'age', 'zip'],
+				attributes: [
+					'id',
+					'externalCognitoId',
+					'age',
+					'dateOfBirth',
+					'zip',
+					'dateOfBirth',
+				],
 				where: {
 					externalCognitoId: { [Op.eq]: sub },
 				},
@@ -49,9 +57,13 @@ export const workflow = async (
 				throw new ErrorBuilder(404, req.t('error:userNotFound'))
 			}
 			transaction = await sequelize.transaction()
+			const age = calculateAge(body.dateOfBirth)
 			await swimmingLoggedUser.update(
 				{
-					age: body.age ? body.age : swimmingLoggedUser.age,
+					dateOfBirth: body.dateOfBirth
+						? body.dateOfBirth
+						: swimmingLoggedUser.dateOfBirth,
+					age: age,
 					zip: body.zip ? body.zip : swimmingLoggedUser.zip,
 				},
 				{ transaction }

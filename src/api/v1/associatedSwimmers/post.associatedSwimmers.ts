@@ -10,6 +10,7 @@ import { uploadImage } from '../../../utils/imageUpload'
 import { AssociatedSwimmerModel } from '../../../db/models/associatedSwimmer'
 import { associatedSwimmerUploadFolder } from './put.associatedSwimmer'
 import { getDataAboutCurrentUser } from '../../../utils/getDataCurrentUser'
+import { calculateAge } from '../../../utils/helpers'
 
 // TODO change according to Model
 // export const schema = Joi.object().keys({
@@ -34,7 +35,7 @@ export const schema = Joi.object().keys({
 	body: Joi.object().keys({
 		firstname: Joi.string().required(),
 		lastname: Joi.string().required(),
-		age: Joi.number().integer().min(3).required(),
+		dateOfBirth: Joi.date().required(),
 		zip: Joi.string().allow(null, ''),
 		image: Joi.string().required(),
 	}),
@@ -52,6 +53,7 @@ export const workflow = async (
 	let transaction: Transaction
 	try {
 		const { body }: any = req
+		const age = calculateAge(body.dateOfBirth)
 
 		transaction = await DB.transaction()
 		const swimmingLoggedUser = await getDataAboutCurrentUser(req)
@@ -60,7 +62,8 @@ export const workflow = async (
 			{
 				firstname: body.firstname,
 				lastname: body.lastname,
-				age: body.age,
+				dateOfBirth: body.dateOfBirth,
+				age: age,
 				zip: body.zip,
 				swimmingLoggedUserId: swimmingLoggedUser.id,
 			},
