@@ -316,9 +316,12 @@ export const generatePdfVatDocument = async (
 	const fontSizeMedium = 8
 	const fontSizeLarge = 12
 
+	const columnStylesTitle = [300, '*']
+
 	// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 	// @ts-ignore
 	doc.table({
+		columnStyles: columnStylesTitle,
 		rowStyles: {
 			padding: { left: '1em', right: '1em' },
 			border: [0, 0, 0, 0],
