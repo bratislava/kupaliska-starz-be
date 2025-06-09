@@ -1,6 +1,7 @@
 import { map, round } from 'lodash'
 import { QueryInterface } from 'sequelize'
 import fetch from 'node-fetch'
+import dayjs from 'dayjs'
 import { CityAccountUser } from './cityAccountDto'
 import ErrorBuilder from './ErrorBuilder'
 import i18next from 'i18next'
@@ -147,4 +148,9 @@ export const payOrderWithNextOrderNumber = async (order: OrderModel) => {
 			{ transaction: t }
 		)
 	})
+}
+
+export const calculateAge = (dateOfBirth: string) => {
+	const age = dayjs().diff(dayjs(dateOfBirth), 'year')
+	return age
 }
