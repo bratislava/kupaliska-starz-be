@@ -1,6 +1,7 @@
 import Joi from 'joi'
 import { NextFunction, Request, Response } from 'express'
 import { Transaction } from 'sequelize'
+import dayjs from 'dayjs'
 
 import DB, { models } from '../../../db/models'
 
@@ -35,7 +36,9 @@ export const schema = Joi.object().keys({
 	body: Joi.object().keys({
 		firstname: Joi.string().required(),
 		lastname: Joi.string().required(),
-		dateOfBirth: Joi.date().required(),
+		dateOfBirth: Joi.date()
+			.min(dayjs().subtract(3, 'years').startOf('day').toDate())
+			.required(),
 		zip: Joi.string().allow(null, ''),
 		image: Joi.string().required(),
 	}),
