@@ -352,7 +352,7 @@ export const generatePdfVatDocument = async (
 	doc.moveDown()
 
 	doc.fontSize(fontSizeMedium).font('resources/fonts/WorkSans-Bold.ttf').text(
-		i18next.t('translation:pdfVatCompanyName'), // Správa telovýchovných a rekreačných zariadení hlavného mesta Slovenskej Republiky
+		i18next.t('translation:pdfVatCompanyName'), // Správa telovýchovných a rekreačných zariadení hlavného mesta Slovenskej republiky Bratislavy
 		leftPadding,
 		undefined,
 		{
