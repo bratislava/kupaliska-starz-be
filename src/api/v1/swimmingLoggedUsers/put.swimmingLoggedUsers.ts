@@ -14,7 +14,7 @@ import { calculateAge } from '../../../utils/helpers'
 export const swimmingLoggedUserUploadFolder = 'private/swimming-logged-user'
 export const schema = Joi.object().keys({
 	body: Joi.object().keys({
-		dateOfBirth: Joi.date().required(),
+		dateOfBirth: Joi.date(),
 		zip: Joi.string().allow(null, ''),
 		// TODO uncomment once we give feedback on error on FE
 		// .pattern(
@@ -63,7 +63,7 @@ export const workflow = async (
 					dateOfBirth: body.dateOfBirth
 						? body.dateOfBirth
 						: swimmingLoggedUser.dateOfBirth,
-					age: age,
+					age: age ? age : swimmingLoggedUser.age,
 					zip: body.zip ? body.zip : swimmingLoggedUser.zip,
 				},
 				{ transaction }
