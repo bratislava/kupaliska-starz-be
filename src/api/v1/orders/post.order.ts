@@ -377,7 +377,10 @@ const getPrice = async (
 		)
 
 		let totals = { newTicketsPrice: ticketPrice, discount: discount }
-		if (reverseDiscountInPercent) {
+		if (
+			reverseDiscountInPercent !== undefined &&
+			reverseDiscountInPercent !== null
+		) {
 			totals = getDiscount(ticketPrice, reverseDiscountInPercent)
 		}
 		orderPrice += totals.newTicketsPrice
