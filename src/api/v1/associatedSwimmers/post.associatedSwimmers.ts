@@ -37,7 +37,7 @@ export const schema = Joi.object().keys({
 		firstname: Joi.string().required(),
 		lastname: Joi.string().required(),
 		dateOfBirth: Joi.date()
-			.min(dayjs().subtract(3, 'years').startOf('day').toDate())
+			.max(dayjs().subtract(3, 'years').startOf('day').toDate())
 			.required(),
 		zip: Joi.string().allow(null, ''),
 		image: Joi.string().required(),
