@@ -61,6 +61,9 @@ export const schema = Joi.object({
 				personId: Joi.string().allow(null),
 				age: Joi.number().integer().min(0).max(150).allow(null),
 				zip: Joi.string().min(0).max(10).allow(null, ''),
+			})
+			.messages({
+				'array.min': `Objednávka musí obsahovať aspoň {#limit} vstupenku`,
 			}),
 		email: Joi.string().email().max(255),
 		ticketTypeId: Joi.string()
