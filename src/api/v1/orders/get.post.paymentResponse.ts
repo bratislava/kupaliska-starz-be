@@ -132,18 +132,32 @@ export const workflow = async (
 		}
 
 		if (!paymentResult.isSuccess) {
-			logger.info(
-				`ERROR - ${400} - Payment was not successful- ${JSON.stringify(
-					data
-				)} - ${req.method} - ${req.ip}`
-			)
-			logger.error('PAYMENT - was not successful', req.ip)
+			// https://developers.mygp.global/en/apidocumentations/webpay/http/1.16#section/Annexes-and-addenda/Annex-no.-2-List-of-return-codes
 			if (
-				// PRCODE 14 means "RESULTTEXT":"Duplicate order number" and in this case we should not update order state beacause if it is already paid we don't want to change it
-				parseInt(data.PRCODE, 10) !== 14 ||
+				// PRCODE 35 means "RESULTTEXT":"Vyprsal cas pre zadanie cisla karty. Objednavku nie je mozne dokoncit."
+				parseInt(data.PRCODE, 10) !== 35 ||
 				parseInt(data.SRCODE, 10) !== 0
 			) {
+				logger.warn(
+					`WARNING - ${400} - Session expired when submitting card details- ${JSON.stringify(
+						data
+					)} - ${req.method} - ${req.ip}`
+				)
 				await order.update({ state: ORDER_STATE.FAILED })
+			} else {
+				logger.info(
+					`ERROR - ${400} - Payment was not successful- ${JSON.stringify(
+						data
+					)} - ${req.method} - ${req.ip}`
+				)
+				logger.error('PAYMENT - was not successful', req.ip)
+				if (
+					// PRCODE 14 means "RESULTTEXT":"Duplicate order number" and in this case we should not update order state beacause if it is already paid we don't want to change it
+					parseInt(data.PRCODE, 10) !== 14 ||
+					parseInt(data.SRCODE, 10) !== 0
+				) {
+					await order.update({ state: ORDER_STATE.FAILED })
+				}
 			}
 			return res.redirect(
 				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
