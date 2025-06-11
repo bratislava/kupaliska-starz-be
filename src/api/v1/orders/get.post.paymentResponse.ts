@@ -135,11 +135,22 @@ export const workflow = async (
 			// https://developers.mygp.global/en/apidocumentations/webpay/http/1.16#section/Annexes-and-addenda/Annex-no.-2-List-of-return-codes
 			if (
 				// PRCODE 35 means "RESULTTEXT":"Vyprsal cas pre zadanie cisla karty. Objednavku nie je mozne dokoncit."
-				parseInt(data.PRCODE, 10) !== 35 ||
-				parseInt(data.SRCODE, 10) !== 0
+				parseInt(data.PRCODE, 10) === 35 ||
+				parseInt(data.SRCODE, 10) === 0
 			) {
 				logger.warn(
 					`WARNING - ${400} - Session expired when submitting card details- ${JSON.stringify(
+						data
+					)} - ${req.method} - ${req.ip}`
+				)
+				await order.update({ state: ORDER_STATE.FAILED })
+			} else if (
+				// PRCODE 50 means "RESULTTEXT":"The cardholder canceled the payment"
+				parseInt(data.PRCODE, 10) === 50 ||
+				parseInt(data.SRCODE, 10) === 0
+			) {
+				logger.warn(
+					`WARNING - ${400} - The cardholder canceled the payment- ${JSON.stringify(
 						data
 					)} - ${req.method} - ${req.ip}`
 				)
