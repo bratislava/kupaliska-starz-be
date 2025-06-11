@@ -55,6 +55,7 @@ const passportConfig: IPassportConfig = config.get('passport')
 export const schema = Joi.object({
 	body: Joi.object().keys({
 		tickets: Joi.array()
+			.min(1)
 			.required()
 			.items({
 				personId: Joi.string().allow(null),
