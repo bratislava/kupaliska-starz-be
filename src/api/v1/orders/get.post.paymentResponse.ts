@@ -138,7 +138,7 @@ export const workflow = async (
 				parseInt(data.PRCODE, 10) === 35 ||
 				parseInt(data.SRCODE, 10) === 0
 			) {
-				logger.warn(
+				logger.info(
 					`WARNING - ${400} - Session expired when submitting card details- ${JSON.stringify(
 						data
 					)} - ${req.method} - ${req.ip}`
@@ -149,7 +149,7 @@ export const workflow = async (
 				parseInt(data.PRCODE, 10) === 50 ||
 				parseInt(data.SRCODE, 10) === 0
 			) {
-				logger.warn(
+				logger.info(
 					`WARNING - ${400} - The cardholder canceled the payment- ${JSON.stringify(
 						data
 					)} - ${req.method} - ${req.ip}`
