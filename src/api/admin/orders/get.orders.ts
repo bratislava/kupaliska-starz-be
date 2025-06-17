@@ -70,7 +70,7 @@ export const schema = Joi.object().keys({
 		order: Joi.string()
 			.valid(
 				'orderNumber',
-				'price',
+				'priceWithVat',
 				'state',
 				'discount',
 				'createdAt',
@@ -113,7 +113,7 @@ export const workflow = async (
 		const result = await Order.findAndCountAll({
 			attributes: [
 				'id',
-				'price',
+				'priceWithVat',
 				'discount',
 				'state',
 				'orderNumber',

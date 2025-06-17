@@ -50,10 +50,10 @@ export const workflow = async (
 		}>(
 			`
 			SELECT
-				subq.ttid as "ticketTypeId", ROUND(SUM(subq.priceWithVat), 2) as "amount"
+				subq.ttid as "ticketTypeId", ROUND(SUM(subq."priceWithVat"), 2) as "amount"
 			FROM (
 				SELECT
-					DISTINCT ON (orders.id) orders.id, tickets.id, orders.priceWithVat, "ticketTypes".id as ttid from "ticketTypes"
+					DISTINCT ON (orders.id) orders.id, tickets.id, orders."priceWithVat", "ticketTypes".id as ttid from "ticketTypes"
 				LEFT JOIN tickets ON tickets."ticketTypeId" = "ticketTypes".id AND (tickets."deletedAt" IS NULL)
 				LEFT JOIN profiles ON tickets."profileId" = profiles.id AND (profiles."deletedAt" IS NULL)
 				LEFT JOIN orders ON orders.id = tickets."orderId" AND (orders."deletedAt" IS NULL)
