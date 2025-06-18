@@ -76,8 +76,8 @@ export const workflow = async (
 		const computeRealPriceSql = `
 			CASE
 				WHEN dc.amount IS NULL
-				THEN tickets.priceWithVat
-				ELSE (tickets.priceWithVat * (1 - dc.amount / 100))
+				THEN tickets."priceWithVat"
+				ELSE (tickets."priceWithVat" * (1 - dc.amount / 100))
 			END AS "realPrice"`
 
 		// CASE
@@ -128,7 +128,7 @@ export const workflow = async (
 								(
 									SELECT
 										tickets.id, tickets."orderId", tickets."ticketTypeId",
-										tickets.priceWithVat, tickets."isChildren", count(*) filter (where "visits"."ticketId" is not null) as "numberOfUses",
+										tickets."priceWithVat", tickets."isChildren", count(*) filter (where "visits"."ticketId" is not null) as "numberOfUses",
 										visits."swimmingPoolId"
 									FROM tickets
 									LEFT JOIN

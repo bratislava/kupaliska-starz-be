@@ -95,11 +95,11 @@ export const workflow = async (
 		}>(
 			`
 			SELECT
-				"ticketTypes".id as "ticketTypeId", COUNT(tickets.id) AS "soldTickets", SUM(tickets.priceWithVat) AS "amount"
+				"ticketTypes".id as "ticketTypeId", COUNT(tickets.id) AS "soldTickets", SUM(tickets."priceWithVat") AS "amount"
 			FROM "ticketTypes"
 			INNER JOIN (
 				SELECT
-					tickets.id, tickets.priceWithVat, tickets."ticketTypeId", tickets."profileId"
+					tickets.id, tickets."priceWithVat", tickets."ticketTypeId", tickets."profileId"
 				FROM tickets
 				INNER JOIN (
 					SELECT visits."ticketId" FROM visits
