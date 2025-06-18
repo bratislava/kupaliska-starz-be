@@ -183,13 +183,13 @@ export const workflow = async (
 		let tickets = await sequelize.query<TicketModel>(
 			`
 			SELECT
-				tickets.id, tickets.priceWithVat as "priceWithVat", tickets.vatPercentage as "vatPercentage", tickets."isChildren", tickets."createdAt" as "createdAt", tickets."numberOfVisits" AS "numberOfVisits",
+				tickets.id, tickets."priceWithVat" as "priceWithVat", tickets.vatPercentage as "vatPercentage", tickets."isChildren", tickets."createdAt" as "createdAt", tickets."numberOfVisits" AS "numberOfVisits",
 				profiles.id as "profile.id", profiles.age as "profile.age", profiles.zip as "profile.zip",
 				"ticketTypes".id as "ticketType.id", "ticketTypes".name as "ticketType.name"
 			FROM "ticketTypes"
 			INNER JOIN (
 				SELECT
-					tickets.id, tickets.priceWithVat, tickets.vatPercentage, tickets."isChildren", tickets."createdAt", tickets."ticketTypeId", tickets."profileId", COUNT(visits) as "numberOfVisits"
+					tickets.id, tickets."priceWithVat", tickets.vatPercentage, tickets."isChildren", tickets."createdAt", tickets."ticketTypeId", tickets."profileId", COUNT(visits) as "numberOfVisits"
 				FROM tickets
 				INNER JOIN (
 					SELECT visits."ticketId" FROM visits
