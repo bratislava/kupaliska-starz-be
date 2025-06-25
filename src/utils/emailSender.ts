@@ -74,7 +74,6 @@ export const sendOrderEmail = async (
 	for (const ticket of order.tickets) {
 		ticket.qrCode = await generateQrCodeBuffer(ticket.id, {
 			width: 264,
-			margin: 0,
 		})
 	}
 
