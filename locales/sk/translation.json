@@ -44,6 +44,7 @@
 	"userName": "Meno a priezvisko",
 	"state": "Stav objednávky",
 	"price": "Suma s DPH (EUR)",
+	"priceWithVat": "Suma s DPH (EUR)",
 	"vatPercentage": "Dph (%)",
 	"discount": "Zľava (EUR)",
 	"ticketName": "Typ lístka",
