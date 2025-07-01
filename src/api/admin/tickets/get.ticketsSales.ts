@@ -95,7 +95,6 @@ export const workflow = async (
 		// they are not defined by ID, but by their PRICE and ID (because of ticket types with discounts)
 		const result = await sequelize.query<{
 			priceWithVat: string
-			vatPercentage: string
 			swimmingPoolId: string
 			ticketTypeName: string
 			ticketTypeId: string
@@ -110,7 +109,7 @@ export const workflow = async (
 			FROM
 				(
 					SELECT
-						ROUND(subq."realPrice"::NUMERIC, 2) as "price", subq."ticketTypeId", subq."swimmingPoolId",
+						ROUND(subq."realPrice"::NUMERIC, 2) as "priceWithVat", subq."ticketTypeId", subq."swimmingPoolId",
 						subq."ticketTypeName", subq."isChildren", SUM(subq."numberOfUses"::int) as "numberOfUses",
 						CASE
 							WHEN subq."ticketTypeType" = '${TICKET_TYPE.SEASONAL}'
@@ -166,7 +165,7 @@ export const workflow = async (
 						) AS "tickets"
 					GROUP BY "realPrice", tickets."ticketTypeId"
 				) as "ticketTypes"
-				ON subq.price = "ticketTypes"."realPrice" AND subq."ticketTypeId" = "ticketTypes"."ticketTypeId"
+				ON subq."priceWithVat" = "ticketTypes"."realPrice" AND subq."ticketTypeId" = "ticketTypes"."ticketTypeId"
 			`,
 			{
 				bind: {
@@ -196,7 +195,6 @@ export const workflow = async (
 				} = data
 				const ticketType = find(arr, {
 					priceWithVat: data.priceWithVat,
-					vatPercentage: data.vatPercentage,
 					ticketTypeName: data.ticketTypeName,
 				})
 				if (ticketType) {
@@ -241,8 +239,7 @@ export const workflow = async (
 
 		return res.json({
 			data: map(filteredResponseData, (ticketType: TicketTypeRecord) => {
-				const { priceWithVat, vatPercentage, entryPrice, ...other } =
-					ticketType
+				const { priceWithVat, entryPrice, ...other } = ticketType
 				const finalPrice =
 					Math.round(
 						Number(entryPrice) * ticketType.numberOfUses * 100
@@ -257,7 +254,6 @@ export const workflow = async (
 					cleanPrice:
 						Math.round((finalPrice - commission) * 100) / 100,
 					priceWithVat: Number(priceWithVat),
-					vatPercentage: Number(vatPercentage),
 					entryPrice: Number(entryPrice),
 					...other,
 				}
