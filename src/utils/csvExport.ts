@@ -28,8 +28,8 @@ export const downloadOrdersAsCsv = (
 			value: 'state',
 		},
 		{
-			label: i18next.t('price'),
-			value: 'price',
+			label: i18next.t('priceWithVat'),
+			value: 'priceWithVat',
 		},
 		{
 			label: i18next.t('discount'),
