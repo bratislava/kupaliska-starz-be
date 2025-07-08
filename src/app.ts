@@ -8,6 +8,7 @@ import i18next, { InitOptions } from 'i18next'
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt'
 import { passportJwtSecret } from 'jwks-rsa'
 import helmet from 'helmet'
+import qs from 'qs'
 
 // middlewares
 import errorMiddleware from './middlewares/errorMiddleware'
@@ -39,7 +40,6 @@ import {
 import { readFile } from 'fs/promises'
 import { CognitoStrategy } from './types/models'
 import { httpLogger } from './utils/logger'
-import qs from 'qs'
 
 const passportConfig: IPassportConfig = config.get('passport')
 const i18NextConfig: InitOptions = config.get('i18next')
@@ -117,8 +117,7 @@ i18next
 const app = express()
 
 // error in express https://github.com/expressjs/express/issues/5688
-// because of underlying issue in qs (which express is using) https://github.com/ljharb/qs/issues/450
-// proper solution is to upgrade to express 5
+// because of underlying issue in qs (which express is using) https://github.com/search?q=repo%3Aljharb%2Fqs%20maximum%20index&type=code
 app.set('query parser', (str: string) => qs.parse(str, { arrayLimit: 100 }))
 
 app.use(helmet())
