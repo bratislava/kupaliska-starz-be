@@ -182,6 +182,82 @@ const handleGlobalPaymentsErrorResponse = async (
 		return
 	} else {
 		if (
+			parseInt(data.PRCODE, 10) === 20 ||
+			parseInt(data.SRCODE, 10) === 22
+		) {
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
+			// PRCODE 28 SRCODE 3000 means "RESULTTEXT":"Declined in 3D. Cardholder not authenticated in 3D."
+			parseInt(data.PRCODE, 10) === 28 ||
+			parseInt(data.SRCODE, 10) === 3000
+		) {
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
+			// PRCODE 28 SRCODE 3007 means "RESULTTEXT":"Declined in 3D. Acquirer technical problem. Contact the merchant."
+			parseInt(data.PRCODE, 10) === 28 ||
+			parseInt(data.SRCODE, 10) === 3007
+		) {
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
+			parseInt(data.PRCODE, 10) === 30 ||
+			parseInt(data.SRCODE, 10) === 300
+		) {
+			// Soft decline – issuer requires SCA (Strong Customer Authentication)
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
+			parseInt(data.PRCODE, 10) === 30 ||
+			parseInt(data.SRCODE, 10) === 1002
+		) {
+			// Vydavatel, nebo finanční asociace zamítla autorizaci BEZ udání důvodu
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
+			parseInt(data.PRCODE, 10) === 30 ||
+			parseInt(data.SRCODE, 10) === 9100
+		) {
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
+			parseInt(data.PRCODE, 10) === 30 ||
+			parseInt(data.SRCODE, 10) === 9500
+		) {
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
+			parseInt(data.PRCODE, 10) === 30 ||
+			parseInt(data.SRCODE, 10) === 9900
+		) {
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
 			// PRCODE 35 means "RESULTTEXT":"Vyprsal cas pre zadanie cisla karty. Objednavku nie je mozne dokoncit."
 			parseInt(data.PRCODE, 10) === 35 ||
 			parseInt(data.SRCODE, 10) === 0
