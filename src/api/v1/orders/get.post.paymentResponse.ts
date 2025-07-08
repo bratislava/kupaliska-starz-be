@@ -12,6 +12,7 @@ import { ORDER_STATE } from '../../../utils/enums'
 import { sendOrderEmail } from '../../../utils/emailSender'
 import { FE_ROUTES } from '../../../utils/constants'
 import { payOrderWithNextOrderNumber } from '../../../utils/helpers'
+import { OrderModel } from '../../../db/models/order'
 
 const passwordConfig: IPassportConfig = config.get('passport')
 const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
@@ -132,44 +133,7 @@ export const workflow = async (
 		}
 
 		if (!paymentResult.isSuccess) {
-			// https://developers.mygp.global/en/apidocumentations/webpay/http/1.16#section/Annexes-and-addenda/Annex-no.-2-List-of-return-codes
-			if (
-				// PRCODE 35 means "RESULTTEXT":"Vyprsal cas pre zadanie cisla karty. Objednavku nie je mozne dokoncit."
-				parseInt(data.PRCODE, 10) === 35 ||
-				parseInt(data.SRCODE, 10) === 0
-			) {
-				logger.info(
-					`WARNING - ${400} - Session expired when submitting card details- ${JSON.stringify(
-						data
-					)} - ${req.method} - ${req.ip}`
-				)
-				await order.update({ state: ORDER_STATE.FAILED })
-			} else if (
-				// PRCODE 50 means "RESULTTEXT":"The cardholder canceled the payment"
-				parseInt(data.PRCODE, 10) === 50 ||
-				parseInt(data.SRCODE, 10) === 0
-			) {
-				logger.info(
-					`WARNING - ${400} - The cardholder canceled the payment- ${JSON.stringify(
-						data
-					)} - ${req.method} - ${req.ip}`
-				)
-				await order.update({ state: ORDER_STATE.FAILED })
-			} else {
-				logger.info(
-					`ERROR - ${400} - Payment was not successful- ${JSON.stringify(
-						data
-					)} - ${req.method} - ${req.ip}`
-				)
-				logger.error('PAYMENT - was not successful', req.ip)
-				if (
-					// PRCODE 14 means "RESULTTEXT":"Duplicate order number" and in this case we should not update order state beacause if it is already paid we don't want to change it
-					parseInt(data.PRCODE, 10) !== 14 ||
-					parseInt(data.SRCODE, 10) !== 0
-				) {
-					await order.update({ state: ORDER_STATE.FAILED })
-				}
-			}
+			await handleGlobalPaymentsErrorResponse(data, req, order)
 			return res.redirect(
 				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
 			)
@@ -203,5 +167,124 @@ export const workflow = async (
 		)
 	} catch (error) {
 		return next(error)
+	}
+}
+
+const handleGlobalPaymentsErrorResponse = async (
+	data: any,
+	req: Request,
+	order: OrderModel
+) => {
+	// https://portal.gpwebpay.com/portal/tools/GP_webpay_Seznam_navratovych_kodu_CZ.pdf?locale=cs_CZ
+
+	// PRCODE 14 means "RESULTTEXT":"Duplicate order number" and in this case we should not update order state beacause if it is already paid we don't want to change it
+	if (parseInt(data.PRCODE, 10) === 14 || parseInt(data.SRCODE, 10) === 0) {
+		return
+	} else {
+		if (
+			parseInt(data.PRCODE, 10) === 20 ||
+			parseInt(data.SRCODE, 10) === 22
+		) {
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
+			// PRCODE 28 SRCODE 3000 means "RESULTTEXT":"Declined in 3D. Cardholder not authenticated in 3D."
+			parseInt(data.PRCODE, 10) === 28 ||
+			parseInt(data.SRCODE, 10) === 3000
+		) {
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
+			// PRCODE 28 SRCODE 3007 means "RESULTTEXT":"Declined in 3D. Acquirer technical problem. Contact the merchant."
+			parseInt(data.PRCODE, 10) === 28 ||
+			parseInt(data.SRCODE, 10) === 3007
+		) {
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
+			parseInt(data.PRCODE, 10) === 30 ||
+			parseInt(data.SRCODE, 10) === 300
+		) {
+			// Soft decline – issuer requires SCA (Strong Customer Authentication)
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
+			parseInt(data.PRCODE, 10) === 30 ||
+			parseInt(data.SRCODE, 10) === 1002
+		) {
+			// Vydavatel, nebo finanční asociace zamítla autorizaci BEZ udání důvodu
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
+			parseInt(data.PRCODE, 10) === 30 ||
+			parseInt(data.SRCODE, 10) === 9100
+		) {
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
+			parseInt(data.PRCODE, 10) === 30 ||
+			parseInt(data.SRCODE, 10) === 9500
+		) {
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
+			parseInt(data.PRCODE, 10) === 30 ||
+			parseInt(data.SRCODE, 10) === 9900
+		) {
+			logger.info(
+				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
+					req.ip
+				}`
+			)
+		} else if (
+			// PRCODE 35 means "RESULTTEXT":"Vyprsal cas pre zadanie cisla karty. Objednavku nie je mozne dokoncit."
+			parseInt(data.PRCODE, 10) === 35 ||
+			parseInt(data.SRCODE, 10) === 0
+		) {
+			logger.info(
+				`WARNING - ${400} - Session expired when submitting card details- ${JSON.stringify(
+					data
+				)} - ${req.method} - ${req.ip}`
+			)
+		} else if (
+			// PRCODE 50 means "RESULTTEXT":"The cardholder canceled the payment"
+			parseInt(data.PRCODE, 10) === 50 ||
+			parseInt(data.SRCODE, 10) === 0
+		) {
+			logger.info(
+				`WARNING - ${400} - The cardholder canceled the payment- ${JSON.stringify(
+					data
+				)} - ${req.method} - ${req.ip}`
+			)
+		} else {
+			logger.info(
+				`ERROR - ${400} - Payment was not successful- ${JSON.stringify(
+					data
+				)} - ${req.method} - ${req.ip}`
+			)
+			logger.error('PAYMENT - was not successful', req.ip)
+		}
+		await order.update({ state: ORDER_STATE.FAILED })
 	}
 }

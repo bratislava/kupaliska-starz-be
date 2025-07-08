@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import ErrorBuilder from '../utils/ErrorBuilder'
 import Turnstile, { TurnstileOptions, TurnstileResponse } from 'cf-turnstile'
 import { logger } from '../utils/logger'
+import { ENV } from '../utils/enums'
 
 // inspired from https://github.com/bratislava/nest-city-account/commit/08bdea6c13b7258e9ac1a2cfa33ec9bd66024ec2
 let turnstile:
@@ -23,7 +24,11 @@ if (!process.env.TURNSTILE_SECRET_KEY) {
 
 export default async (req: Request, _res: Response, next: NextFunction) => {
 	try {
-		const result = await turnstile(req.body.token)
+		const result = await turnstile(
+			// when not in production, we use a dummy token (any non-empty string) to bypass the captcha
+			process.env.NODE_ENV === ENV.development ? 'aaaa' : req.body.token
+		)
+
 		if (!result?.success) {
 			throw new ErrorBuilder(400, req.t('error:invalidRecaptcha'))
 		}
