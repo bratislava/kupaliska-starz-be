@@ -8,6 +8,7 @@ import i18next, { InitOptions } from 'i18next'
 import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt'
 import { passportJwtSecret } from 'jwks-rsa'
 import helmet from 'helmet'
+import qs from 'qs'
 
 // middlewares
 import errorMiddleware from './middlewares/errorMiddleware'
@@ -114,6 +115,10 @@ i18next
 	.init({ ...i18NextConfig }) // it has to be copy otherwise is readonly
 
 const app = express()
+
+// error in express https://github.com/expressjs/express/issues/5688
+// because of underlying issue in qs (which express is using) https://github.com/search?q=repo%3Aljharb%2Fqs%20maximum%20index&type=code
+app.set('query parser', (str: string) => qs.parse(str, { arrayLimit: 100 }))
 
 app.use(helmet())
 app.use(cors({ origin: appConfig.corsOrigins, credentials: true }))
