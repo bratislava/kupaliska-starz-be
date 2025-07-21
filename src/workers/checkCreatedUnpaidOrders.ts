@@ -71,7 +71,7 @@ process.on('message', async () => {
 					// if user pays in the middle of this algorithm,
 					// he will get two mails, this will mostly erase this problem,
 					// but not solve it completly and it should happen very rarely.
-					[Op.lte]: new Date(Date.now() - 5 * 60 * 1000),
+					[Op.lte]: new Date(Date.now() - 1 * 60 * 1000),
 				},
 			},
 			include: [
