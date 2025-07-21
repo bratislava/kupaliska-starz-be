@@ -29,7 +29,7 @@ export = {
 			updateAge: process.env.SCHEDULE_UPDATE_AGE || '00 00 23 * * *', // Run update age at 23:00 every day
 			checkCreatedUnpaidOrders:
 				process.env.SCHEDULE_CHECK_CREATED_UNPAID_ORDERS ||
-				'0 */5 * * * *', // check created unpaid orders every 5 minutes
+				'0 */1 * * * *', // check created unpaid orders every 1 minutes
 		},
 	},
 	i18next: <I18nextOptions>{
