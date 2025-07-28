@@ -22,7 +22,7 @@ import defineSwimmingLoggedUser from './swimmingLoggedUser'
 import defineAssociatedSwimmer from './associatedSwimmer'
 import defineSwimmingPoolTicketType from './swimmingPoolTicketType'
 import defineEntryModel from './entry'
-import defineGeneralInformations from './generalInformations'
+import defineGeneralSettings from './generalSettings'
 import defineDiscountCodeModel from './discountCode'
 import defineDiscountCodeTicketTypeModel from './discountCodeTicketType'
 import { logger } from '../../utils/logger'
@@ -79,7 +79,7 @@ const models = {
 	Profile: defineProfile(sequelize),
 	File: defineFile(sequelize),
 	SwimmingPool: defineSwimmingPool(sequelize),
-	GeneralInformations: defineGeneralInformations(sequelize),
+	GeneralSettings: defineGeneralSettings(sequelize),
 }
 
 forEach(models, (value) => {

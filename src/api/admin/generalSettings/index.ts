@@ -4,7 +4,7 @@ import schemaMiddleware from '../../../middlewares/schemaMiddleware'
 import authorizationMiddleware from '../../../middlewares/authorizationMiddleware'
 import { USER_ROLE } from '../../../utils/enums'
 
-import * as PatchGeneralInformations from './patch.generalInformations'
+import * as PatchGeneralSettings from './patch.generalSettings'
 
 const router: Router = Router()
 
@@ -13,6 +13,6 @@ router.patch(
 	'/',
 	passport.authenticate('jwt'),
 	authorizationMiddleware([USER_ROLE.SUPER_ADMIN]),
-	schemaMiddleware(PatchGeneralInformations.schema),
-	PatchGeneralInformations.workflow
+	schemaMiddleware(PatchGeneralSettings.schema),
+	PatchGeneralSettings.workflow
 )
