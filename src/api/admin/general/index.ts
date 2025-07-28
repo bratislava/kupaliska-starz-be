@@ -12,7 +12,7 @@ export default () => router
 router.patch(
 	'/',
 	passport.authenticate('jwt'),
-	authorizationMiddleware([USER_ROLE.SUPER_ADMIN, USER_ROLE.BASIC]),
+	authorizationMiddleware([USER_ROLE.SUPER_ADMIN]),
 	schemaMiddleware(PatchGeneral.schema),
 	PatchGeneral.workflow
 )

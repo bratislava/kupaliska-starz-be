@@ -4,13 +4,18 @@ import ErrorBuilder from '../../../utils/ErrorBuilder'
 
 import Joi from 'joi'
 
+export const generalPatchSchema = {
+	alertText: Joi.string().max(250).allow(null, ''),
+	showAlert: Joi.boolean().required(),
+}
+
 export const schema = Joi.object().keys({
-	body: Joi.object(),
+	body: Joi.object().keys(generalPatchSchema),
 	query: Joi.object(),
-	params: Joi.object().keys({}),
+	params: Joi.object(),
 })
 
-const { GeneralInformation: General } = models
+const { GeneralInformation } = models
 
 export const workflow = async (
 	req: Request,
@@ -18,28 +23,17 @@ export const workflow = async (
 	next: NextFunction
 ) => {
 	try {
-		const general = await General.unscoped().findOne({
-			attributes: [
-				'id',
-				'alertText',
-				'alertTextColor',
-				'alertColor',
-				'seasonTitle',
-				'seasonSubtitle',
-				'isOffSeason',
-				'offSeasonTitle',
-				'offSeasonSubtitle',
-				'createdAt',
-				'updatedAt',
-				'deletedAt',
-			],
-		})
+		const { body } = req
 
-		if (!general) {
+		const generalInformation = await GeneralInformation.findOne()
+
+		if (!generalInformation) {
 			throw new ErrorBuilder(404, req.t('error:generalNotFound'))
 		}
 
-		return res.json(general)
+		await generalInformation.update(body)
+
+		return res.json(generalInformation)
 	} catch (err) {
 		return next(err)
 	}

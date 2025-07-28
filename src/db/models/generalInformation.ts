@@ -77,6 +77,11 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.DATE,
 				allowNull: true,
 			},
+			showAlert: {
+				type: DataTypes.BOOLEAN,
+				allowNull: false,
+				defaultValue: false,
+			},
 		},
 		{
 			paranoid: true,

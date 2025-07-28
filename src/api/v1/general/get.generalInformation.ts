@@ -19,20 +19,7 @@ export const workflow = async (
 ) => {
 	try {
 		const general = await GeneralInformation.findOne({
-			attributes: [
-				'id',
-				'alertText',
-				'alertTextColor',
-				'alertColor',
-				'seasonTitle',
-				'seasonSubtitle',
-				'isOffSeason',
-				'offSeasonTitle',
-				'offSeasonSubtitle',
-				'createdAt',
-				'updatedAt',
-				'deletedAt',
-			],
+			attributes: ['alertText', 'showAlert'],
 		})
 
 		if (!general) {
