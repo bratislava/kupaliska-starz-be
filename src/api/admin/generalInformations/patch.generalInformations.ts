@@ -15,7 +15,7 @@ export const schema = Joi.object().keys({
 	params: Joi.object(),
 })
 
-const { GeneralInformation: GeneralInformations } = models
+const { GeneralInformations } = models
 
 export const workflow = async (
 	req: Request,

@@ -79,7 +79,7 @@ const models = {
 	Profile: defineProfile(sequelize),
 	File: defineFile(sequelize),
 	SwimmingPool: defineSwimmingPool(sequelize),
-	GeneralInformation: defineGeneralInformation(sequelize),
+	GeneralInformations: defineGeneralInformation(sequelize),
 }
 
 forEach(models, (value) => {
