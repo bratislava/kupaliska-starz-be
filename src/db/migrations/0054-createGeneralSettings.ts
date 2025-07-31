@@ -3,36 +3,53 @@ import { checkTableExists } from '../../utils/helpers'
 import DB from '../../db/models'
 
 export async function up(queryInterface: QueryInterface) {
+	const transaction = await DB.transaction()
 	try {
-		const exists = await checkTableExists(
-			queryInterface,
-			'generalInformations'
-		)
+		const exists = await queryInterface.tableExists('generalInformations', {
+			transaction,
+		})
 
 		if (!exists) {
-			return Promise.resolve()
+			return
 		}
 
-		queryInterface.renameTable('generalInformations', 'generalSettings')
+		await queryInterface.renameTable(
+			'generalInformations',
+			'generalSettings',
+			{
+				transaction,
+			}
+		)
 
-		return Promise.resolve()
+		await transaction.commit()
 	} catch (err) {
+		await transaction.rollback()
 		throw err
 	}
 }
 
 export async function down(queryInterface: QueryInterface) {
+	const transaction = await DB.transaction()
 	try {
-		const exists = await checkTableExists(queryInterface, 'generalSettings')
+		const exists = await queryInterface.tableExists('generalInformations', {
+			transaction,
+		})
 
 		if (!exists) {
-			return Promise.resolve()
+			return
 		}
 
-		queryInterface.renameTable('generalSettings', 'generalInformations')
+		await queryInterface.renameTable(
+			'generalSettings',
+			'generalInformations',
+			{
+				transaction,
+			}
+		)
 
-		return Promise.resolve()
+		await transaction.commit()
 	} catch (err) {
+		await transaction.rollback()
 		throw err
 	}
 }

@@ -1,4 +1,4 @@
-import { QueryInterface, DataTypes, Transaction } from 'sequelize'
+import { QueryInterface, DataTypes } from 'sequelize'
 import { checkTableExists } from '../../utils/helpers'
 import DB from '../../db/models'
 
@@ -6,25 +6,26 @@ export async function up(queryInterface: QueryInterface) {
 	const transaction = await DB.transaction()
 
 	try {
-		const exists = await checkTableExists(
-			queryInterface,
-			'generalInformations'
-		)
+		const exists = await queryInterface.tableExists('generalInformations', {
+			transaction,
+		})
 
 		if (!exists) {
-			return Promise.resolve()
+			return
 		}
 		const table = await queryInterface.describeTable('generalInformations')
 
-		queryInterface.changeColumn(
-			'generalInformations',
-			'alertText',
-			{
-				type: DataTypes.STRING(255),
-				allowNull: true,
-			},
-			{ transaction }
-		)
+		if (table.alertText) {
+			await queryInterface.changeColumn(
+				'generalInformations',
+				'alertText',
+				{
+					type: DataTypes.STRING(255),
+					allowNull: true,
+				},
+				{ transaction }
+			)
+		}
 
 		if (!table.showAlert) {
 			await queryInterface.addColumn(
@@ -40,12 +41,8 @@ export async function up(queryInterface: QueryInterface) {
 		}
 
 		await transaction.commit()
-
-		return Promise.resolve()
 	} catch (err) {
-		if (transaction) {
-			await transaction.rollback()
-		}
+		await transaction.rollback()
 		throw err
 	}
 }
@@ -54,17 +51,27 @@ export async function down(queryInterface: QueryInterface) {
 	const transaction = await DB.transaction()
 
 	try {
-		queryInterface.changeColumn(
-			'generalInformations',
-			'alertText',
-			{
-				type: DataTypes.STRING(255),
-				allowNull: false,
-			},
-			{ transaction }
-		)
+		const exists = await queryInterface.tableExists('generalInformations', {
+			transaction,
+		})
+
+		if (!exists) {
+			return
+		}
 
 		const table = await queryInterface.describeTable('generalInformations')
+
+		if (table.alertText) {
+			await queryInterface.changeColumn(
+				'generalInformations',
+				'alertText',
+				{
+					type: DataTypes.STRING(255),
+					allowNull: false,
+				},
+				{ transaction }
+			)
+		}
 
 		if (table.showAlert) {
 			await queryInterface.removeColumn(
@@ -77,12 +84,8 @@ export async function down(queryInterface: QueryInterface) {
 		}
 
 		await transaction.commit()
-
-		return Promise.resolve()
 	} catch (err) {
-		if (transaction) {
-			await transaction.rollback()
-		}
+		await transaction.rollback()
 		throw err
 	}
 }
