@@ -10,7 +10,7 @@ export const schema = Joi.object().keys({
 	params: Joi.object().keys({}),
 })
 
-const { GeneralInformation } = models
+const { GeneralSettings } = models
 
 export const workflow = async (
 	req: Request,
@@ -18,21 +18,8 @@ export const workflow = async (
 	next: NextFunction
 ) => {
 	try {
-		const general = await GeneralInformation.findOne({
-			attributes: [
-				'id',
-				'alertText',
-				'alertTextColor',
-				'alertColor',
-				'seasonTitle',
-				'seasonSubtitle',
-				'isOffSeason',
-				'offSeasonTitle',
-				'offSeasonSubtitle',
-				'createdAt',
-				'updatedAt',
-				'deletedAt',
-			],
+		const general = await GeneralSettings.findOne({
+			attributes: ['alertText', 'showAlert'],
 		})
 
 		if (!general) {

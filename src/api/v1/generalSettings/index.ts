@@ -1,13 +1,13 @@
 import { Router } from 'express'
 import schemaMiddleware from '../../../middlewares/schemaMiddleware'
 
-import * as GetGeneralInformation from './get.generalInformation'
+import * as GetGeneralSettings from './get.generalSettings'
 
 const router: Router = Router()
 
 export default () => router
 router.get(
 	'/',
-	schemaMiddleware(GetGeneralInformation.schema),
-	GetGeneralInformation.workflow
+	schemaMiddleware(GetGeneralSettings.schema),
+	GetGeneralSettings.workflow
 )
