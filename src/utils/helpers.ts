@@ -16,7 +16,7 @@ export const checkTableExists = async (
 	queryInterface: QueryInterface,
 	table: string
 ) => {
-	const tables: any = await queryInterface.showAllTables()
+	const tables = await queryInterface.showAllTables()
 	return tables.find((item: string) => item === table)
 }
 

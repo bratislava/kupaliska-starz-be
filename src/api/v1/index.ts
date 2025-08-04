@@ -7,7 +7,7 @@ import SwimmingLoggedUsersRouter from './swimmingLoggedUsers'
 import AssociatedSwimmersRouter from './associatedSwimmers'
 import TicketTypesRouter from './ticketTypes'
 import ContactRouter from './contact'
-import GeneralInformationsRouter from './general'
+import GeneralSettingsRouter from './generalSettings'
 
 const router = Router()
 
@@ -19,7 +19,7 @@ export default () => {
 	router.use('/associatedSwimmers', AssociatedSwimmersRouter())
 	router.use('/ticketTypes', TicketTypesRouter())
 	router.use('/contact', ContactRouter())
-	router.use('/general', GeneralInformationsRouter())
+	router.use('/generalSettings', GeneralSettingsRouter())
 
 	return router
 }

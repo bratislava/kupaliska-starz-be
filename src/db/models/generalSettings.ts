@@ -4,7 +4,7 @@ import { Sequelize, DataTypes, literal, UUIDV4 } from 'sequelize'
 
 import { DatabaseModel } from '../../types/models'
 
-export class GeneralInformationModel extends DatabaseModel {
+export class GeneralSettingsModel extends DatabaseModel {
 	id: string
 	alertText: string
 	alertTextColor: string
@@ -20,7 +20,7 @@ export class GeneralInformationModel extends DatabaseModel {
 }
 
 export default (sequelize: Sequelize) => {
-	GeneralInformationModel.init(
+	GeneralSettingsModel.init(
 		{
 			id: {
 				type: DataTypes.UUID,
@@ -77,14 +77,19 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.DATE,
 				allowNull: true,
 			},
+			showAlert: {
+				type: DataTypes.BOOLEAN,
+				allowNull: false,
+				defaultValue: false,
+			},
 		},
 		{
 			paranoid: true,
 			timestamps: true,
 			sequelize,
-			modelName: 'generalInformation',
+			modelName: 'generalSettings',
 		}
 	)
 
-	return GeneralInformationModel
+	return GeneralSettingsModel
 }
