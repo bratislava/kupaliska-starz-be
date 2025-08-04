@@ -1,5 +1,5 @@
 import { map, round } from 'lodash'
-import { QueryInterface, QueryOptions } from 'sequelize'
+import { QueryInterface } from 'sequelize'
 import fetch from 'node-fetch'
 import dayjs from 'dayjs'
 import { CityAccountUser } from './cityAccountDto'
@@ -14,10 +14,9 @@ import { OrderModel } from '../db/models/order'
 
 export const checkTableExists = async (
 	queryInterface: QueryInterface,
-	table: string,
-	options?: QueryOptions
+	table: string
 ) => {
-	const tables = await queryInterface.showAllTables(options)
+	const tables = await queryInterface.showAllTables()
 	return tables.find((item: string) => item === table)
 }
 

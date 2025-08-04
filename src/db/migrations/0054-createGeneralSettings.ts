@@ -1,5 +1,4 @@
 import { QueryInterface } from 'sequelize'
-import { checkTableExists } from '../../utils/helpers'
 import DB from '../../db/models'
 
 export async function up(queryInterface: QueryInterface) {
@@ -10,6 +9,7 @@ export async function up(queryInterface: QueryInterface) {
 		})
 
 		if (!exists) {
+			await transaction.rollback()
 			return
 		}
 
@@ -31,11 +31,12 @@ export async function up(queryInterface: QueryInterface) {
 export async function down(queryInterface: QueryInterface) {
 	const transaction = await DB.transaction()
 	try {
-		const exists = await queryInterface.tableExists('generalInformations', {
+		const exists = await queryInterface.tableExists('generalSettings', {
 			transaction,
 		})
 
 		if (!exists) {
+			await transaction.rollback()
 			return
 		}
 

@@ -1,5 +1,4 @@
 import { QueryInterface, DataTypes } from 'sequelize'
-import { checkTableExists } from '../../utils/helpers'
 import DB from '../../db/models'
 
 export async function up(queryInterface: QueryInterface) {
@@ -11,11 +10,12 @@ export async function up(queryInterface: QueryInterface) {
 		})
 
 		if (!exists) {
+			await transaction.rollback()
 			return
 		}
 		const table = await queryInterface.describeTable('generalInformations')
 
-		if (table.alertText) {
+		if ('alertText' in table) {
 			await queryInterface.changeColumn(
 				'generalInformations',
 				'alertText',
@@ -27,7 +27,7 @@ export async function up(queryInterface: QueryInterface) {
 			)
 		}
 
-		if (!table.showAlert) {
+		if (!('showAlert' in table)) {
 			await queryInterface.addColumn(
 				'generalInformations',
 				'showAlert',
@@ -56,12 +56,13 @@ export async function down(queryInterface: QueryInterface) {
 		})
 
 		if (!exists) {
+			await transaction.rollback()
 			return
 		}
 
 		const table = await queryInterface.describeTable('generalInformations')
 
-		if (table.alertText) {
+		if ('alertText' in table) {
 			await queryInterface.changeColumn(
 				'generalInformations',
 				'alertText',
@@ -73,7 +74,7 @@ export async function down(queryInterface: QueryInterface) {
 			)
 		}
 
-		if (table.showAlert) {
+		if ('showAlert' in table) {
 			await queryInterface.removeColumn(
 				'generalInformations',
 				'showAlert',
