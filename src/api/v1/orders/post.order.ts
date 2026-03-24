@@ -2,7 +2,7 @@ import type {
 	ParamsDictionary,
 	Request as CoreRequest,
 } from 'express-serve-static-core'
-import { Request, Response, NextFunction } from 'express'
+import { Response, NextFunction } from 'express'
 import Joi from 'joi'
 import { z } from 'zod'
 import config from 'config'
@@ -34,7 +34,6 @@ import {
 import { TicketModel } from '../../../db/models/ticket'
 import { FE_ROUTES } from '../../../utils/constants'
 import { CityAccountUser } from '../../../utils/cityAccountDto'
-import { emptyParams, emptyQuery, requestParts } from './zodRequestHelpers'
 
 const {
 	SwimmingLoggedUser,
@@ -59,9 +58,10 @@ const appConfig: IAppConfig = config.get('app')
 const passportConfig: IPassportConfig = config.get('passport')
 
 const postOrderTicketSchema = z.object({
-	personId: z.string().nullable().optional(),
+	personId: z.uuid().nullable().optional(),
 	age: z.number().int().min(0).max(150).nullable().optional(),
-	zip: z.union([z.string().max(10), z.null(), z.literal('')]).optional(),
+	zip: z.string().max(10).nullable().optional(),
+	ticketTypeId: z.uuid(),
 })
 
 export const postOrderBodySchema = z.object({
@@ -69,7 +69,7 @@ export const postOrderBodySchema = z.object({
 		message: 'Objednávka musí obsahovať aspoň 1 vstupenku',
 	}),
 	email: z.email().max(255).optional(),
-	agreement: z.literal(true).optional(),
+	agreement: z.boolean().optional(),
 	discountCode: z.string().min(5).max(20).optional(),
 	discountPercent: z.number().optional(),
 	token: z.string().optional(),
@@ -77,10 +77,12 @@ export const postOrderBodySchema = z.object({
 	paymentMethod: z.enum(ORDER_PAYMENT_METHOD_STATE).optional(),
 })
 
-export const postOrderSchema = requestParts({
+export type PostOrderBody = z.infer<typeof postOrderBodySchema>
+
+export const postOrderSchema = z.object({
 	body: postOrderBodySchema,
-	query: emptyQuery,
-	params: emptyParams,
+	query: z.unknown(),
+	params: z.unknown(),
 })
 
 export type PostOrderRequest = z.infer<typeof postOrderSchema>
@@ -89,7 +91,7 @@ export type PostOrderRequest = z.infer<typeof postOrderSchema>
 export type RequestPostOrder = CoreRequest<
 	ParamsDictionary,
 	unknown,
-	z.infer<typeof postOrderBodySchema>
+	PostOrderBody
 >
 
 export const workflowDryRun = async (
