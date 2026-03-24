@@ -1,5 +1,10 @@
+import type {
+	ParamsDictionary,
+	Request as CoreRequest,
+} from 'express-serve-static-core'
 import { Request, Response, NextFunction } from 'express'
 import Joi from 'joi'
+import { z } from 'zod'
 import config from 'config'
 import { Op, Sequelize } from 'sequelize'
 import formUrlEncoded from 'form-urlencoded'
@@ -9,7 +14,7 @@ import { IAppConfig, IPassportConfig } from '../../../types/interfaces'
 import {
 	AccountType,
 	MESSAGE_TYPE,
-	ORDER_PAYMENT_METHOD_STATES,
+	ORDER_PAYMENT_METHOD_STATE,
 	ORDER_STATE,
 } from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
@@ -29,6 +34,7 @@ import {
 import { TicketModel } from '../../../db/models/ticket'
 import { FE_ROUTES } from '../../../utils/constants'
 import { CityAccountUser } from '../../../utils/cityAccountDto'
+import { emptyParams, emptyQuery, requestParts } from './zodRequestHelpers'
 
 const {
 	SwimmingLoggedUser,
@@ -52,35 +58,42 @@ interface GetUser {
 const appConfig: IAppConfig = config.get('app')
 const passportConfig: IPassportConfig = config.get('passport')
 
-export const schema = Joi.object({
-	body: Joi.object().keys({
-		tickets: Joi.array()
-			.min(1)
-			.required()
-			.items({
-				personId: Joi.string().allow(null),
-				age: Joi.number().integer().min(0).max(150).allow(null),
-				zip: Joi.string().min(0).max(10).allow(null, ''),
-			})
-			.messages({
-				'array.min': `Objednávka musí obsahovať aspoň {#limit} vstupenku`,
-			}),
-		email: Joi.string().email().max(255),
-		ticketTypeId: Joi.string()
-			.guid({ version: ['uuidv4'] })
-			.required(),
-		agreement: Joi.boolean().valid(true),
-		discountCode: Joi.string().min(5).max(20),
-		discountPercent: Joi.number(),
-		token: Joi.string(),
-		paymentMethod: Joi.string().valid(...ORDER_PAYMENT_METHOD_STATES),
-	}),
-	query: Joi.object(),
-	params: Joi.object(),
+const postOrderTicketSchema = z.object({
+	personId: z.string().nullable().optional(),
+	age: z.number().int().min(0).max(150).nullable().optional(),
+	zip: z.union([z.string().max(10), z.null(), z.literal('')]).optional(),
 })
 
+export const postOrderBodySchema = z.object({
+	tickets: z.array(postOrderTicketSchema).min(1, {
+		message: 'Objednávka musí obsahovať aspoň 1 vstupenku',
+	}),
+	email: z.email().max(255).optional(),
+	agreement: z.literal(true).optional(),
+	discountCode: z.string().min(5).max(20).optional(),
+	discountPercent: z.number().optional(),
+	token: z.string().optional(),
+	ticketTypeId: z.uuid(),
+	paymentMethod: z.enum(ORDER_PAYMENT_METHOD_STATE).optional(),
+})
+
+export const postOrderSchema = requestParts({
+	body: postOrderBodySchema,
+	query: emptyQuery,
+	params: emptyParams,
+})
+
+export type PostOrderRequest = z.infer<typeof postOrderSchema>
+
+/** Body-typed request; use `CoreRequest` because `Request` from `express` is not generic. */
+export type RequestPostOrder = CoreRequest<
+	ParamsDictionary,
+	unknown,
+	z.infer<typeof postOrderBodySchema>
+>
+
 export const workflowDryRun = async (
-	req: Request,
+	req: RequestPostOrder,
 	res: Response,
 	next: NextFunction
 ) => {
@@ -121,7 +134,7 @@ export const workflowDryRun = async (
 }
 
 export const workflow = async (
-	req: Request,
+	req: RequestPostOrder,
 	res: Response,
 	next: NextFunction
 ) => {
@@ -294,7 +307,7 @@ export const workflow = async (
 
 // Compute price
 const getPrice = async (
-	req: Request,
+	req: RequestPostOrder,
 	ticketTypeId: string,
 	reverseDiscountInPercent: number | undefined
 ) => {
@@ -315,7 +328,7 @@ const getPrice = async (
 	validate(
 		true,
 		ticketType.validTo,
-		Joi.date().min('now'),
+		Joi.date().min(new Date()),
 		req.t('error:ticket.ticketHasExpired'),
 		'ticketHasExpired'
 	)
@@ -399,7 +412,7 @@ const getPrice = async (
 
 const getTicketPrice = async (
 	ticketType: TicketTypeModel,
-	req: Request,
+	req: RequestPostOrder,
 	ticket: any,
 	loggedUserId: string | null,
 	cityAccountData: Partial<CityAccountUser> | null
@@ -423,7 +436,7 @@ const getTicketPrice = async (
  * Get user data from asociate swimmers or users
  */
 const getUser = async (
-	req: Request,
+	req: RequestPostOrder,
 	ticket: any,
 	loggedUserId: string | null,
 	cityAccountData: Partial<CityAccountUser> | null
@@ -607,7 +620,7 @@ const uploadProfilePhotos = async (ticket: TicketModel) => {
 	}
 }
 
-const basicChecks = async (ticketTypeId: string, req: Request) => {
+const basicChecks = async (ticketTypeId: string, req: RequestPostOrder) => {
 	const loggedUserId = getCognitoIdOfLoggedInUser(req)
 
 	const ticketType = await TicketType.findByPk(ticketTypeId)
