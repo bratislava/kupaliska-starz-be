@@ -34,6 +34,8 @@ import {
 import { TicketModel } from '../../../db/models/ticket'
 import { FE_ROUTES } from '../../../utils/constants'
 import { CityAccountUser } from '../../../utils/cityAccountDto'
+import i18next from 'i18next'
+import { DiscountCodeModel } from '../../../db/models/discountCode'
 
 const {
 	SwimmingLoggedUser,
@@ -44,7 +46,7 @@ const {
 	File,
 } = models
 
-interface GetUser {
+interface User {
 	associatedSwimmerId: string | null
 	loggedUserId: string | null
 	email: string
@@ -64,20 +66,25 @@ const postOrderTicketSchema = z.object({
 	ticketTypeId: z.uuid(),
 })
 
-export const postOrderBodySchema = z.object({
+export const postOrderDryRunBodySchema = z.object({
 	tickets: z.array(postOrderTicketSchema).min(1, {
-		message: 'Objednávka musí obsahovať aspoň 1 vstupenku',
+		message: i18next.t('error:ticket.minimumOneTicket'),
 	}),
 	email: z.email().max(255).optional(),
-	agreement: z.boolean().optional(),
 	discountCode: z.string().min(5).max(20).optional(),
 	discountPercent: z.number().optional(),
-	token: z.string().optional(),
-	ticketTypeId: z.uuid(),
-	paymentMethod: z.enum(ORDER_PAYMENT_METHOD_STATE).optional(),
 })
 
+export const postOrderBodySchema = postOrderDryRunBodySchema.extend({
+	agreement: z.boolean({
+		message: i18next.t('error:ticket.agreementMissing'),
+	}),
+	paymentMethod: z.enum(ORDER_PAYMENT_METHOD_STATE),
+})
+
+export type PostOrderTicket = z.infer<typeof postOrderTicketSchema>
 export type PostOrderBody = z.infer<typeof postOrderBodySchema>
+export type PostOrderDryRunBody = z.infer<typeof postOrderDryRunBodySchema>
 
 export const postOrderSchema = z.object({
 	body: postOrderBodySchema,
@@ -85,24 +92,46 @@ export const postOrderSchema = z.object({
 	params: z.unknown(),
 })
 
+export const postOrderDryRunSchema = z.object({
+	body: postOrderDryRunBodySchema,
+	query: z.unknown(),
+	params: z.unknown(),
+})
+
 export type PostOrderRequest = z.infer<typeof postOrderSchema>
+export type PostOrderDryRunRequest = z.infer<typeof postOrderDryRunSchema>
 
 /** Body-typed request; use `CoreRequest` because `Request` from `express` is not generic. */
+export type RequestPostOrderDryRun = CoreRequest<
+	ParamsDictionary,
+	unknown,
+	PostOrderDryRunBody
+>
 export type RequestPostOrder = CoreRequest<
 	ParamsDictionary,
 	unknown,
 	PostOrderBody
 >
 
+type TicketWithTicketType = PostOrderTicket & {
+	ticketType: TicketTypeModel
+}
+
 export const workflowDryRun = async (
-	req: RequestPostOrder,
+	req: RequestPostOrderDryRun,
 	res: Response,
 	next: NextFunction
 ) => {
 	try {
 		const { body } = req
 
-		await basicChecks(body.ticketTypeId, req)
+		const ticketsWithTicketType = await mapTicketTypeToTickets(body.tickets)
+
+		await basicChecks(
+			req,
+			ticketsWithTicketType,
+			100 - (body.discountPercent | 0)
+		)
 
 		// check if there is discount voucher, if yes, throw error
 		// in dry run we don't want to check the discount code, we check for body.discountPercent
@@ -116,7 +145,7 @@ export const workflowDryRun = async (
 
 		const pricing = await getPrice(
 			req,
-			body.ticketTypeId,
+			ticketsWithTicketType,
 			100 - (body.discountPercent | 0)
 		)
 		return res.json({
@@ -143,19 +172,29 @@ export const workflow = async (
 	try {
 		const { body } = req
 
-		await basicChecks(body.ticketTypeId, req)
+		// TODO discount code!!!!!
+		let discountCode: DiscountCodeModel | undefined = undefined
+		// let discountCode = body.discountCode
+		// 	? await getDiscountCode(body.discountCode, ticketType.id)
+		// 	: undefined
+		if (body.discountCode && !discountCode) {
+			throw new ErrorBuilder(404, req.t('error:discountCodeNotValid'))
+		}
 
+		const ticketsWithTicketType = await mapTicketTypeToTickets(body.tickets)
+
+		await basicChecks(
+			req,
+			ticketsWithTicketType,
+			discountCode ? discountCode.getInverseAmount * 100 : undefined
+		)
+
+		// TODO agreement should be checked in schema validation
 		// check agreement
 		if (body.agreement === undefined || body.agreement !== true) {
 			throw new ErrorBuilder(400, req.t('error:ticket.agreementMissing'))
 		}
 
-		const ticketType = await TicketType.findByPk(body.ticketTypeId)
-
-		// check if ticket type exists
-		if (!ticketType) {
-			throw new ErrorBuilder(404, req.t('error:ticketTypeNotFound'))
-		}
 		const loggedUserId = getCognitoIdOfLoggedInUser(req)
 
 		const order = await Order.create({
@@ -168,53 +207,53 @@ export const workflow = async (
 			: null
 
 		// for each instance add unique ticket
-		for (const ticket of body.tickets) {
+		for (const ticketWithTicketType of ticketsWithTicketType) {
 			const user = await getUser(
 				req,
-				ticket,
+				ticketWithTicketType,
 				loggedUserId,
 				cityAccountData
 			)
-			if (ticket.personId === undefined) {
+			if (ticketWithTicketType.personId === undefined) {
 				if (!body.email) {
 					throw new ErrorBuilder(404, req.t('error:emailIsEmpty'))
 				}
 			}
 
 			let ticketPrice = await getTicketPrice(
-				ticketType,
 				req,
-				ticket,
+				ticketWithTicketType,
 				loggedUserId,
 				cityAccountData
 			)
 
-			let isChildren = getIsChildrenForTicketType(user, ticketType)
+			let isChildren = getIsChildrenForTicketType(
+				user,
+				ticketWithTicketType.ticketType
+			)
+
+			// TODO creating ticket should happen after transaction is paid
 			const createdTicket = await createTicketWithProfile(
 				user,
-				ticketType,
+				ticketWithTicketType.ticketType,
 				order.id,
 				isChildren,
 				ticketPrice,
-				ticketType.vatPercentage,
+				ticketWithTicketType.ticketType.vatPercentage,
 				null
 			)
-			if (ticketType.photoRequired) {
+			if (ticketWithTicketType.ticketType.photoRequired) {
 				await uploadProfilePhotos(createdTicket)
 			}
-		}
-		let discountCode = body.discountCode
-			? await getDiscountCode(body.discountCode, ticketType.id)
-			: undefined
-		if (body.discountCode && !discountCode) {
-			throw new ErrorBuilder(404, req.t('error:discountCodeNotValid'))
 		}
 
 		const pricing = await getPrice(
 			req,
-			body.ticketTypeId,
+			ticketsWithTicketType,
+			// TODO discount code!!!!!
 			discountCode ? discountCode.getInverseAmount * 100 : undefined
 		)
+		// TODO discount code!!!!!
 		if (discountCode) {
 			await discountCode.update({
 				usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
@@ -226,10 +265,13 @@ export const workflow = async (
 		await order.update({
 			priceWithVat: orderPriceWithVat,
 			discount: discountCode ? discount : 0,
+			// TODO discount code!!!!!
 			discountCodeId: discountCode ? discountCode.id : undefined,
 		})
 
+		// TODO discount code!!!!!
 		if (discountCode && discountCode.amount === 100) {
+			// refactor this - extract to separate function that can be used both here and in get.post.paymentResponse.ts
 			await payOrderWithNextOrderNumber(order)
 			const orderAccessToken = await createJwt(
 				{
@@ -241,6 +283,7 @@ export const workflow = async (
 				}
 			)
 
+			// we already have order, so we don't need to fetch it again
 			const orderResult = await Order.findOne({
 				where: {
 					orderNumber: {
@@ -308,89 +351,25 @@ export const workflow = async (
 }
 
 // Compute price
+// TODO refactor to not use req parameter
 const getPrice = async (
-	req: RequestPostOrder,
-	ticketTypeId: string,
+	req: RequestPostOrder | RequestPostOrderDryRun,
+	ticketsWithTicketType: TicketWithTicketType[],
 	reverseDiscountInPercent: number | undefined
 ) => {
-	const { body } = req
 	let orderPrice = 0
 	let discount = 0
 
 	const loggedUserId = getCognitoIdOfLoggedInUser(req)
-
-	const ticketType = await TicketType.findByPk(ticketTypeId)
-
-	// check if ticket type exists
-	if (!ticketType) {
-		throw new ErrorBuilder(404, req.t('error:ticketTypeNotFound'))
-	}
-
-	// user cannot buy a ticket after its expiration
-	validate(
-		true,
-		ticketType.validTo,
-		Joi.date().min(new Date()),
-		req.t('error:ticket.ticketHasExpired'),
-		'ticketHasExpired'
-	)
-
 	const cityAccountData = req.headers.authorization
 		? await getCityAccountData(req.headers.authorization)
 		: null
 
-	// validate number of children
-	let numberOfChildren = 0
-	for (const ticket of body.tickets) {
-		const user = await getUser(req, ticket, loggedUserId, cityAccountData)
-		if (getIsChildrenForTicketType(user, ticketType)) {
-			numberOfChildren += 1
-		}
-		if (
-			ticketType.nameRequired &&
-			user.cityAccountType &&
-			user.cityAccountType !== AccountType.FO
-		) {
-			throw new ErrorBuilder(
-				400,
-				req.t('error:ticket.userNotAllowedTicketType')
-			)
-		}
-	}
-
-	// children allowed rules
-	if (ticketType.childrenAllowed) {
-		validate(
-			true,
-			numberOfChildren,
-			Joi.number().max(ticketType.childrenMaxNumber),
-			req.t('error:ticket.numberOfChildrenExceeded'),
-			'numberOfChildrenExceeded'
-		)
-		const numberOfAdults = body.tickets.length - numberOfChildren
-		// minimum is one adult
-		if (numberOfAdults < 1) {
-			throw new ErrorBuilder(400, req.t('error:ticket.minimumIsOneAdult'))
-		}
-		// if discount in seasonpass, only for one user
-		if (
-			numberOfAdults > 1 &&
-			reverseDiscountInPercent &&
-			reverseDiscountInPercent !== 100
-		) {
-			throw new ErrorBuilder(
-				400,
-				req.t('error:ticket.discountOnlyForOneUser')
-			)
-		}
-	}
-
 	//price computation
-	for (const ticket of body.tickets) {
+	for (const ticketWithTicketType of ticketsWithTicketType) {
 		const ticketPrice = await getTicketPrice(
-			ticketType,
 			req,
-			ticket,
+			ticketWithTicketType,
 			loggedUserId,
 			cityAccountData
 		)
@@ -408,18 +387,21 @@ const getPrice = async (
 	return {
 		orderPriceWithVat: Math.round(orderPrice * 100) / 100,
 		discount: Math.round(discount * 100) / 100,
-		numberOfChildren: numberOfChildren,
 	}
 }
 
+// TODO refactor to not use req parameter
 const getTicketPrice = async (
-	ticketType: TicketTypeModel,
-	req: RequestPostOrder,
-	ticket: any,
+	req: RequestPostOrder | RequestPostOrderDryRun,
+	ticket: PostOrderTicket,
 	loggedUserId: string | null,
 	cityAccountData: Partial<CityAccountUser> | null
 ) => {
 	const user = await getUser(req, ticket, loggedUserId, cityAccountData)
+
+	const ticketType = await TicketType.findByPk(ticket.ticketTypeId)
+	// !!!!!!!
+	// TODO ticketType can be null but function findByPk doesn't look like it is returning it, test if `findByPk` returns null and check code behavior
 	let isChildren = getIsChildrenForTicketType(user, ticketType)
 	let ticketPriceWithVat = ticketType.priceWithVat
 
@@ -434,15 +416,16 @@ const getTicketPrice = async (
 	return ticketPriceWithVat
 }
 
+// TODO refactor to not use req parameter
 /**
  * Get user data from asociate swimmers or users
  */
 const getUser = async (
-	req: RequestPostOrder,
+	req: RequestPostOrder | RequestPostOrderDryRun,
 	ticket: any,
 	loggedUserId: string | null,
 	cityAccountData: Partial<CityAccountUser> | null
-): Promise<GetUser> => {
+): Promise<User> => {
 	const { body } = req
 	if (ticket.personId === undefined) {
 		if (body.email) {
@@ -534,7 +517,7 @@ const getUser = async (
 }
 
 const getIsChildrenForTicketType = (
-	user: GetUser,
+	user: User,
 	ticketType: TicketTypeModel
 ) => {
 	let isChildren = false
@@ -553,7 +536,7 @@ const getIsChildrenForTicketType = (
  * Persist ticket with profile and his children. Also save profile IDs to the ticket object for later use when uploading profile photos.
  */
 const createTicketWithProfile = async (
-	user: GetUser,
+	user: User,
 	ticketType: TicketTypeModel,
 	orderId: string,
 	isChildren: boolean,
@@ -622,25 +605,114 @@ const uploadProfilePhotos = async (ticket: TicketModel) => {
 	}
 }
 
-const basicChecks = async (ticketTypeId: string, req: RequestPostOrder) => {
+// TODO refactor to not use req parameter
+const basicChecks = async (
+	req: RequestPostOrder | RequestPostOrderDryRun,
+	ticketsWithTicketType: TicketWithTicketType[],
+	reverseDiscountInPercent: number
+) => {
 	const loggedUserId = getCognitoIdOfLoggedInUser(req)
 
-	const ticketType = await TicketType.findByPk(ticketTypeId)
-
-	if (!ticketType) {
-		throw new ErrorBuilder(404, req.t('error:ticket.notFoundTicketType'))
-	}
-
-	// check ticket type and logged user
-	if (ticketType.nameRequired && !loggedUserId) {
-		throw new ErrorBuilder(
-			400,
-			req.t('error:ticket.notLoggedUserForTicket')
+	ticketsWithTicketType.forEach((ticketWithTicketType) => {
+		if (!ticketWithTicketType.ticketType) {
+			throw new ErrorBuilder(404, req.t('error:ticketTypeNotFound'))
+		}
+		if (ticketWithTicketType.ticketType.nameRequired && !loggedUserId) {
+			throw new ErrorBuilder(
+				400,
+				req.t('error:ticket.notLoggedUserForTicket')
+			)
+		}
+		validate(
+			true,
+			ticketWithTicketType.ticketType.validTo,
+			Joi.date().min(new Date()),
+			req.t('error:ticket.ticketHasExpired'),
+			'ticketHasExpired'
 		)
-	}
+	})
 
 	// check maximum tickets
-	if (req.body.tickets.length > appConfig.maxTicketPurchaseLimit) {
+	if (ticketsWithTicketType.length > appConfig.maxTicketPurchaseLimit) {
 		throw new ErrorBuilder(400, req.t('error:ticket.maxtTicketsPerOrder'))
 	}
+
+	const cityAccountData = req.headers.authorization
+		? await getCityAccountData(req.headers.authorization)
+		: null
+
+	// validate number of children
+	let numberOfChildren = 0
+	for (const ticketWithTicketType of ticketsWithTicketType) {
+		const user = await getUser(
+			req,
+			ticketWithTicketType,
+			loggedUserId,
+			cityAccountData
+		)
+		if (getIsChildrenForTicketType(user, ticketWithTicketType.ticketType)) {
+			numberOfChildren += 1
+		}
+		if (
+			ticketWithTicketType.ticketType.nameRequired &&
+			user.cityAccountType &&
+			user.cityAccountType !== AccountType.FO
+		) {
+			throw new ErrorBuilder(
+				400,
+				req.t('error:ticket.userNotAllowedTicketType')
+			)
+		}
+		// children allowed rules
+		if (ticketWithTicketType.ticketType.childrenAllowed) {
+			validate(
+				true,
+				numberOfChildren,
+				Joi.number().max(
+					ticketWithTicketType.ticketType.childrenMaxNumber
+				),
+				req.t('error:ticket.numberOfChildrenExceeded'),
+				'numberOfChildrenExceeded'
+			)
+		}
+		const numberOfAdults = ticketsWithTicketType.length - numberOfChildren
+		// minimum is one adult
+		if (numberOfAdults < 1) {
+			throw new ErrorBuilder(400, req.t('error:ticket.minimumIsOneAdult'))
+		}
+		// if discount in seasonpass, only for one user
+		if (
+			numberOfAdults > 1 &&
+			reverseDiscountInPercent &&
+			reverseDiscountInPercent !== 100
+		) {
+			throw new ErrorBuilder(
+				400,
+				req.t('error:ticket.discountOnlyForOneUser')
+			)
+		}
+	}
+}
+async function mapTicketTypeToTickets(tickets: PostOrderTicket[]) {
+	const ticketTypeIds = Array.from(
+		new Set(tickets.map((ticket) => ticket.ticketTypeId))
+	)
+
+	const ticketTypes = await TicketType.findAll({
+		where: {
+			id: {
+				[Op.in]: ticketTypeIds,
+			},
+		},
+	})
+
+	const ticketsWithTicketType = tickets.map((ticket) => {
+		return {
+			...ticket,
+			ticketType: ticketTypes.find(
+				(ticketType) => ticketType.id === ticket.ticketTypeId
+			),
+		}
+	})
+	return ticketsWithTicketType
 }

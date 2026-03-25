@@ -24,6 +24,7 @@
 	"emailIsEmpty": "Nonregistered user need to have email",
 	"ticket": {
 		"agreementMissing": "Agreement missing",
+		"minimumOneTicket": "Objednávka musí obsahovať aspoň 1 vstupenku",
 		"minmumIsOneAdult": "Minimálne jeden dospelácky",
 		"checkoutAfterAllowedTime": "Výstup vykonaný po čase povoleného pobytu",
 		"checkoutTicketDurationExpired": "Výstup vykonaný po uplynutí času pobytu",
@@ -45,7 +46,6 @@
 		"ticketHasExpired": "Lístok nie je možné kúpiť po jeho expirácii",
 		"maxtTicketsPerOrder": "Maximálny počet lístkov na objednávke je 10",
 		"notLoggedUserForTicket": "Pre kúpu tohoto lístku musíte byť prihlásený",
-		"notFoundTicketType": "Typ lístka nenájdený",
 		"minimumIsOneAdult": "Súčasťou lístka musí byť aspoň 1 dospelý",
 		"discountOnlyForOneUser": "Zľavový kód môže byť uplatnený iba pre jednu dospelú osobu, odstránte prosím ostatné dospelé osoby z objednávky."
 	},

@@ -2,12 +2,13 @@ import { Request, Response, NextFunction } from 'express'
 import { ZodType, ZodError } from 'zod'
 import { StatusCodes } from 'http-status-codes'
 
-export function validateData(schema: ZodType) {
-	return (req: Request, res: Response, next: NextFunction) => {
+export default (schema: ZodType) =>
+	(req: Request, res: Response, next: NextFunction) => {
 		try {
 			schema.parse(req.body)
 			next()
 		} catch (error) {
+			console.log('error', error)
 			if (error instanceof ZodError) {
 				const errorMessages = error.issues.map((issue) => ({
 					message: `${issue.path.join('.')} is ${issue.message}`,
@@ -23,4 +24,3 @@ export function validateData(schema: ZodType) {
 			}
 		}
 	}
-}
