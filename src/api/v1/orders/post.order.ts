@@ -143,7 +143,7 @@ export const workflowDryRun = async (
 			)
 		}
 
-		const pricing = await getPrice(
+		const pricing = await getOrderPrice(
 			req,
 			ticketsWithTicketType,
 			100 - (body.discountPercent | 0)
@@ -247,7 +247,7 @@ export const workflow = async (
 			}
 		}
 
-		const pricing = await getPrice(
+		const pricing = await getOrderPrice(
 			req,
 			ticketsWithTicketType,
 			// TODO discount code!!!!!
@@ -352,7 +352,7 @@ export const workflow = async (
 
 // Compute price
 // TODO refactor to not use req parameter
-const getPrice = async (
+const getOrderPrice = async (
 	req: RequestPostOrder | RequestPostOrderDryRun,
 	ticketsWithTicketType: TicketWithTicketType[],
 	reverseDiscountInPercent: number | undefined
@@ -693,7 +693,7 @@ const basicChecks = async (
 		}
 	}
 }
-async function mapTicketTypeToTickets(tickets: PostOrderTicket[]) {
+const mapTicketTypeToTickets = async (tickets: PostOrderTicket[]) => {
 	const ticketTypeIds = Array.from(
 		new Set(tickets.map((ticket) => ticket.ticketTypeId))
 	)
