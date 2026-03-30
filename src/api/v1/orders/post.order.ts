@@ -129,16 +129,6 @@ export const workflowDryRun = async (
 
 		const reverseDiscountInPercent = 100 - (body.discountPercent | 0)
 
-		// check if there is discount voucher, if yes, throw error
-		// in dry run we don't want to check the discount code, we check for body.discountPercent
-		// TODO refactor FE and this to use discount code in dry run as well
-		if (body.discountCode) {
-			throw new ErrorBuilder(
-				404,
-				req.t('error:checkDiscoundCodeNotAllowed')
-			)
-		}
-
 		const cognitoId = getCognitoIdOfLoggedInUser(req)
 
 		// why is this not throwing error when in 'getTicketsAndPricing' email is required and we are sending possible undefined email?
