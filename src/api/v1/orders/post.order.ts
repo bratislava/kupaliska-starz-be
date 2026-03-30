@@ -113,7 +113,7 @@ export type RequestPostOrder = CoreRequest<
 	PostOrderBody
 >
 
-type TicketWithTicketType = PostOrderTicket & {
+type TicketWithAdditionalProperties = PostOrderTicket & {
 	ticketType: TicketTypeModel
 	isChildren: boolean
 	user: User
@@ -127,24 +127,7 @@ export const workflowDryRun = async (
 	try {
 		const { body } = req
 
-		const cognitoId = getCognitoIdOfLoggedInUser(req)
-		const cityAccountData = req.headers.authorization
-			? await getCityAccountData(req.headers.authorization)
-			: null
-
-		const mappedTickets = await mapPropertiesToTickets(
-			req,
-			body.tickets,
-			cognitoId,
-			cityAccountData
-		)
-
-		await basicChecks(
-			req,
-			cognitoId,
-			mappedTickets,
-			100 - (body.discountPercent | 0)
-		)
+		const reverseDiscountInPercent = 100 - (body.discountPercent | 0)
 
 		// check if there is discount voucher, if yes, throw error
 		// in dry run we don't want to check the discount code, we check for body.discountPercent
@@ -156,9 +139,11 @@ export const workflowDryRun = async (
 			)
 		}
 
-		const pricing = await getOrderPrice(
-			mappedTickets,
-			100 - (body.discountPercent | 0)
+		const { pricing } = await getTicketsAndPricing(
+			req,
+			body.tickets,
+			reverseDiscountInPercent,
+			body.email
 		)
 		return res.json({
 			data: {
@@ -184,93 +169,31 @@ export const workflow = async (
 	try {
 		const { body } = req
 
-		const cognitoId = getCognitoIdOfLoggedInUser(req)
-		const cityAccountData = req.headers.authorization
-			? await getCityAccountData(req.headers.authorization)
-			: null
-
-		const mappedTickets = await mapPropertiesToTickets(
-			req,
-			body.tickets,
-			cognitoId,
-			cityAccountData
-		)
-
 		// TODO discount code!!!!!
 		let discountCode: DiscountCodeModel | undefined = undefined
 		// let discountCode = body.discountCode
 		// 	? await getDiscountCode(body.discountCode, ticketType.id)
 		// 	: undefined
 		if (body.discountCode && !discountCode) {
-			throw new ErrorBuilder(404, req.t('error:discountCodeNotValid'))
+			throw new ErrorBuilder(404, i18next.t('error:discountCodeNotValid'))
 		}
 
-		await basicChecks(
+		const reverseDiscountInPercent = discountCode
+			? discountCode.getInverseAmount * 100
+			: undefined
+
+		const { mappedTickets, pricing } = await getTicketsAndPricing(
 			req,
-			cognitoId,
-			mappedTickets,
-			discountCode ? discountCode.getInverseAmount * 100 : undefined
+			body.tickets,
+			reverseDiscountInPercent,
+			body.email
 		)
 
-		// TODO agreement should be checked in schema validation
-		// check agreement
-		if (body.agreement === undefined || body.agreement !== true) {
-			throw new ErrorBuilder(400, req.t('error:ticket.agreementMissing'))
-		}
-
-		const order = await Order.create({
-			priceWithVat: 0,
-			state: ORDER_STATE.CREATED,
-			orderNumber: new Date().getTime(),
-		})
-
-		// for each instance add unique ticket
-		for (const ticketWithTicketType of mappedTickets) {
-			if (ticketWithTicketType.personId === undefined) {
-				if (!body.email) {
-					throw new ErrorBuilder(404, req.t('error:emailIsEmpty'))
-				}
-			}
-
-			const ticketPrice = await getTicketPrice(
-				ticketWithTicketType.isChildren,
-				ticketWithTicketType.ticketType
-			)
-
-			// TODO creating ticket should happen after transaction is paid
-			const createdTicket = await createTicketWithProfile(
-				ticketWithTicketType.user,
-				ticketWithTicketType.ticketType,
-				order.id,
-				ticketWithTicketType.isChildren,
-				ticketPrice,
-				ticketWithTicketType.ticketType.vatPercentage
-			)
-			if (ticketWithTicketType.ticketType.photoRequired) {
-				await uploadProfilePhotos(createdTicket)
-			}
-		}
-
-		const pricing = await getOrderPrice(
+		const order = await createAndProcessOrder(
 			mappedTickets,
-			// TODO discount code!!!!!
-			discountCode ? discountCode.getInverseAmount * 100 : undefined
+			discountCode,
+			pricing
 		)
-		// TODO discount code!!!!!
-		if (discountCode) {
-			await discountCode.update({
-				usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
-			})
-		}
-		const orderPriceWithVat = pricing.orderPriceWithVat
-		const discount = pricing.discount
-
-		await order.update({
-			priceWithVat: orderPriceWithVat,
-			discount: discountCode ? discount : 0,
-			// TODO discount code!!!!!
-			discountCodeId: discountCode ? discountCode.id : undefined,
-		})
 
 		// TODO discount code!!!!!
 		if (discountCode && discountCode.amount === 100) {
@@ -328,17 +251,17 @@ export const workflow = async (
 
 // Compute price
 const getOrderPrice = async (
-	ticketsWithTicketType: TicketWithTicketType[],
+	ticketsWithAdditionalProperties: TicketWithAdditionalProperties[],
 	reverseDiscountInPercent: number | undefined
 ) => {
 	let orderPrice = 0
 	let discount = 0
 
 	//price computation
-	for (const ticketWithTicketType of ticketsWithTicketType) {
+	for (const ticketWithAdditionalProperties of ticketsWithAdditionalProperties) {
 		const ticketPrice = await getTicketPrice(
-			ticketWithTicketType.isChildren,
-			ticketWithTicketType.ticketType
+			ticketWithAdditionalProperties.isChildren,
+			ticketWithAdditionalProperties.ticketType
 		)
 
 		let totals = { newTicketsPrice: ticketPrice, discount: discount }
@@ -357,7 +280,6 @@ const getOrderPrice = async (
 	}
 }
 
-// TODO refactor to not use req parameter
 const getTicketPrice = async (
 	isChildren: boolean,
 	ticketType: TicketTypeModel
@@ -566,8 +488,9 @@ const uploadProfilePhotos = async (ticket: TicketModel) => {
 const basicChecks = async (
 	req: RequestPostOrder | RequestPostOrderDryRun,
 	cognitoId: string,
-	ticketsWithTicketType: TicketWithTicketType[],
-	reverseDiscountInPercent: number
+	ticketsWithTicketType: TicketWithAdditionalProperties[],
+	reverseDiscountInPercent: number,
+	email: string
 ) => {
 	const numberOfChildren = ticketsWithTicketType.filter(
 		(ticketWithTicketType) => ticketWithTicketType.isChildren
@@ -634,6 +557,11 @@ const basicChecks = async (
 				'numberOfChildrenExceeded'
 			)
 		}
+		if (ticketWithTicketType.personId === undefined) {
+			if (!email) {
+				throw new ErrorBuilder(404, req.t('error:emailIsEmpty'))
+			}
+		}
 	})
 }
 const mapPropertiesToTickets = async (
@@ -683,4 +611,84 @@ const mapPropertiesToTickets = async (
 		})
 	)
 	return ticketsWithTicketType
+}
+const getTicketsAndPricing = async (
+	req: RequestPostOrder | RequestPostOrderDryRun,
+	tickets: PostOrderTicket[],
+	reverseDiscountInPercent: number,
+	email: string
+) => {
+	const cognitoId = getCognitoIdOfLoggedInUser(req)
+	const cityAccountData = req.headers.authorization
+		? await getCityAccountData(req.headers.authorization)
+		: null
+
+	const mappedTickets = await mapPropertiesToTickets(
+		req,
+		tickets,
+		cognitoId,
+		cityAccountData
+	)
+
+	await basicChecks(
+		req,
+		cognitoId,
+		mappedTickets,
+		reverseDiscountInPercent,
+		email
+	)
+
+	const pricing = await getOrderPrice(mappedTickets, reverseDiscountInPercent)
+	return { mappedTickets, pricing }
+}
+async function createAndProcessOrder(
+	mappedTickets: TicketWithAdditionalProperties[],
+	discountCode: DiscountCodeModel,
+	pricing: { orderPriceWithVat: number; discount: number }
+) {
+	const order = await Order.create({
+		priceWithVat: 0,
+		state: ORDER_STATE.CREATED,
+		orderNumber: new Date().getTime(),
+	})
+
+	// for each instance add unique ticket
+	for (const ticketWithTicketType of mappedTickets) {
+		const ticketPrice = await getTicketPrice(
+			ticketWithTicketType.isChildren,
+			ticketWithTicketType.ticketType
+		)
+
+		// TODO creating ticket should happen after transaction is paid,
+		// probably there will be problem with age of users,
+		// should we take age from user when order is created or when it is paid?
+		const createdTicket = await createTicketWithProfile(
+			ticketWithTicketType.user,
+			ticketWithTicketType.ticketType,
+			order.id,
+			ticketWithTicketType.isChildren,
+			ticketPrice,
+			ticketWithTicketType.ticketType.vatPercentage
+		)
+		if (ticketWithTicketType.ticketType.photoRequired) {
+			await uploadProfilePhotos(createdTicket)
+		}
+	}
+
+	// TODO: we should update discount code after order is paid
+	if (discountCode) {
+		await discountCode.update({
+			usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
+		})
+	}
+	const orderPriceWithVat = pricing.orderPriceWithVat
+	const discount = pricing.discount
+
+	await order.update({
+		priceWithVat: orderPriceWithVat,
+		discount: discountCode ? discount : 0,
+		// TODO discount code!!!!!
+		discountCodeId: discountCode ? discountCode.id : undefined,
+	})
+	return order
 }
