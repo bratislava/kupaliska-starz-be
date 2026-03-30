@@ -25,9 +25,6 @@ export class TicketModel extends DatabaseModel {
 	ticketTypeId: string
 	order: OrderModel
 	orderId: string
-	parentTicket: TicketModel
-	parentTicketId: string
-	children: TicketModel[]
 	entries: EntryModel[]
 	todaysEntries: EntryModel[]
 	numberOfVisits: number
@@ -212,13 +209,6 @@ export default (sequelize: Sequelize) => {
 			},
 			as: 'order',
 		})
-		TicketModel.belongsTo(models.Ticket, {
-			foreignKey: {
-				name: 'parentTicketId',
-				allowNull: true,
-			},
-			as: 'parentTicket',
-		})
 		TicketModel.belongsTo(models.TicketType, {
 			foreignKey: {
 				name: 'ticketTypeId',
@@ -227,13 +217,6 @@ export default (sequelize: Sequelize) => {
 			as: 'ticketType',
 		})
 
-		TicketModel.hasMany(models.Ticket, {
-			foreignKey: {
-				name: 'parentTicketId',
-				allowNull: true,
-			},
-			as: 'children',
-		})
 		TicketModel.hasMany(models.Entry, {
 			foreignKey: {
 				name: 'ticketId',

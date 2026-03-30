@@ -244,8 +244,7 @@ export const workflow = async (
 				order.id,
 				ticketWithTicketType.isChildren,
 				ticketPrice,
-				ticketWithTicketType.ticketType.vatPercentage,
-				null
+				ticketWithTicketType.ticketType.vatPercentage
 			)
 			if (ticketWithTicketType.ticketType.photoRequired) {
 				await uploadProfilePhotos(createdTicket)
@@ -501,8 +500,7 @@ const createTicketWithProfile = async (
 	orderId: string,
 	isChildren: boolean,
 	ticketPriceWithVat: number,
-	vatPercentage: number,
-	parentTicketId: null | string
+	vatPercentage: number
 ) => {
 	const profileId = uuidv4()
 	// this was used in the now commented out uploadProfilePhotos - since that one was kept in code keeping this as well
@@ -514,7 +512,6 @@ const createTicketWithProfile = async (
 			orderId,
 			priceWithVat: ticketPriceWithVat,
 			vatPercentage: vatPercentage,
-			parentTicketId: parentTicketId,
 			remainingEntries: ticketType.entriesNumber,
 			swimmingLoggedUserId: user.loggedUserId,
 			associatedSwimmerId: user.associatedSwimmerId,

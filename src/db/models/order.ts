@@ -26,7 +26,6 @@ export class OrderModel extends DatabaseModel {
 	state: ORDER_STATE
 	// foreign
 	tickets: TicketModel[]
-	parentTicket: TicketModel
 	paymentOrder: PaymentOrderModel
 	discountCodeId: string
 	discountCode: DiscountCodeModel
@@ -169,21 +168,6 @@ export default (sequelize: Sequelize) => {
 				allowNull: false,
 			},
 			as: 'tickets',
-		})
-
-		OrderModel.hasOne(models.Ticket, {
-			foreignKey: {
-				name: 'orderId',
-				allowNull: false,
-			},
-			scope: {
-				where: {
-					parentTicketId: {
-						[Op.is]: null,
-					},
-				},
-			},
-			as: 'parentTicket',
 		})
 
 		OrderModel.hasOne(models.PaymentOrder, {
