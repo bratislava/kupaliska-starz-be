@@ -115,6 +115,8 @@ export type RequestPostOrder = CoreRequest<
 
 type TicketWithTicketType = PostOrderTicket & {
 	ticketType: TicketTypeModel
+	isChildren: boolean
+	user: User
 }
 
 export const workflowDryRun = async (
@@ -125,11 +127,22 @@ export const workflowDryRun = async (
 	try {
 		const { body } = req
 
-		const ticketsWithTicketType = await mapTicketTypeToTickets(body.tickets)
+		const cognitoId = getCognitoIdOfLoggedInUser(req)
+		const cityAccountData = req.headers.authorization
+			? await getCityAccountData(req.headers.authorization)
+			: null
+
+		const mappedTickets = await mapPropertiesToTickets(
+			req,
+			body.tickets,
+			cognitoId,
+			cityAccountData
+		)
 
 		await basicChecks(
 			req,
-			ticketsWithTicketType,
+			cognitoId,
+			mappedTickets,
 			100 - (body.discountPercent | 0)
 		)
 
@@ -144,8 +157,7 @@ export const workflowDryRun = async (
 		}
 
 		const pricing = await getOrderPrice(
-			req,
-			ticketsWithTicketType,
+			mappedTickets,
 			100 - (body.discountPercent | 0)
 		)
 		return res.json({
@@ -172,6 +184,18 @@ export const workflow = async (
 	try {
 		const { body } = req
 
+		const cognitoId = getCognitoIdOfLoggedInUser(req)
+		const cityAccountData = req.headers.authorization
+			? await getCityAccountData(req.headers.authorization)
+			: null
+
+		const mappedTickets = await mapPropertiesToTickets(
+			req,
+			body.tickets,
+			cognitoId,
+			cityAccountData
+		)
+
 		// TODO discount code!!!!!
 		let discountCode: DiscountCodeModel | undefined = undefined
 		// let discountCode = body.discountCode
@@ -181,11 +205,10 @@ export const workflow = async (
 			throw new ErrorBuilder(404, req.t('error:discountCodeNotValid'))
 		}
 
-		const ticketsWithTicketType = await mapTicketTypeToTickets(body.tickets)
-
 		await basicChecks(
 			req,
-			ticketsWithTicketType,
+			cognitoId,
+			mappedTickets,
 			discountCode ? discountCode.getInverseAmount * 100 : undefined
 		)
 
@@ -195,49 +218,31 @@ export const workflow = async (
 			throw new ErrorBuilder(400, req.t('error:ticket.agreementMissing'))
 		}
 
-		const loggedUserId = getCognitoIdOfLoggedInUser(req)
-
 		const order = await Order.create({
 			priceWithVat: 0,
 			state: ORDER_STATE.CREATED,
 			orderNumber: new Date().getTime(),
 		})
-		const cityAccountData = req.headers.authorization
-			? await getCityAccountData(req.headers.authorization)
-			: null
 
 		// for each instance add unique ticket
-		for (const ticketWithTicketType of ticketsWithTicketType) {
-			const user = await getUser(
-				req,
-				ticketWithTicketType,
-				loggedUserId,
-				cityAccountData
-			)
+		for (const ticketWithTicketType of mappedTickets) {
 			if (ticketWithTicketType.personId === undefined) {
 				if (!body.email) {
 					throw new ErrorBuilder(404, req.t('error:emailIsEmpty'))
 				}
 			}
 
-			let ticketPrice = await getTicketPrice(
-				req,
-				ticketWithTicketType,
-				loggedUserId,
-				cityAccountData
-			)
-
-			let isChildren = getIsChildrenForTicketType(
-				user,
+			const ticketPrice = await getTicketPrice(
+				ticketWithTicketType.isChildren,
 				ticketWithTicketType.ticketType
 			)
 
 			// TODO creating ticket should happen after transaction is paid
 			const createdTicket = await createTicketWithProfile(
-				user,
+				ticketWithTicketType.user,
 				ticketWithTicketType.ticketType,
 				order.id,
-				isChildren,
+				ticketWithTicketType.isChildren,
 				ticketPrice,
 				ticketWithTicketType.ticketType.vatPercentage,
 				null
@@ -248,8 +253,7 @@ export const workflow = async (
 		}
 
 		const pricing = await getOrderPrice(
-			req,
-			ticketsWithTicketType,
+			mappedTickets,
 			// TODO discount code!!!!!
 			discountCode ? discountCode.getInverseAmount * 100 : undefined
 		)
@@ -283,34 +287,7 @@ export const workflow = async (
 				}
 			)
 
-			// we already have order, so we don't need to fetch it again
-			const orderResult = await Order.findOne({
-				where: {
-					orderNumber: {
-						[Op.eq]: order.orderNumber,
-					},
-				},
-				include: [
-					{
-						association: 'paymentOrder',
-					},
-					{
-						association: 'tickets',
-						order: [['isChildren', 'asc']],
-						separate: true,
-						include: [
-							{
-								association: 'profile',
-							},
-							{
-								association: 'ticketType',
-							},
-						],
-					},
-				],
-			})
-
-			await sendOrderEmail(req, orderResult.id)
+			await sendOrderEmail(req, order.id)
 
 			return res.json({
 				data: {
@@ -351,27 +328,18 @@ export const workflow = async (
 }
 
 // Compute price
-// TODO refactor to not use req parameter
 const getOrderPrice = async (
-	req: RequestPostOrder | RequestPostOrderDryRun,
 	ticketsWithTicketType: TicketWithTicketType[],
 	reverseDiscountInPercent: number | undefined
 ) => {
 	let orderPrice = 0
 	let discount = 0
 
-	const loggedUserId = getCognitoIdOfLoggedInUser(req)
-	const cityAccountData = req.headers.authorization
-		? await getCityAccountData(req.headers.authorization)
-		: null
-
 	//price computation
 	for (const ticketWithTicketType of ticketsWithTicketType) {
 		const ticketPrice = await getTicketPrice(
-			req,
-			ticketWithTicketType,
-			loggedUserId,
-			cityAccountData
+			ticketWithTicketType.isChildren,
+			ticketWithTicketType.ticketType
 		)
 
 		let totals = { newTicketsPrice: ticketPrice, discount: discount }
@@ -392,17 +360,9 @@ const getOrderPrice = async (
 
 // TODO refactor to not use req parameter
 const getTicketPrice = async (
-	req: RequestPostOrder | RequestPostOrderDryRun,
-	ticket: PostOrderTicket,
-	loggedUserId: string | null,
-	cityAccountData: Partial<CityAccountUser> | null
+	isChildren: boolean,
+	ticketType: TicketTypeModel
 ) => {
-	const user = await getUser(req, ticket, loggedUserId, cityAccountData)
-
-	const ticketType = await TicketType.findByPk(ticket.ticketTypeId)
-	// !!!!!!!
-	// TODO ticketType can be null but function findByPk doesn't look like it is returning it, test if `findByPk` returns null and check code behavior
-	let isChildren = getIsChildrenForTicketType(user, ticketType)
 	let ticketPriceWithVat = ticketType.priceWithVat
 
 	if (
@@ -423,7 +383,7 @@ const getTicketPrice = async (
 const getUser = async (
 	req: RequestPostOrder | RequestPostOrderDryRun,
 	ticket: any,
-	loggedUserId: string | null,
+	cognitoId: string | null,
 	cityAccountData: Partial<CityAccountUser> | null
 ): Promise<User> => {
 	const { body } = req
@@ -448,13 +408,13 @@ const getUser = async (
 			}
 		}
 	} else if (ticket.personId === null) {
-		if (!loggedUserId)
+		if (!cognitoId)
 			throw new ErrorBuilder(
 				401,
 				req.t('error:ticket.notLoggedUserForTicket')
 			)
 		const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
-			where: { externalCognitoId: loggedUserId },
+			where: { externalCognitoId: cognitoId },
 		})
 		if (!swimmingLoggedUser)
 			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
@@ -479,13 +439,13 @@ const getUser = async (
 			cityAccountType: cityAccountData['custom:account_type'],
 		}
 	} else {
-		if (!loggedUserId)
+		if (!cognitoId)
 			throw new ErrorBuilder(
 				401,
 				req.t('error:ticket.notLoggedUserForTicket')
 			)
 		const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
-			where: { externalCognitoId: loggedUserId },
+			where: { externalCognitoId: cognitoId },
 		})
 		if (!swimmingLoggedUser)
 			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
@@ -608,16 +568,41 @@ const uploadProfilePhotos = async (ticket: TicketModel) => {
 // TODO refactor to not use req parameter
 const basicChecks = async (
 	req: RequestPostOrder | RequestPostOrderDryRun,
+	cognitoId: string,
 	ticketsWithTicketType: TicketWithTicketType[],
 	reverseDiscountInPercent: number
 ) => {
-	const loggedUserId = getCognitoIdOfLoggedInUser(req)
+	const numberOfChildren = ticketsWithTicketType.filter(
+		(ticketWithTicketType) => ticketWithTicketType.isChildren
+	).length
+
+	const numberOfAdults = ticketsWithTicketType.length - numberOfChildren
+	// minimum is one adult
+	if (numberOfAdults < 1) {
+		throw new ErrorBuilder(400, req.t('error:ticket.minimumIsOneAdult'))
+	}
+	// if discount in seasonpass, only for one user
+	if (
+		numberOfAdults > 1 &&
+		reverseDiscountInPercent &&
+		reverseDiscountInPercent !== 100
+	) {
+		throw new ErrorBuilder(
+			400,
+			req.t('error:ticket.discountOnlyForOneUser')
+		)
+	}
+
+	// check maximum tickets
+	if (ticketsWithTicketType.length > appConfig.maxTicketPurchaseLimit) {
+		throw new ErrorBuilder(400, req.t('error:ticket.maxtTicketsPerOrder'))
+	}
 
 	ticketsWithTicketType.forEach((ticketWithTicketType) => {
 		if (!ticketWithTicketType.ticketType) {
 			throw new ErrorBuilder(404, req.t('error:ticketTypeNotFound'))
 		}
-		if (ticketWithTicketType.ticketType.nameRequired && !loggedUserId) {
+		if (ticketWithTicketType.ticketType.nameRequired && !cognitoId) {
 			throw new ErrorBuilder(
 				400,
 				req.t('error:ticket.notLoggedUserForTicket')
@@ -630,33 +615,10 @@ const basicChecks = async (
 			req.t('error:ticket.ticketHasExpired'),
 			'ticketHasExpired'
 		)
-	})
-
-	// check maximum tickets
-	if (ticketsWithTicketType.length > appConfig.maxTicketPurchaseLimit) {
-		throw new ErrorBuilder(400, req.t('error:ticket.maxtTicketsPerOrder'))
-	}
-
-	const cityAccountData = req.headers.authorization
-		? await getCityAccountData(req.headers.authorization)
-		: null
-
-	// validate number of children
-	let numberOfChildren = 0
-	for (const ticketWithTicketType of ticketsWithTicketType) {
-		const user = await getUser(
-			req,
-			ticketWithTicketType,
-			loggedUserId,
-			cityAccountData
-		)
-		if (getIsChildrenForTicketType(user, ticketWithTicketType.ticketType)) {
-			numberOfChildren += 1
-		}
 		if (
 			ticketWithTicketType.ticketType.nameRequired &&
-			user.cityAccountType &&
-			user.cityAccountType !== AccountType.FO
+			ticketWithTicketType.user.cityAccountType &&
+			ticketWithTicketType.user.cityAccountType !== AccountType.FO
 		) {
 			throw new ErrorBuilder(
 				400,
@@ -675,25 +637,14 @@ const basicChecks = async (
 				'numberOfChildrenExceeded'
 			)
 		}
-		const numberOfAdults = ticketsWithTicketType.length - numberOfChildren
-		// minimum is one adult
-		if (numberOfAdults < 1) {
-			throw new ErrorBuilder(400, req.t('error:ticket.minimumIsOneAdult'))
-		}
-		// if discount in seasonpass, only for one user
-		if (
-			numberOfAdults > 1 &&
-			reverseDiscountInPercent &&
-			reverseDiscountInPercent !== 100
-		) {
-			throw new ErrorBuilder(
-				400,
-				req.t('error:ticket.discountOnlyForOneUser')
-			)
-		}
-	}
+	})
 }
-const mapTicketTypeToTickets = async (tickets: PostOrderTicket[]) => {
+const mapPropertiesToTickets = async (
+	req: RequestPostOrder | RequestPostOrderDryRun,
+	tickets: PostOrderTicket[],
+	cognitoId: string | null,
+	cityAccountData: Partial<CityAccountUser> | null
+) => {
 	const ticketTypeIds = Array.from(
 		new Set(tickets.map((ticket) => ticket.ticketTypeId))
 	)
@@ -706,13 +657,33 @@ const mapTicketTypeToTickets = async (tickets: PostOrderTicket[]) => {
 		},
 	})
 
-	const ticketsWithTicketType = tickets.map((ticket) => {
-		return {
-			...ticket,
-			ticketType: ticketTypes.find(
+	const ticketsWithTicketType = await Promise.all(
+		tickets.map(async (ticket) => {
+			const ticketType = ticketTypes.find(
 				(ticketType) => ticketType.id === ticket.ticketTypeId
-			),
-		}
-	})
+			)
+
+			const ticketWithTicketType = {
+				...ticket,
+				ticketType: ticketType,
+			}
+			const user = await getUser(
+				req,
+				ticketWithTicketType,
+				cognitoId,
+				cityAccountData
+			)
+			const isChildren = getIsChildrenForTicketType(user, ticketType)
+
+			return {
+				...ticket,
+				ticketType: ticketTypes.find(
+					(ticketType) => ticketType.id === ticket.ticketTypeId
+				),
+				isChildren: isChildren,
+				user: user,
+			}
+		})
+	)
 	return ticketsWithTicketType
 }
