@@ -139,11 +139,15 @@ export const workflowDryRun = async (
 			)
 		}
 
+		const cognitoId = getCognitoIdOfLoggedInUser(req)
+
+		// why is this not throwing error when in 'getTicketsAndPricing' email is required and we are sending possible undefined email?
 		const { pricing } = await getTicketsAndPricing(
-			req,
+			cognitoId,
 			body.tickets,
 			reverseDiscountInPercent,
-			body.email
+			body.email,
+			req.headers.authorization
 		)
 		return res.json({
 			data: {
@@ -182,11 +186,15 @@ export const workflow = async (
 			? discountCode.getInverseAmount * 100
 			: undefined
 
+		const cognitoId = getCognitoIdOfLoggedInUser(req)
+
+		// why is this not throwing error when in 'getTicketsAndPricing' email is required and we are sending possible undefined email?
 		const { mappedTickets, pricing } = await getTicketsAndPricing(
-			req,
+			cognitoId,
 			body.tickets,
 			reverseDiscountInPercent,
-			body.email
+			body.email,
+			req.headers.authorization
 		)
 
 		const order = await createAndProcessOrder(
@@ -297,23 +305,21 @@ const getTicketPrice = async (
 	return ticketPriceWithVat
 }
 
-// TODO refactor to not use req parameter
 /**
  * Get user data from asociate swimmers or users
  */
 const getUser = async (
-	req: RequestPostOrder | RequestPostOrderDryRun,
-	ticket: any,
+	ticket: PostOrderTicket,
 	cognitoId: string | null,
-	cityAccountData: Partial<CityAccountUser> | null
+	cityAccountData: Partial<CityAccountUser> | null,
+	email?: string
 ): Promise<User> => {
-	const { body } = req
 	if (ticket.personId === undefined) {
-		if (body.email) {
+		if (email) {
 			return {
 				associatedSwimmerId: null,
 				loggedUserId: null,
-				email: body.email,
+				email: email,
 				name: null,
 				age: ticket.age,
 				zip: ticket.zip,
@@ -322,7 +328,7 @@ const getUser = async (
 			return {
 				associatedSwimmerId: null,
 				loggedUserId: null,
-				email: body.email,
+				email: email,
 				name: '',
 				age: ticket.age,
 				zip: ticket.zip,
@@ -332,20 +338,20 @@ const getUser = async (
 		if (!cognitoId)
 			throw new ErrorBuilder(
 				401,
-				req.t('error:ticket.notLoggedUserForTicket')
+				i18next.t('error:ticket.notLoggedUserForTicket')
 			)
 		const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
 			where: { externalCognitoId: cognitoId },
 		})
 		if (!swimmingLoggedUser)
-			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
+			throw new ErrorBuilder(401, i18next.t('error:ticket.userNotFound'))
 
 		if (!cityAccountData)
-			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
+			throw new ErrorBuilder(401, i18next.t('error:ticket.userNotFound'))
 		if (!cityAccountData.email)
 			throw new ErrorBuilder(
 				500,
-				req.t('error:ticket.emailNotFoundOnUser')
+				i18next.t('error:ticket.emailNotFoundOnUser')
 			)
 
 		return {
@@ -363,26 +369,26 @@ const getUser = async (
 		if (!cognitoId)
 			throw new ErrorBuilder(
 				401,
-				req.t('error:ticket.notLoggedUserForTicket')
+				i18next.t('error:ticket.notLoggedUserForTicket')
 			)
 		const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
 			where: { externalCognitoId: cognitoId },
 		})
 		if (!swimmingLoggedUser)
-			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
+			throw new ErrorBuilder(401, i18next.t('error:ticket.userNotFound'))
 		if (!cityAccountData)
-			throw new ErrorBuilder(401, req.t('error:ticket.userNotFound'))
+			throw new ErrorBuilder(401, i18next.t('error:ticket.userNotFound'))
 		if (!cityAccountData.email)
 			throw new ErrorBuilder(
 				500,
-				req.t('error:ticket.emailNotFoundOnUser')
+				i18next.t('error:ticket.emailNotFoundOnUser')
 			)
 
 		const user = await AssociatedSwimmer.findByPk(ticket.personId)
 		if (!user) {
 			throw new ErrorBuilder(
 				404,
-				req.t('error:associatedSwimmerNotExists')
+				i18next.t('error:associatedSwimmerNotExists')
 			)
 		} else {
 			return {
@@ -486,7 +492,6 @@ const uploadProfilePhotos = async (ticket: TicketModel) => {
 
 // TODO refactor to not use req parameter
 const basicChecks = async (
-	req: RequestPostOrder | RequestPostOrderDryRun,
 	cognitoId: string,
 	ticketsWithTicketType: TicketWithAdditionalProperties[],
 	reverseDiscountInPercent: number,
@@ -499,7 +504,7 @@ const basicChecks = async (
 	const numberOfAdults = ticketsWithTicketType.length - numberOfChildren
 	// minimum is one adult
 	if (numberOfAdults < 1) {
-		throw new ErrorBuilder(400, req.t('error:ticket.minimumIsOneAdult'))
+		throw new ErrorBuilder(400, i18next.t('error:ticket.minimumIsOneAdult'))
 	}
 	// if discount in seasonpass, only for one user
 	if (
@@ -509,30 +514,33 @@ const basicChecks = async (
 	) {
 		throw new ErrorBuilder(
 			400,
-			req.t('error:ticket.discountOnlyForOneUser')
+			i18next.t('error:ticket.discountOnlyForOneUser')
 		)
 	}
 
 	// check maximum tickets
 	if (ticketsWithTicketType.length > appConfig.maxTicketPurchaseLimit) {
-		throw new ErrorBuilder(400, req.t('error:ticket.maxtTicketsPerOrder'))
+		throw new ErrorBuilder(
+			400,
+			i18next.t('error:ticket.maxtTicketsPerOrder')
+		)
 	}
 
 	ticketsWithTicketType.forEach((ticketWithTicketType) => {
 		if (!ticketWithTicketType.ticketType) {
-			throw new ErrorBuilder(404, req.t('error:ticketTypeNotFound'))
+			throw new ErrorBuilder(404, i18next.t('error:ticketTypeNotFound'))
 		}
 		if (ticketWithTicketType.ticketType.nameRequired && !cognitoId) {
 			throw new ErrorBuilder(
 				400,
-				req.t('error:ticket.notLoggedUserForTicket')
+				i18next.t('error:ticket.notLoggedUserForTicket')
 			)
 		}
 		validate(
 			true,
 			ticketWithTicketType.ticketType.validTo,
 			Joi.date().min(new Date()),
-			req.t('error:ticket.ticketHasExpired'),
+			i18next.t('error:ticket.ticketHasExpired'),
 			'ticketHasExpired'
 		)
 		if (
@@ -542,7 +550,7 @@ const basicChecks = async (
 		) {
 			throw new ErrorBuilder(
 				400,
-				req.t('error:ticket.userNotAllowedTicketType')
+				i18next.t('error:ticket.userNotAllowedTicketType')
 			)
 		}
 		// children allowed rules
@@ -553,22 +561,22 @@ const basicChecks = async (
 				Joi.number().max(
 					ticketWithTicketType.ticketType.childrenMaxNumber
 				),
-				req.t('error:ticket.numberOfChildrenExceeded'),
+				i18next.t('error:ticket.numberOfChildrenExceeded'),
 				'numberOfChildrenExceeded'
 			)
 		}
 		if (ticketWithTicketType.personId === undefined) {
 			if (!email) {
-				throw new ErrorBuilder(404, req.t('error:emailIsEmpty'))
+				throw new ErrorBuilder(404, i18next.t('error:emailIsEmpty'))
 			}
 		}
 	})
 }
 const mapPropertiesToTickets = async (
-	req: RequestPostOrder | RequestPostOrderDryRun,
 	tickets: PostOrderTicket[],
 	cognitoId: string | null,
-	cityAccountData: Partial<CityAccountUser> | null
+	cityAccountData: Partial<CityAccountUser> | null,
+	email: string
 ) => {
 	const ticketTypeIds = Array.from(
 		new Set(tickets.map((ticket) => ticket.ticketTypeId))
@@ -593,10 +601,10 @@ const mapPropertiesToTickets = async (
 				ticketType: ticketType,
 			}
 			const user = await getUser(
-				req,
 				ticketWithTicketType,
 				cognitoId,
-				cityAccountData
+				cityAccountData,
+				email
 			)
 			const isChildren = getIsChildrenForTicketType(user, ticketType)
 
@@ -613,30 +621,24 @@ const mapPropertiesToTickets = async (
 	return ticketsWithTicketType
 }
 const getTicketsAndPricing = async (
-	req: RequestPostOrder | RequestPostOrderDryRun,
+	cognitoId: string | null,
 	tickets: PostOrderTicket[],
 	reverseDiscountInPercent: number,
-	email: string
+	email: string,
+	authorization?: string
 ) => {
-	const cognitoId = getCognitoIdOfLoggedInUser(req)
-	const cityAccountData = req.headers.authorization
-		? await getCityAccountData(req.headers.authorization)
+	const cityAccountData = authorization
+		? await getCityAccountData(authorization)
 		: null
 
 	const mappedTickets = await mapPropertiesToTickets(
-		req,
 		tickets,
 		cognitoId,
-		cityAccountData
-	)
-
-	await basicChecks(
-		req,
-		cognitoId,
-		mappedTickets,
-		reverseDiscountInPercent,
+		cityAccountData,
 		email
 	)
+
+	await basicChecks(cognitoId, mappedTickets, reverseDiscountInPercent, email)
 
 	const pricing = await getOrderPrice(mappedTickets, reverseDiscountInPercent)
 	return { mappedTickets, pricing }
