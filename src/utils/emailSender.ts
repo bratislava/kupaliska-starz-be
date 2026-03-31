@@ -49,6 +49,8 @@ export const sendOrderEmail = async (
 
 	const discountCode = await DiscountCode.findByPk(order.discountCodeId)
 	const discountInPercent = discountCode?.amount || 0
+	// TODO check logic
+	// example:what if i first make order with one adult than add childrens then add one more adult and then remove first adult will the first ticket be an adult?
 	const parentTicket = order.tickets[0]
 	if (!req) {
 		await i18next
@@ -58,16 +60,6 @@ export const sendOrderEmail = async (
 				...i18NextConfig,
 			}) // it has to be copy otherwise is readonly
 	}
-	const params = [
-		'email:orderSubject',
-		{
-			ticketName: getTicketNameTranslation(
-				parentTicket.ticketType,
-				1,
-				'a'
-			),
-		},
-	]
 	const zerofilled =
 		order.orderPaidInYear + `00000000${order.orderNumberInYear}`.slice(-8)
 
