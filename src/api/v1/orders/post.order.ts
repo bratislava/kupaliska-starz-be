@@ -250,7 +250,7 @@ export const workflow = async (
 // Compute price
 const getOrderPrice = async (
 	ticketsWithAdditionalProperties: TicketWithAdditionalProperties[],
-	reverseDiscountInPercent: number | undefined
+	reverseDiscountInPercent?: number
 ) => {
 	let orderPrice = 0
 	let discount = 0
