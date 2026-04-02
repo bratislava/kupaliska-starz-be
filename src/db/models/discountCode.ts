@@ -95,19 +95,6 @@ export default (sequelize: Sequelize) => {
 		})
 	)
 
-	DiscountCodeModel.addScope('byTicketType', (ticketTypeId) => ({
-		include: {
-			association: 'ticketTypes',
-			attributes: ['id'],
-			required: true,
-			where: {
-				id: {
-					[Op.eq]: ticketTypeId,
-				},
-			},
-		},
-	}))
-
 	DiscountCodeModel.associate = (models) => {
 		DiscountCodeModel.belongsToMany(models.TicketType, {
 			through: {

@@ -18,7 +18,8 @@ const router = Router()
 
 export default () => {
 	router.get(
-		'/discountCodes/:code/ticketTypes/:ticketTypeId',
+		'/discountCodes/:code',
+		recaptchaMiddleware,
 		schemaMiddleware(GetDiscountCode.schema),
 		GetDiscountCode.workflow
 	)

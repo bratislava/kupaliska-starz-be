@@ -1,11 +1,8 @@
 import { Op } from 'sequelize'
 import { DiscountCodeModel } from '../db/models/discountCode'
 
-export const getDiscountCode = async (code: string, ticketTypeId: string) => {
-	return await DiscountCodeModel.scope([
-		'valid',
-		{ method: ['byTicketType', ticketTypeId] },
-	]).findOne({
+export const getDiscountCode = async (code: string) => {
+	return await DiscountCodeModel.scope(['valid']).findOne({
 		where: {
 			code: {
 				[Op.eq]: code.toUpperCase(),
