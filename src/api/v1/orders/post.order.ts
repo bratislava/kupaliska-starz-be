@@ -71,11 +71,11 @@ export const postOrderDryRunBodySchema = z.object({
 		message: i18next.t('error:ticket.minimumOneTicket'),
 	}),
 	email: z.email().max(255).optional(),
-	discountCode: z.string().min(5).max(20).optional(),
 	discountPercent: z.number().optional(),
 })
 
 export const postOrderBodySchema = postOrderDryRunBodySchema.extend({
+	discountCode: z.string().min(5).max(20).optional(),
 	agreement: z.boolean({
 		message: i18next.t('error:ticket.agreementMissing'),
 	}),
