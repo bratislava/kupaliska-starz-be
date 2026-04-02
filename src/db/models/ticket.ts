@@ -131,12 +131,8 @@ export default (sequelize: Sequelize) => {
 				defaultValue: UUIDV4,
 			},
 			priceWithVat: {
-				type: DataTypes.DECIMAL(10, 2),
+				type: DataTypes.INTEGER,
 				allowNull: false,
-				get() {
-					const value = this.getDataValue('priceWithVat')
-					return value !== undefined ? parseFloat(value) : undefined
-				},
 			},
 			vatPercentage: {
 				type: DataTypes.DECIMAL(10, 2),

@@ -34,7 +34,7 @@ export async function up(queryInterface: QueryInterface) {
 		[
 			{
 				id: ticketId,
-				priceWithVat: 3.99,
+				priceWithVat: 399,
 				vatPercentage: 23,
 				isChildren: false,
 				remainingEntries: 4,
@@ -47,7 +47,7 @@ export async function up(queryInterface: QueryInterface) {
 				ticketType: {
 					name: 'Sezónny tiket',
 					description: faker.lorem.paragraph(15),
-					priceWithVat: 20,
+					priceWithVat: 2000,
 					vatPercentage: 23,
 					type: TICKET_TYPE.ENTRIES,
 					entriesNumber: 10,
@@ -66,7 +66,7 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			{
 				id: ticket2Id,
-				priceWithVat: 3.99,
+				priceWithVat: 399,
 				vatPercentage: 23,
 				isChildren: false,
 				remainingEntries: 0,
@@ -79,7 +79,7 @@ export async function up(queryInterface: QueryInterface) {
 				ticketType: {
 					name: 'Vstupovy',
 					description: faker.lorem.paragraph(15),
-					priceWithVat: 20,
+					priceWithVat: 2000,
 					vatPercentage: 23,
 					type: TICKET_TYPE.ENTRIES,
 					nameRequired: true,
@@ -159,7 +159,7 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			{
 				id: ticket3Id,
-				priceWithVat: 3.99,
+				priceWithVat: 399,
 				vatPercentage: 23,
 				isChildren: false,
 				remainingEntries: 0,
@@ -172,7 +172,7 @@ export async function up(queryInterface: QueryInterface) {
 				ticketType: {
 					name: 'Vstupovy',
 					description: faker.lorem.paragraph(15),
-					priceWithVat: 20,
+					priceWithVat: 2000,
 					vatPercentage: 23,
 					type: TICKET_TYPE.ENTRIES,
 					nameRequired: true,

@@ -65,8 +65,10 @@ export const downloadOrdersAsCsv = (
 						: order.tickets[0].profile.name
 			}
 			return {
-				priceWithVat: order.priceWithVat.toString().replace('.', ','),
-				discount: order.discount.toString().replace('.', ','),
+				priceWithVat: (order.priceWithVat / 100)
+					.toFixed(2)
+					.replace('.', ','),
+				discount: (order.discount / 100).toFixed(2).replace('.', ','),
 				state: i18next.t('states', {
 					context: order.state.toLocaleLowerCase(),
 				}),

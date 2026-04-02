@@ -14,7 +14,7 @@ import { DiscountCodeModel } from './discountCode'
 export interface OrderItem {
 	name: string
 	amount: number
-	priceWithVat: string
+	priceWithVat: number
 	accPriceWithVat: number
 }
 
@@ -51,13 +51,12 @@ export class OrderModel extends DatabaseModel {
 							amount: obj.amount + 1,
 							accPriceWithVat:
 								obj.accPriceWithVat + ticket.priceWithVat,
-							priceWithVat: (
-								obj.accPriceWithVat + ticket.priceWithVat
-							).toFixed(2),
+							priceWithVat:
+								obj.accPriceWithVat + ticket.priceWithVat,
 					  }
 					: obj
 			},
-			{ name: '', amount: 0, priceWithVat: '0.00', accPriceWithVat: 0 }
+			{ name: '', amount: 0, priceWithVat: 0, accPriceWithVat: 0 }
 		)
 
 		const children = reduce<TicketModel[], OrderItem>(
@@ -69,20 +68,19 @@ export class OrderModel extends DatabaseModel {
 							amount: obj.amount + 1,
 							accPriceWithVat:
 								obj.accPriceWithVat + ticket.priceWithVat,
-							priceWithVat: (
-								obj.accPriceWithVat + ticket.priceWithVat
-							).toFixed(2),
+							priceWithVat:
+								obj.accPriceWithVat + ticket.priceWithVat,
 					  }
 					: obj
 			},
-			{ name: '', amount: 0, priceWithVat: '0.00', accPriceWithVat: 0 }
+			{ name: '', amount: 0, priceWithVat: 0, accPriceWithVat: 0 }
 		)
 
 		const discount = {
 			name: i18next.t('discountItem'),
 			amount: 1,
-			accPriceWithVat: -1 * self.discount,
-			priceWithVat: `-${self.discount.toFixed(2)}`,
+			accPriceWithVat: -1 * self.discount, // could be recounted in order to not have discount in order model
+			priceWithVat: -self.discount.toFixed(0),
 		}
 
 		return { adults, children, discount }
@@ -109,21 +107,13 @@ export default (sequelize: Sequelize) => {
 				defaultValue: ORDER_STATE.CREATED,
 			},
 			priceWithVat: {
-				type: DataTypes.DECIMAL(10, 2),
+				type: DataTypes.INTEGER,
 				allowNull: false,
-				get() {
-					const value = this.getDataValue('priceWithVat')
-					return value !== undefined ? parseFloat(value) : undefined
-				},
 			},
 			discount: {
-				type: DataTypes.DECIMAL(10, 2),
+				type: DataTypes.INTEGER,
 				allowNull: false,
 				defaultValue: 0,
-				get() {
-					const value = this.getDataValue('discount')
-					return value !== undefined ? parseFloat(value) : undefined
-				},
 			},
 			orderNumberInYear: {
 				type: DataTypes.BIGINT,

@@ -26,12 +26,8 @@ export default (sequelize: Sequelize) => {
 				defaultValue: UUIDV4,
 			},
 			paymentAmount: {
-				type: DataTypes.DECIMAL(10, 2),
+				type: DataTypes.INTEGER,
 				allowNull: false,
-				get() {
-					const value = this.getDataValue('paymentAmount')
-					return value !== undefined ? parseFloat(value) : undefined
-				},
 			},
 			createdAt: {
 				type: DataTypes.DATE,

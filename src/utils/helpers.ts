@@ -106,10 +106,8 @@ export const getDiscount = (
 	ticketPriceWithVat: number,
 	reverseDiscountInPercent: number
 ) => {
-	const priceWithDiscount = round(
-		(ticketPriceWithVat * reverseDiscountInPercent) / 100,
-		2
-	)
+	const priceWithDiscount =
+		(ticketPriceWithVat * reverseDiscountInPercent) / 100
 
 	return {
 		newTicketsPrice: priceWithDiscount,
@@ -118,7 +116,8 @@ export const getDiscount = (
 }
 
 export const printDecimal2 = (value: number) => {
-	return value.toFixed(2).replace('.', ',')
+	// maybe we should dinero.js or currency.js to handle this?
+	return (value / 100).toFixed(2).replace('.', ',')
 }
 
 export const payOrderWithNextOrderNumber = async (order: OrderModel) => {

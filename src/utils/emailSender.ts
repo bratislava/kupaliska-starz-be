@@ -171,28 +171,22 @@ const getOrderEmailAttachments = async (
 
 const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 	const items = order.getItems()
-	const emailItems = [items.adults]
-	if (items.children.amount > 0) {
-		emailItems.push(items.children)
-	}
-	if (order.discount > 0) {
-		emailItems.push(items.discount)
-	}
 
 	const summaryItems = [
 		{
 			name: items.adults.name, // ticket name
 			amount: items.adults.amount,
-			priceWithVat: items.adults.priceWithVat,
+			priceWithVat: (items.adults.priceWithVat / 100).toFixed(2),
 		},
 	]
 	if (items.children.amount > 0) {
 		summaryItems.push({
 			name: items.children.name, // ticket name for children is always same
 			amount: items.children.amount,
-			priceWithVat: items.children.priceWithVat,
+			priceWithVat: (items.children.priceWithVat / 100).toFixed(2),
 		})
 	}
+	// TODO send discount to email as well
 	return {
 		name: parentTicket.profile.name,
 		type: parentTicket.ticketType.type,
@@ -228,7 +222,7 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 				: [],
 		summary: {
 			items: summaryItems, // sorted by adult/children condition
-			totalPrice: order.priceWithVat.toFixed(2), // could be omitted
+			totalPrice: (order.priceWithVat / 100).toFixed(2), // could be omitted
 		},
 	}
 }
