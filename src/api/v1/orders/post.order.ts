@@ -36,6 +36,7 @@ import { FE_ROUTES } from '../../../utils/constants'
 import { CityAccountUser } from '../../../utils/cityAccountDto'
 import i18next from 'i18next'
 import { DiscountCodeModel } from '../../../db/models/discountCode'
+import { SwimmingLoggedUserModel } from '../../../db/models/swimmingLoggedUser'
 
 const {
 	SwimmingLoggedUser,
@@ -127,17 +128,19 @@ export const workflowDryRun = async (
 	try {
 		const { body } = req
 
-		const reverseDiscountInPercent = 100 - (body.discountPercent | 0)
+		const reverseDiscountInPercent = 100 - (body.discountPercent ?? 0)
 
 		const cognitoId = getCognitoIdOfLoggedInUser(req)
+		const cityAccountData = req.headers.authorization
+			? await getCityAccountData(req.headers.authorization)
+			: null
 
-		// why is this not throwing error when in 'getTicketsAndPricing' email is required and we are sending possible undefined email?
 		const { pricing } = await getTicketsAndPricing(
 			cognitoId,
 			body.tickets,
+			body.email ?? '',
 			reverseDiscountInPercent,
-			body.email,
-			req.headers.authorization
+			cityAccountData
 		)
 		return res.json({
 			data: {
@@ -177,14 +180,16 @@ export const workflow = async (
 			: undefined
 
 		const cognitoId = getCognitoIdOfLoggedInUser(req)
+		const cityAccountData = req.headers.authorization
+			? await getCityAccountData(req.headers.authorization)
+			: null
 
-		// why is this not throwing error when in 'getTicketsAndPricing' email is required and we are sending possible undefined email?
 		const { mappedTickets, pricing } = await getTicketsAndPricing(
 			cognitoId,
 			body.tickets,
+			body.email ?? '',
 			reverseDiscountInPercent,
-			body.email,
-			req.headers.authorization
+			cityAccountData
 		)
 
 		const order = await createAndProcessOrder(
@@ -263,10 +268,7 @@ const getOrderPrice = async (
 		)
 
 		let totals = { newTicketsPrice: ticketPrice, discount: discount }
-		if (
-			reverseDiscountInPercent !== undefined &&
-			reverseDiscountInPercent !== null
-		) {
+		if (reverseDiscountInPercent !== undefined) {
 			totals = getDiscount(ticketPrice, reverseDiscountInPercent)
 		}
 		orderPrice += totals.newTicketsPrice
@@ -300,9 +302,9 @@ const getTicketPrice = async (
  */
 const getUser = async (
 	ticket: PostOrderTicket,
-	cognitoId: string | null,
+	swimmingLoggedUser: SwimmingLoggedUserModel | null,
 	cityAccountData: Partial<CityAccountUser> | null,
-	email?: string
+	email: string
 ): Promise<User> => {
 	if (ticket.personId === undefined) {
 		if (email) {
@@ -311,8 +313,8 @@ const getUser = async (
 				loggedUserId: null,
 				email: email,
 				name: null,
-				age: ticket.age,
-				zip: ticket.zip,
+				age: ticket.age ?? null,
+				zip: ticket.zip ?? null,
 			}
 		} else {
 			return {
@@ -320,19 +322,11 @@ const getUser = async (
 				loggedUserId: null,
 				email: email,
 				name: '',
-				age: ticket.age,
-				zip: ticket.zip,
+				age: ticket.age ?? null,
+				zip: ticket.zip ?? null,
 			}
 		}
 	} else if (ticket.personId === null) {
-		if (!cognitoId)
-			throw new ErrorBuilder(
-				401,
-				i18next.t('error:ticket.notLoggedUserForTicket')
-			)
-		const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
-			where: { externalCognitoId: cognitoId },
-		})
 		if (!swimmingLoggedUser)
 			throw new ErrorBuilder(401, i18next.t('error:ticket.userNotFound'))
 
@@ -356,14 +350,6 @@ const getUser = async (
 			cityAccountType: cityAccountData['custom:account_type'],
 		}
 	} else {
-		if (!cognitoId)
-			throw new ErrorBuilder(
-				401,
-				i18next.t('error:ticket.notLoggedUserForTicket')
-			)
-		const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
-			where: { externalCognitoId: cognitoId },
-		})
 		if (!swimmingLoggedUser)
 			throw new ErrorBuilder(401, i18next.t('error:ticket.userNotFound'))
 		if (!cityAccountData)
@@ -480,12 +466,11 @@ const uploadProfilePhotos = async (ticket: TicketModel) => {
 	}
 }
 
-// TODO refactor to not use req parameter
 const basicChecks = async (
-	cognitoId: string,
 	ticketsWithTicketType: TicketWithAdditionalProperties[],
 	reverseDiscountInPercent: number,
-	email: string
+	email: string,
+	cognitoId: string | null
 ) => {
 	const numberOfChildren = ticketsWithTicketType.filter(
 		(ticketWithTicketType) => ticketWithTicketType.isChildren
@@ -564,7 +549,7 @@ const basicChecks = async (
 }
 const mapPropertiesToTickets = async (
 	tickets: PostOrderTicket[],
-	cognitoId: string | null,
+	swimmingLoggedUser: SwimmingLoggedUserModel | null,
 	cityAccountData: Partial<CityAccountUser> | null,
 	email: string
 ) => {
@@ -585,14 +570,23 @@ const mapPropertiesToTickets = async (
 			const ticketType = ticketTypes.find(
 				(ticketType) => ticketType.id === ticket.ticketTypeId
 			)
-
+			if (!ticketType)
+				throw new ErrorBuilder(
+					404,
+					i18next.t('error:ticketTypeNotFound')
+				)
+			if (!swimmingLoggedUser)
+				throw new ErrorBuilder(
+					401,
+					i18next.t('error:ticket.userNotFound')
+				)
 			const ticketWithTicketType = {
 				...ticket,
 				ticketType: ticketType,
 			}
 			const user = await getUser(
 				ticketWithTicketType,
-				cognitoId,
+				swimmingLoggedUser,
 				cityAccountData,
 				email
 			)
@@ -600,9 +594,7 @@ const mapPropertiesToTickets = async (
 
 			return {
 				...ticket,
-				ticketType: ticketTypes.find(
-					(ticketType) => ticketType.id === ticket.ticketTypeId
-				),
+				ticketType,
 				isChildren: isChildren,
 				user: user,
 			}
@@ -613,22 +605,24 @@ const mapPropertiesToTickets = async (
 const getTicketsAndPricing = async (
 	cognitoId: string | null,
 	tickets: PostOrderTicket[],
-	reverseDiscountInPercent: number,
 	email: string,
-	authorization?: string
+	reverseDiscountInPercent: number,
+	cityAccountData: Partial<CityAccountUser> | null
 ) => {
-	const cityAccountData = authorization
-		? await getCityAccountData(authorization)
+	const swimmingLoggedUser = cognitoId
+		? await SwimmingLoggedUser.findOne({
+				where: { externalCognitoId: cognitoId },
+		  })
 		: null
 
 	const mappedTickets = await mapPropertiesToTickets(
 		tickets,
-		cognitoId,
+		swimmingLoggedUser,
 		cityAccountData,
 		email
 	)
 
-	await basicChecks(cognitoId, mappedTickets, reverseDiscountInPercent, email)
+	await basicChecks(mappedTickets, reverseDiscountInPercent, email, cognitoId)
 
 	const pricing = await getOrderPrice(mappedTickets, reverseDiscountInPercent)
 	return { mappedTickets, pricing }
