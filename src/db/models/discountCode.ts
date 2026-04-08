@@ -5,6 +5,7 @@ import { Sequelize, DataTypes, literal, UUIDV4, Op } from 'sequelize'
 import { DatabaseModel } from '../../types/models'
 import { OrderModel } from './order'
 import { TicketTypeModel } from './ticketType'
+import { getReverseDiscountInPercent } from '../../utils/helpers'
 
 export class DiscountCodeModel extends DatabaseModel {
 	id: string
@@ -57,6 +58,10 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.DATE,
 				allowNull: true,
 			},
+			orderId: {
+				type: DataTypes.UUID,
+				allowNull: true,
+			},
 			createdAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
@@ -71,7 +76,8 @@ export default (sequelize: Sequelize) => {
 		{
 			getterMethods: {
 				getInverseAmount() {
-					return 1 - this.amount / 100
+					// i would like to call getter method of amount instead of this.amount, check later
+					return getReverseDiscountInPercent(this.amount)
 				},
 			},
 			paranoid: true,
@@ -111,9 +117,9 @@ export default (sequelize: Sequelize) => {
 			as: 'ticketTypes',
 		})
 
-		DiscountCodeModel.hasOne(models.Order, {
+		DiscountCodeModel.belongsTo(models.Order, {
 			foreignKey: {
-				name: 'discountCodeId',
+				name: 'orderId',
 				allowNull: true,
 			},
 			as: 'order',

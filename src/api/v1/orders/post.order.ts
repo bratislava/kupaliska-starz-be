@@ -30,6 +30,7 @@ import {
 	getCityAccountData,
 	payOrderWithNextOrderNumber,
 	isDefined,
+	getReverseDiscountInPercent,
 } from '../../../utils/helpers'
 import { TicketModel } from '../../../db/models/ticket'
 import { FE_ROUTES } from '../../../utils/constants'
@@ -44,6 +45,7 @@ const {
 	Order,
 	Ticket,
 	TicketType,
+	DiscountCode,
 	File,
 } = models
 
@@ -67,16 +69,23 @@ const postOrderTicketSchema = z.object({
 	ticketTypeId: z.uuid(),
 })
 
-export const postOrderDryRunBodySchema = z.object({
+export const postOrderCommonBodySchema = z.object({
 	tickets: z.array(postOrderTicketSchema).min(1, {
 		message: i18next.t('error:ticket.minimumOneTicket'),
 	}),
 	email: z.email().max(255).optional(),
-	discountPercent: z.number().optional(),
 })
 
-export const postOrderBodySchema = postOrderDryRunBodySchema.extend({
-	discountCode: z.string().min(5).max(20).optional(),
+export const postOrderDryRunBodySchema = postOrderCommonBodySchema.extend({
+	discountsPercent: z
+		.array(
+			z.object({ ticketTypeId: z.uuid(), discountPercent: z.number() })
+		)
+		.optional(),
+})
+
+export const postOrderBodySchema = postOrderCommonBodySchema.extend({
+	discountCodes: z.array(z.string().min(5).max(20)).optional(),
 	agreement: z.boolean({
 		message: i18next.t('error:ticket.agreementMissing'),
 	}),
@@ -94,7 +103,7 @@ export const postOrderSchema = z.object({
 })
 
 export const postOrderDryRunSchema = z.object({
-	body: postOrderDryRunBodySchema,
+	body: postOrderCommonBodySchema,
 	query: z.unknown(),
 	params: z.unknown(),
 })
@@ -118,6 +127,11 @@ type TicketWithAdditionalProperties = PostOrderTicket & {
 	ticketType: TicketTypeModel
 	isChildren: boolean
 	user: User
+	discount?: {
+		discountPercent: number
+		reverseDiscountInPercent: number
+	}
+	discountCode?: DiscountCodeModel
 }
 
 export const workflowDryRun = async (
@@ -128,8 +142,6 @@ export const workflowDryRun = async (
 	try {
 		const { body } = req
 
-		const reverseDiscountInPercent = 100 - (body.discountPercent ?? 0)
-
 		const cognitoId = getCognitoIdOfLoggedInUser(req)
 		const cityAccountData = req.headers.authorization
 			? await getCityAccountData(req.headers.authorization)
@@ -139,8 +151,9 @@ export const workflowDryRun = async (
 			cognitoId,
 			body.tickets,
 			body.email ?? '',
-			reverseDiscountInPercent,
-			cityAccountData
+			cityAccountData,
+			body.discountsPercent,
+			undefined
 		)
 		return res.json({
 			data: {
@@ -166,19 +179,6 @@ export const workflow = async (
 	try {
 		const { body } = req
 
-		// TODO discount code!!!!!
-		let discountCode: DiscountCodeModel | undefined = undefined
-		// let discountCode = body.discountCode
-		// 	? await getDiscountCode(body.discountCode, ticketType.id)
-		// 	: undefined
-		if (body.discountCode && !discountCode) {
-			throw new ErrorBuilder(404, i18next.t('error:discountCodeNotValid'))
-		}
-
-		const reverseDiscountInPercent = discountCode
-			? discountCode.getInverseAmount * 100
-			: undefined
-
 		const cognitoId = getCognitoIdOfLoggedInUser(req)
 		const cityAccountData = req.headers.authorization
 			? await getCityAccountData(req.headers.authorization)
@@ -188,18 +188,16 @@ export const workflow = async (
 			cognitoId,
 			body.tickets,
 			body.email ?? '',
-			reverseDiscountInPercent,
-			cityAccountData
+			cityAccountData,
+			undefined,
+			body.discountCodes ?? []
 		)
 
-		const order = await createAndProcessOrder(
-			mappedTickets,
-			discountCode,
-			pricing
-		)
+		const order = await createAndProcessOrder(mappedTickets, pricing)
 
-		// TODO discount code!!!!!
-		if (discountCode && discountCode.amount === 100) {
+		if (
+			mappedTickets.every((ticket) => ticket.discountCode?.amount === 100)
+		) {
 			// refactor this - extract to separate function that can be used both here and in get.post.paymentResponse.ts
 			await payOrderWithNextOrderNumber(order)
 			const orderAccessToken = await createJwt(
@@ -254,22 +252,25 @@ export const workflow = async (
 
 // Compute price
 const getOrderPrice = async (
-	ticketsWithAdditionalProperties: TicketWithAdditionalProperties[],
-	reverseDiscountInPercent?: number
+	ticketsWithAdditionalProperties: TicketWithAdditionalProperties[]
 ) => {
 	let orderPrice = 0
 	let discount = 0
 
 	//price computation
 	for (const ticketWithAdditionalProperties of ticketsWithAdditionalProperties) {
-		const ticketPrice = await getTicketPrice(
-			ticketWithAdditionalProperties.isChildren,
-			ticketWithAdditionalProperties.ticketType
-		)
+		const { isChildren, ticketType } = ticketWithAdditionalProperties
+		const ticketPrice = getTicketPrice(isChildren, ticketType)
 
 		let totals = { newTicketsPrice: ticketPrice, discount: discount }
-		if (reverseDiscountInPercent !== undefined) {
-			totals = getDiscount(ticketPrice, reverseDiscountInPercent)
+		if (
+			ticketWithAdditionalProperties.discount
+				?.reverseDiscountInPercent !== undefined
+		) {
+			totals = getDiscount(
+				ticketPrice,
+				ticketWithAdditionalProperties.discount.reverseDiscountInPercent
+			)
 		}
 		orderPrice += totals.newTicketsPrice
 		discount += totals.discount
@@ -280,23 +281,13 @@ const getOrderPrice = async (
 	}
 }
 
-const getTicketPrice = async (
-	isChildren: boolean,
-	ticketType: TicketTypeModel
-) => {
-	let ticketPriceWithVat = ticketType.priceWithVat
-
-	if (
-		isChildren &&
-		ticketType.childrenPriceWithVat &&
-		ticketType.childrenPriceWithVat != null
-	) {
-		ticketPriceWithVat = ticketType.childrenPriceWithVat
-	}
-
-	return ticketPriceWithVat
+const getTicketPrice = (isChildren: boolean, ticketType: TicketTypeModel) => {
+	return isChildren
+		? ticketType.childrenPriceWithVat
+		: ticketType.priceWithVat
 }
 
+// TODO: this should be refactored
 /**
  * Get user data from asociate swimmers or users
  */
@@ -468,7 +459,6 @@ const uploadProfilePhotos = async (ticket: TicketModel) => {
 
 const basicChecks = async (
 	ticketsWithTicketType: TicketWithAdditionalProperties[],
-	reverseDiscountInPercent: number,
 	email: string,
 	cognitoId: string | null
 ) => {
@@ -480,17 +470,6 @@ const basicChecks = async (
 	// minimum is one adult
 	if (numberOfAdults < 1) {
 		throw new ErrorBuilder(400, i18next.t('error:ticket.minimumIsOneAdult'))
-	}
-	// if discount in seasonpass, only for one user
-	if (
-		numberOfAdults > 1 &&
-		reverseDiscountInPercent &&
-		reverseDiscountInPercent !== 100
-	) {
-		throw new ErrorBuilder(
-			400,
-			i18next.t('error:ticket.discountOnlyForOneUser')
-		)
 	}
 
 	// check maximum tickets
@@ -504,6 +483,17 @@ const basicChecks = async (
 	ticketsWithTicketType.forEach((ticketWithTicketType) => {
 		if (!ticketWithTicketType.ticketType) {
 			throw new ErrorBuilder(404, i18next.t('error:ticketTypeNotFound'))
+		}
+		// if discount in seasonpass, only for one user
+		if (
+			numberOfAdults > 1 &&
+			ticketWithTicketType.discount?.reverseDiscountInPercent &&
+			ticketWithTicketType.discount?.reverseDiscountInPercent !== 100
+		) {
+			throw new ErrorBuilder(
+				400,
+				i18next.t('error:ticket.discountOnlyForOneUser')
+			)
 		}
 		if (ticketWithTicketType.ticketType.nameRequired && !cognitoId) {
 			throw new ErrorBuilder(
@@ -551,7 +541,12 @@ const mapPropertiesToTickets = async (
 	tickets: PostOrderTicket[],
 	swimmingLoggedUser: SwimmingLoggedUserModel | null,
 	cityAccountData: Partial<CityAccountUser> | null,
-	email: string
+	email: string,
+	discountsPercentObj?: {
+		ticketTypeId: string
+		discountPercent: number
+	}[],
+	discountCodes?: string[]
 ) => {
 	const ticketTypeIds = Array.from(
 		new Set(tickets.map((ticket) => ticket.ticketTypeId))
@@ -565,6 +560,14 @@ const mapPropertiesToTickets = async (
 		},
 	})
 
+	const discountCodesModels = await DiscountCode.findAll({
+		where: {
+			code: {
+				[Op.in]: discountCodes,
+			},
+		},
+		order: [['amount', 'DESC']],
+	})
 	const ticketsWithTicketType = await Promise.all(
 		tickets.map(async (ticket) => {
 			const ticketType = ticketTypes.find(
@@ -575,6 +578,32 @@ const mapPropertiesToTickets = async (
 					404,
 					i18next.t('error:ticketTypeNotFound')
 				)
+
+			const currentDiscountCodeModel = discountCodesModels.find(
+				(discountCode) =>
+					discountCode.ticketTypes.some(
+						(ticketType) => ticketType.id === ticket.ticketTypeId
+					)
+			)
+
+			const currentDiscountPercent = discountsPercentObj?.find(
+				(discountPercentObj) =>
+					discountPercentObj.ticketTypeId === ticket.ticketTypeId
+			)?.discountPercent
+
+			let discountPercent = 0
+			let reverseDiscountInPercent = 100
+
+			if (currentDiscountCodeModel) {
+				discountPercent = currentDiscountCodeModel.amount
+				reverseDiscountInPercent =
+					currentDiscountCodeModel.getInverseAmount
+			} else if (currentDiscountPercent !== undefined) {
+				discountPercent = currentDiscountPercent
+				reverseDiscountInPercent = getReverseDiscountInPercent(
+					currentDiscountPercent
+				)
+			}
 			if (!swimmingLoggedUser)
 				throw new ErrorBuilder(
 					401,
@@ -597,6 +626,11 @@ const mapPropertiesToTickets = async (
 				ticketType,
 				isChildren: isChildren,
 				user: user,
+				discount: {
+					discountPercent: discountPercent,
+					reverseDiscountInPercent: reverseDiscountInPercent,
+				},
+				discountCode: currentDiscountCodeModel,
 			}
 		})
 	)
@@ -606,8 +640,9 @@ const getTicketsAndPricing = async (
 	cognitoId: string | null,
 	tickets: PostOrderTicket[],
 	email: string,
-	reverseDiscountInPercent: number,
-	cityAccountData: Partial<CityAccountUser> | null
+	cityAccountData: Partial<CityAccountUser> | null,
+	discountsPercent?: { ticketTypeId: string; discountPercent: number }[],
+	discountCodes?: string[]
 ) => {
 	const swimmingLoggedUser = cognitoId
 		? await SwimmingLoggedUser.findOne({
@@ -619,17 +654,18 @@ const getTicketsAndPricing = async (
 		tickets,
 		swimmingLoggedUser,
 		cityAccountData,
-		email
+		email,
+		discountsPercent,
+		discountCodes
 	)
 
-	await basicChecks(mappedTickets, reverseDiscountInPercent, email, cognitoId)
+	await basicChecks(mappedTickets, email, cognitoId)
 
-	const pricing = await getOrderPrice(mappedTickets, reverseDiscountInPercent)
+	const pricing = await getOrderPrice(mappedTickets)
 	return { mappedTickets, pricing }
 }
 async function createAndProcessOrder(
 	mappedTickets: TicketWithAdditionalProperties[],
-	discountCode: DiscountCodeModel,
 	pricing: { orderPriceWithVat: number; discount: number }
 ) {
 	const order = await Order.create({
@@ -659,22 +695,24 @@ async function createAndProcessOrder(
 		if (ticketWithTicketType.ticketType.photoRequired) {
 			await uploadProfilePhotos(createdTicket)
 		}
+		// TODO: we should update discount code after order is paid
+		// not possible because user will create multiple orders with the same discount code and waiting in payment screen and pay later
+		// possible solution is to have data in discount code "in progress" which will not allow further usage and update it after order is paid
+		// but when to unblock it?
+		if (ticketWithTicketType.discountCode) {
+			await ticketWithTicketType.discountCode.update({
+				usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
+				orderId: order.id,
+			})
+		}
 	}
 
-	// TODO: we should update discount code after order is paid
-	if (discountCode) {
-		await discountCode.update({
-			usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
-		})
-	}
 	const orderPriceWithVat = pricing.orderPriceWithVat
 	const discount = pricing.discount
 
 	await order.update({
 		priceWithVat: orderPriceWithVat,
-		discount: discountCode ? discount : 0,
-		// TODO discount code!!!!!
-		discountCodeId: discountCode ? discountCode.id : undefined,
+		discount: discount,
 	})
 	return order
 }

@@ -168,12 +168,12 @@ export default (sequelize: Sequelize) => {
 			as: 'paymentOrder',
 		})
 
-		OrderModel.belongsTo(models.DiscountCode, {
+		OrderModel.hasMany(models.DiscountCode, {
 			foreignKey: {
-				name: 'discountCodeId',
+				name: 'orderId',
 				allowNull: true,
 			},
-			as: 'discountCode',
+			as: 'discountCodes',
 		})
 	}
 

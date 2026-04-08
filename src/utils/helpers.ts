@@ -153,3 +153,7 @@ export const calculateAge = (dateOfBirth: string) => {
 	const age = dayjs().diff(dayjs(dateOfBirth), 'year')
 	return age
 }
+
+export const getReverseDiscountInPercent = (discountPercent?: number) => {
+	return 100 - (discountPercent ?? 0)
+}
