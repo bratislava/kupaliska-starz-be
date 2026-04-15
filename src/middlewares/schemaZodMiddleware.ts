@@ -8,14 +8,10 @@ export default (schema: ZodType) =>
 			schema.parse(req.body)
 			next()
 		} catch (error) {
-			console.log('error', error)
 			if (error instanceof ZodError) {
-				const errorMessages = error.issues.map((issue) => ({
-					message: `${issue.path.join('.')} is ${issue.message}`,
-				}))
 				res.status(StatusCodes.BAD_REQUEST).json({
 					error: 'Invalid data',
-					details: errorMessages,
+					details: error.issues,
 				})
 			} else {
 				res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
