@@ -39,7 +39,7 @@ export async function up(queryInterface: QueryInterface) {
 				isChildren: false,
 				remainingEntries: 4,
 				order: {
-					price: 3.99,
+					priceWithVat: 399,
 					orderNumber: 100,
 					state: ORDER_STATE.PAID,
 				},
@@ -71,7 +71,7 @@ export async function up(queryInterface: QueryInterface) {
 				isChildren: false,
 				remainingEntries: 0,
 				order: {
-					price: 3.99,
+					priceWithVat: 399,
 					orderNumber: 101,
 					state: ORDER_STATE.CREATED,
 				},
@@ -164,7 +164,7 @@ export async function up(queryInterface: QueryInterface) {
 				isChildren: false,
 				remainingEntries: 0,
 				order: {
-					price: 3.99,
+					priceWithVat: 399,
 					orderNumber: 102,
 					state: ORDER_STATE.PAID,
 				},
