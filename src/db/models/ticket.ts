@@ -1,9 +1,11 @@
-import { getHours, getMinutes } from './../../utils/helpers'
-/* eslint import/no-cycle: 0 */
 import { Sequelize, DataTypes, literal, UUIDV4 } from 'sequelize'
 
 import { DatabaseModel } from '../../types/models'
-import { getLocalTimezoneTime } from '../../utils/helpers'
+import {
+	getHours,
+	getMinutes,
+	getLocalTimezoneTime,
+} from '../../utils/timeUtils'
 import { EntryModel } from './entry'
 import { OrderModel } from './order'
 import { ProfileModel } from './profile'

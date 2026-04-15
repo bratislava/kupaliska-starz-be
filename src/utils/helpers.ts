@@ -7,11 +7,8 @@ import ErrorBuilder from './ErrorBuilder'
 import i18next from 'i18next'
 import { ORDER_STATE, TICKET_CATEGORY } from './enums'
 import { TicketModel } from '../db/models/ticket'
-import '@js-joda/timezone'
-import { ChronoUnit, ZoneId, ZonedDateTime } from '@js-joda/core'
 import sequelize, { models } from '../db/models'
 import { OrderModel } from '../db/models/order'
-
 export const checkTableExists = async (
 	queryInterface: QueryInterface,
 	table: string
@@ -20,22 +17,8 @@ export const checkTableExists = async (
 	return tables.find((item: string) => item === table)
 }
 
-export const getLocalTimezoneTime = (): string =>
-	ZonedDateTime.now(ZoneId.of('Europe/Bratislava'))
-		.toLocalTime()
-		.truncatedTo(ChronoUnit.MINUTES)
-		.toString()
-
-export const getHours = (time: string): number => {
-	return Number(time.substr(0, 2))
-}
-
-export const getMinutes = (time: string): number => {
-	return Number(time.substr(3, 2))
-}
-
 export const getAllAges = (ageInterval: number, ageMinimum: number) => {
-	const allAges = map(
+	const allAges: (string | null)[] = map(
 		[...Array(Math.ceil(100 / ageInterval) - 1).keys()],
 		(index) => {
 			const min = index * ageInterval + ageMinimum
@@ -44,7 +27,6 @@ export const getAllAges = (ageInterval: number, ageMinimum: number) => {
 		}
 	)
 	allAges.push(null) // needed when age is not filled (SQL returns null value)
-
 	return allAges
 }
 
@@ -66,14 +48,17 @@ export const getCityAccountData = async (accessToken: string) => {
 
 // https://stackoverflow.com/a/39077686
 export const hexToRgbString = (hex: string) => {
-	const arr = hex
+	const pairs = hex
 		.replace(
 			/^#?([a-f\d])([a-f\d])([a-f\d])$/i,
 			(m, r, g, b) => '#' + r + r + g + g + b + b
 		)
 		.substring(1)
 		.match(/.{2}/g)
-		.map((x: string) => parseInt(x, 16))
+	if (!pairs) {
+		throw new Error('Invalid hex color')
+	}
+	const arr = pairs.map((x: string) => parseInt(x, 16))
 	return `rgb(${arr[0]},${arr[1]},${arr[2]})`
 }
 
