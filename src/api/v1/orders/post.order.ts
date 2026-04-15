@@ -52,7 +52,6 @@ const {
 interface User {
 	associatedSwimmerId: string | null
 	loggedUserId: string | null
-	email: string
 	name: string | null
 	age: number | null
 	zip: string | null
@@ -73,7 +72,7 @@ export const postOrderCommonBodySchema = z.object({
 	tickets: z.array(postOrderTicketSchema).min(1, {
 		message: i18next.t('error:ticket.minimumOneTicket'),
 	}),
-	email: z.email().max(255).optional(),
+	// email: z.email().max(255).nullable().optional(),
 })
 
 export const postOrderDryRunBodySchema = postOrderCommonBodySchema.extend({
@@ -90,6 +89,7 @@ export const postOrderBodySchema = postOrderCommonBodySchema.extend({
 		message: i18next.t('error:ticket.agreementMissing'),
 	}),
 	paymentMethod: z.enum(ORDER_PAYMENT_METHOD_STATE),
+	email: z.email().max(255).nullable(),
 })
 
 export type PostOrderTicket = z.infer<typeof postOrderTicketSchema>
@@ -142,15 +142,12 @@ export const workflowDryRun = async (
 	try {
 		const { body } = req
 
-		const cognitoId = getCognitoIdOfLoggedInUser(req)
 		const cityAccountData = req.headers.authorization
 			? await getCityAccountData(req.headers.authorization)
 			: null
 
 		const { pricing } = await getTicketsAndPricing(
-			cognitoId,
 			body.tickets,
-			body.email ?? '',
 			cityAccountData,
 			body.discountsPercent,
 			undefined
@@ -179,21 +176,33 @@ export const workflow = async (
 	try {
 		const { body } = req
 
-		const cognitoId = getCognitoIdOfLoggedInUser(req)
 		const cityAccountData = req.headers.authorization
 			? await getCityAccountData(req.headers.authorization)
 			: null
 
 		const { mappedTickets, pricing } = await getTicketsAndPricing(
-			cognitoId,
 			body.tickets,
-			body.email ?? '',
 			cityAccountData,
 			undefined,
 			body.discountCodes ?? []
 		)
 
-		const order = await createAndProcessOrder(mappedTickets, pricing)
+		let email: string | null = null
+		if (body.email) {
+			email = body.email
+		} else if (!cityAccountData) {
+			throw new ErrorBuilder(
+				400,
+				i18next.t('error:cityAccountDataMissing')
+			)
+		} else {
+			email = cityAccountData.email
+		}
+
+		if (!email) {
+			throw new ErrorBuilder(400, i18next.t('error:ticket.emailIsEmpty'))
+		}
+		const order = await createAndProcessOrder(email, mappedTickets, pricing)
 
 		if (
 			mappedTickets.every((ticket) => ticket.discountCode?.amount === 100)
@@ -294,55 +303,22 @@ const getTicketPrice = (isChildren: boolean, ticketType: TicketTypeModel) => {
 const getUser = async (
 	ticket: PostOrderTicket,
 	swimmingLoggedUser: SwimmingLoggedUserModel | null,
-	cityAccountData: Partial<CityAccountUser> | null,
-	email: string
+	cityAccountData: Partial<CityAccountUser> | null
 ): Promise<User> => {
 	if (ticket.personId === undefined) {
-		if (email) {
-			return {
-				associatedSwimmerId: null,
-				loggedUserId: null,
-				email: email,
-				name: null,
-				age: ticket.age ?? null,
-				zip: ticket.zip ?? null,
-			}
-		} else {
-			return {
-				associatedSwimmerId: null,
-				loggedUserId: null,
-				email: email,
-				name: '',
-				age: ticket.age ?? null,
-				zip: ticket.zip ?? null,
-			}
-		}
-	} else if (ticket.personId === null) {
-		if (!swimmingLoggedUser)
-			throw new ErrorBuilder(401, i18next.t('error:ticket.userNotFound'))
-
-		if (!cityAccountData)
-			throw new ErrorBuilder(401, i18next.t('error:ticket.userNotFound'))
-		if (!cityAccountData.email)
-			throw new ErrorBuilder(
-				500,
-				i18next.t('error:ticket.emailNotFoundOnUser')
-			)
-
 		return {
 			associatedSwimmerId: null,
-			loggedUserId: swimmingLoggedUser.id,
-			email: cityAccountData.email,
-			name: [cityAccountData.given_name, cityAccountData.family_name]
-				.filter(isDefined)
-				.join(' '),
-			age: swimmingLoggedUser.age,
-			zip: swimmingLoggedUser.zip,
-			cityAccountType: cityAccountData['custom:account_type'],
+			loggedUserId: null,
+			name: '',
+			age: ticket.age ?? null,
+			zip: ticket.zip ?? null,
 		}
 	} else {
 		if (!swimmingLoggedUser)
-			throw new ErrorBuilder(401, i18next.t('error:ticket.userNotFound'))
+			throw new ErrorBuilder(
+				401,
+				i18next.t('error:ticket.swimmingLoggedUserNotFound')
+			)
 		if (!cityAccountData)
 			throw new ErrorBuilder(401, i18next.t('error:ticket.userNotFound'))
 		if (!cityAccountData.email)
@@ -350,21 +326,37 @@ const getUser = async (
 				500,
 				i18next.t('error:ticket.emailNotFoundOnUser')
 			)
-
-		const user = await AssociatedSwimmer.findByPk(ticket.personId)
-		if (!user) {
-			throw new ErrorBuilder(
-				404,
-				i18next.t('error:associatedSwimmerNotExists')
-			)
-		} else {
+		if (ticket.personId === null) {
 			return {
-				associatedSwimmerId: user.id,
+				associatedSwimmerId: null,
 				loggedUserId: swimmingLoggedUser.id,
-				email: cityAccountData.email,
-				name: user.firstname + ' ' + user.lastname,
-				age: user.age,
-				zip: user.zip,
+				name: [cityAccountData.given_name, cityAccountData.family_name]
+					.filter(isDefined)
+					.join(' '),
+				age: swimmingLoggedUser.age,
+				zip: swimmingLoggedUser.zip,
+				cityAccountType: cityAccountData['custom:account_type'],
+			}
+		} else {
+			const associatedSwimmer = await AssociatedSwimmer.findByPk(
+				ticket.personId
+			)
+			if (!associatedSwimmer) {
+				throw new ErrorBuilder(
+					404,
+					i18next.t('error:associatedSwimmerNotExists')
+				)
+			} else {
+				return {
+					associatedSwimmerId: associatedSwimmer.id,
+					loggedUserId: swimmingLoggedUser.id,
+					name:
+						associatedSwimmer.firstname +
+						' ' +
+						associatedSwimmer.lastname,
+					age: associatedSwimmer.age,
+					zip: associatedSwimmer.zip,
+				}
 			}
 		}
 	}
@@ -390,6 +382,7 @@ const getIsChildrenForTicketType = (
  * Persist ticket with profile and his children. Also save profile IDs to the ticket object for later use when uploading profile photos.
  */
 const createTicketWithProfile = async (
+	email: string,
 	user: User,
 	ticketType: TicketTypeModel,
 	orderId: string,
@@ -412,7 +405,7 @@ const createTicketWithProfile = async (
 			associatedSwimmerId: user.associatedSwimmerId,
 			profile: {
 				id: profileId,
-				email: user.email,
+				email: email,
 				name: ticketType.nameRequired ? user.name : null,
 				age: ticketType.nameRequired ? user.age : null,
 				zip: user.zip,
@@ -459,7 +452,6 @@ const uploadProfilePhotos = async (ticket: TicketModel) => {
 
 const basicChecks = async (
 	ticketsWithTicketType: TicketWithAdditionalProperties[],
-	email: string,
 	cognitoId: string | null
 ) => {
 	const numberOfChildren = ticketsWithTicketType.filter(
@@ -530,18 +522,12 @@ const basicChecks = async (
 				'numberOfChildrenExceeded'
 			)
 		}
-		if (ticketWithTicketType.personId === undefined) {
-			if (!email) {
-				throw new ErrorBuilder(404, i18next.t('error:emailIsEmpty'))
-			}
-		}
 	})
 }
 const mapPropertiesToTickets = async (
 	tickets: PostOrderTicket[],
 	swimmingLoggedUser: SwimmingLoggedUserModel | null,
 	cityAccountData: Partial<CityAccountUser> | null,
-	email: string,
 	discountsPercentObj?: {
 		ticketTypeId: string
 		discountPercent: number
@@ -560,14 +546,16 @@ const mapPropertiesToTickets = async (
 		},
 	})
 
-	const discountCodesModels = await DiscountCode.findAll({
-		where: {
-			code: {
-				[Op.in]: discountCodes,
-			},
-		},
-		order: [['amount', 'DESC']],
-	})
+	const discountCodesModels = discountCodes
+		? await DiscountCode.findAll({
+				where: {
+					code: {
+						[Op.in]: discountCodes,
+					},
+				},
+				order: [['amount', 'DESC']],
+		  })
+		: []
 	const ticketsWithTicketType = await Promise.all(
 		tickets.map(async (ticket) => {
 			const ticketType = ticketTypes.find(
@@ -604,11 +592,6 @@ const mapPropertiesToTickets = async (
 					currentDiscountPercent
 				)
 			}
-			if (!swimmingLoggedUser)
-				throw new ErrorBuilder(
-					401,
-					i18next.t('error:ticket.userNotFound')
-				)
 			const ticketWithTicketType = {
 				...ticket,
 				ticketType: ticketType,
@@ -616,8 +599,7 @@ const mapPropertiesToTickets = async (
 			const user = await getUser(
 				ticketWithTicketType,
 				swimmingLoggedUser,
-				cityAccountData,
-				email
+				cityAccountData
 			)
 			const isChildren = getIsChildrenForTicketType(user, ticketType)
 
@@ -637,16 +619,14 @@ const mapPropertiesToTickets = async (
 	return ticketsWithTicketType
 }
 const getTicketsAndPricing = async (
-	cognitoId: string | null,
 	tickets: PostOrderTicket[],
-	email: string,
 	cityAccountData: Partial<CityAccountUser> | null,
 	discountsPercent?: { ticketTypeId: string; discountPercent: number }[],
 	discountCodes?: string[]
 ) => {
-	const swimmingLoggedUser = cognitoId
+	const swimmingLoggedUser = cityAccountData?.sub
 		? await SwimmingLoggedUser.findOne({
-				where: { externalCognitoId: cognitoId },
+				where: { externalCognitoId: cityAccountData?.sub },
 		  })
 		: null
 
@@ -654,20 +634,20 @@ const getTicketsAndPricing = async (
 		tickets,
 		swimmingLoggedUser,
 		cityAccountData,
-		email,
 		discountsPercent,
 		discountCodes
 	)
 
-	await basicChecks(mappedTickets, email, cognitoId)
+	await basicChecks(mappedTickets, cityAccountData?.sub ?? null)
 
 	const pricing = await getOrderPrice(mappedTickets)
 	return { mappedTickets, pricing }
 }
-async function createAndProcessOrder(
+const createAndProcessOrder = async (
+	email: string,
 	mappedTickets: TicketWithAdditionalProperties[],
 	pricing: { orderPriceWithVat: number; discount: number }
-) {
+) => {
 	const order = await Order.create({
 		priceWithVat: 0,
 		state: ORDER_STATE.CREATED,
@@ -685,6 +665,7 @@ async function createAndProcessOrder(
 		// probably there will be problem with age of users,
 		// should we take age from user when order is created or when it is paid?
 		const createdTicket = await createTicketWithProfile(
+			email,
 			ticketWithTicketType.user,
 			ticketWithTicketType.ticketType,
 			order.id,

@@ -27,8 +27,7 @@ export class OrderModel extends DatabaseModel {
 	// foreign
 	tickets: TicketModel[]
 	paymentOrder: PaymentOrderModel
-	discountCodeId: string
-	discountCode: DiscountCodeModel
+	discountCodes: DiscountCodeModel[]
 	//vat document
 	orderNumberInYear: number
 	orderPaidInYear: number

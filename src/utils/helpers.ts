@@ -61,7 +61,7 @@ export const getCityAccountData = async (accessToken: string) => {
 			throw new Error('Error fetching account')
 		}
 	}
-	return result.json() as Partial<CityAccountUser>
+	return (await result.json()) as Partial<CityAccountUser>
 }
 
 // https://stackoverflow.com/a/39077686
