@@ -7,9 +7,6 @@ export const schema = Joi.object().keys({
 	body: Joi.object(),
 	query: Joi.object(),
 	params: Joi.object().keys({
-		ticketTypeId: Joi.string()
-			.guid({ version: ['uuidv4'] })
-			.required(),
 		code: Joi.string().required().min(5).max(20),
 	}),
 })
@@ -22,10 +19,7 @@ export const workflow = async (
 	try {
 		const { params } = req
 
-		const discountCode = await getDiscountCode(
-			params.code,
-			params.ticketTypeId
-		)
+		const discountCode = await getDiscountCode(params.code)
 
 		if (!discountCode) {
 			throw new ErrorBuilder(404, req.t('error:discountCodeNotValid'))
