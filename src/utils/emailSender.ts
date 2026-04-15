@@ -17,6 +17,7 @@ import i18nextMiddleware from 'i18next-http-middleware'
 import i18nextBackend from 'i18next-node-fs-backend'
 import { CustomFile } from 'mailgun.js'
 import { models } from '../db/models'
+import { DiscountCodeModel } from '../db/models/discountCode'
 
 const i18NextConfig: InitOptions = config.get('i18next')
 const appConfig: IAppConfig = config.get('app')
@@ -24,6 +25,21 @@ const mailgunConfig: IMailgunserviceConfig = config.get('mailgunService')
 const orderTemplate = mailgunConfig.templates.order
 
 const { Order, DiscountCode } = models
+
+export type TicketWithDiscountPercent = TicketModel & {
+	discountPercent: number
+}
+
+function getDiscountPercentForTicket(
+	ticket: TicketModel,
+	discountCodes: DiscountCodeModel[]
+): number {
+	if (!discountCodes?.length) return 0
+	const code = discountCodes.find((dc) =>
+		dc.ticketTypes?.some((tt) => tt.id === ticket.ticketTypeId)
+	)
+	return code ? code.amount : 0
+}
 
 export const sendOrderEmail = async (
 	req: Request | undefined,
@@ -42,13 +58,20 @@ export const sendOrderEmail = async (
 					{
 						association: 'ticketType',
 					},
+					{
+						association: 'discountCodes',
+						include: [
+							{
+								association: 'ticketTypes',
+								order: [['amount', 'DESC']],
+							},
+						],
+					},
 				],
 			},
 		],
 	})
 
-	const discountCode = await DiscountCode.findByPk(order.discountCodeId)
-	const discountInPercent = discountCode?.amount || 0
 	// TODO check logic
 	// example:what if i first make order with one adult than add childrens then add one more adult and then remove first adult will the first ticket be an adult?
 	const parentTicket = order.tickets[0]
@@ -69,11 +92,21 @@ export const sendOrderEmail = async (
 		})
 	}
 
+	const mappedTickets = order.tickets.map((ticket) =>
+		Object.assign(ticket, {
+			discountPercent: getDiscountPercentForTicket(
+				ticket,
+				order.discountCodes
+			),
+		})
+	)
+
 	await sendEmail(
 		req,
 		parentTicket.profile.email,
 		req?.t
 			? req.t('email:orderSubject', {
+					// TODO change to multiple ticketTypes and multiple discounts, maybe just some generic name?
 					ticketName: getTicketNameTranslation(
 						parentTicket.ticketType,
 						1,
@@ -92,10 +125,10 @@ export const sendOrderEmail = async (
 		order.tickets.length < 10
 			? await getOrderEmailInlineAttachments(order.tickets)
 			: undefined,
+
 		await getOrderEmailAttachments(
-			order.tickets,
+			mappedTickets,
 			order.priceWithVat,
-			discountInPercent,
 			zerofilled
 		)
 	)
@@ -115,9 +148,8 @@ const getOrderEmailInlineAttachments = async (
 }
 
 const getOrderEmailAttachments = async (
-	tickets: TicketModel[],
+	tickets: TicketWithDiscountPercent[],
 	orderPriceWithVat: number,
-	orderDiscountPercentage: number,
 	orderVatDocumentNumber: string
 ): Promise<CustomFile[]> => {
 	return concat(
@@ -159,7 +191,6 @@ const getOrderEmailAttachments = async (
 				await generatePdfVatDocument(
 					tickets,
 					orderPriceWithVat,
-					orderDiscountPercentage,
 					orderVatDocumentNumber
 				),
 				'base64'
@@ -188,8 +219,7 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 	}
 	// TODO send discount to email as well
 	return {
-		name: parentTicket.profile.name,
-		type: parentTicket.ticketType.type,
+		// TODO now we have multiple ticketTypes in single email add some generic text to not use isDisposable property
 		disposable: parentTicket.ticketType.isDisposable,
 		hasManyTickets: order.tickets.length > 10,
 		tickets:

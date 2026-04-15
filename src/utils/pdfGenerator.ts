@@ -4,8 +4,9 @@ import { TicketModel } from '../db/models/ticket'
 import i18next from 'i18next'
 import { Base64Encode } from 'base64-stream'
 import { getChildrenTicketName } from './translationsHelpers'
-import { round } from 'lodash'
+import { groupBy, round } from 'lodash'
 import { getDiscount, printDecimal2 } from './helpers'
+import { TicketWithDiscountPercent } from './emailSender'
 
 export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 	let ticketsForPdf = [...tickets]
@@ -273,9 +274,8 @@ const getTicketRowData = (
 }
 
 export const generatePdfVatDocument = async (
-	tickets: TicketModel[],
+	tickets: TicketWithDiscountPercent[],
 	orderPriceWithVat: number,
-	orderDiscountPercentage: number,
 	orderVatDocumentNumber: string
 ): Promise<string> => {
 	let ticketsForPdf = [...tickets]
@@ -566,101 +566,67 @@ export const generatePdfVatDocument = async (
 
 	doc.font('resources/fonts/WorkSans-Medium.ttf')
 
-	const reverseDiscountInPercent = 100 - orderDiscountPercentage
-
-	const ticketType = ticketsForPdf[0].ticketType
+	const ticketsByTicketType = groupBy(ticketsForPdf, 'ticketTypeId')
 
 	const ticketsRowData = []
-	if (numberOfAdults > 0) {
-		let priceVat = ticketType.priceWithVat
-		let ticketName = ticketsForPdf[0].ticketType.name
-		if (orderDiscountPercentage > 0) {
-			ticketName = `${i18next.t(
-				'translation:pdfVatDiscount'
-			)} ${orderDiscountPercentage} % – ${ticketName}`
-			priceVat = getDiscount(
-				ticketType.priceWithVat,
-				reverseDiscountInPercent
-			).newTicketsPrice
-		}
+	for (const ticketType of Object.values(ticketsByTicketType)) {
 		ticketsRowData.push(
-			getTicketRowData(
-				ticketName,
+			getRowDataForTicketType(
+				ticketType,
 				numberOfAdults,
-				priceVat,
-				ticketType.vatPercentage
+				numberOfChildren
 			)
 		)
 	}
-
-	if (numberOfChildren > 0) {
-		let priceVat = ticketType.childrenPriceWithVat
-		let ticketName = getChildrenTicketName()
-		if (orderDiscountPercentage > 0) {
-			ticketName = `${i18next.t(
-				'translation:pdfVatDiscount'
-			)} ${orderDiscountPercentage} % – ${ticketName}`
-			priceVat = getDiscount(
-				ticketType.childrenPriceWithVat,
-				reverseDiscountInPercent
-			).newTicketsPrice
-		}
-		ticketsRowData.push(
-			getTicketRowData(
-				ticketName,
-				numberOfChildren,
-				priceVat,
-				ticketType.childrenVatPercentage
-			)
-		)
-	}
-
-	const ticketsRowDataFormatted = ticketsRowData.map((row) => {
-		return [
-			{
-				font: { size: fontSizeMedium },
-				text: row.ticketName,
-			},
-			{
-				font: { size: fontSizeMedium },
-				align: { x: 'right', y: 'top' },
-				text:
-					row.quantity +
-					' ' +
-					i18next.t('translation:pdfVatQuantity'), // ks
-			},
-			{
-				font: { size: fontSizeMedium },
-				align: { x: 'right', y: 'top' },
-				text: printDecimal2(row.ticketPriceWithVat),
-			},
-			{
-				font: { size: fontSizeMedium },
-				align: { x: 'right', y: 'top' },
-				text: printDecimal2(row.ticketPriceWithoutVat),
-			},
-			{
-				font: { size: fontSizeMedium },
-				align: { x: 'right', y: 'top' },
-				text: printDecimal2(row.sumPriceWithoutVat),
-			},
-			{
-				font: { size: fontSizeMedium },
-				align: { x: 'right', y: 'top' },
-				text: row.vatPercentage,
-			},
-			{
-				font: { size: fontSizeMedium },
-				align: { x: 'right', y: 'top' },
-				text: printDecimal2(row.sumVatAmount),
-			},
-			{
-				font: { size: fontSizeMedium },
-				align: { x: 'right', y: 'top' },
-				text: printDecimal2(row.sumPriceWithVat),
-			},
-		]
-	})
+	// ticketType, adult/children, row proeprties (ticketName, quantity, ticketPriceWithVat, ticketPriceWithoutVat, sumPriceWithoutVat, vatPercentage, sumVatAmount, sumPriceWithVat)
+	const ticketsRowDataFormatted = ticketsRowData.map((row) =>
+		row.map((row) => {
+			return [
+				{
+					font: { size: fontSizeMedium },
+					text: row.ticketName,
+				},
+				{
+					font: { size: fontSizeMedium },
+					align: { x: 'right', y: 'top' },
+					text:
+						row.quantity +
+						' ' +
+						i18next.t('translation:pdfVatQuantity'), // ks
+				},
+				{
+					font: { size: fontSizeMedium },
+					align: { x: 'right', y: 'top' },
+					text: printDecimal2(row.ticketPriceWithVat),
+				},
+				{
+					font: { size: fontSizeMedium },
+					align: { x: 'right', y: 'top' },
+					text: printDecimal2(row.ticketPriceWithoutVat),
+				},
+				{
+					font: { size: fontSizeMedium },
+					align: { x: 'right', y: 'top' },
+					text: printDecimal2(row.sumPriceWithoutVat),
+				},
+				{
+					font: { size: fontSizeMedium },
+					align: { x: 'right', y: 'top' },
+					text: row.vatPercentage,
+				},
+				{
+					font: { size: fontSizeMedium },
+					align: { x: 'right', y: 'top' },
+					text: printDecimal2(row.sumVatAmount),
+				},
+				{
+					font: { size: fontSizeMedium },
+					align: { x: 'right', y: 'top' },
+					text: printDecimal2(row.sumPriceWithVat),
+				},
+			]
+		})
+	)
 
 	doc.font('resources/fonts/Inconsolata-Regular.ttf')
 
@@ -679,14 +645,27 @@ export const generatePdfVatDocument = async (
 
 	const orderPriceWithoutVat = round(
 		ticketsRowData.reduce(
-			(acc, ticket) => acc + round(ticket.sumPriceWithoutVat, 2),
+			(acc, ticketType) =>
+				acc +
+				round(
+					ticketType.reduce(
+						(acc, row) => acc + row.sumPriceWithoutVat,
+						0
+					),
+					2
+				),
 			0
 		),
 		2
 	)
 	const orderVat = round(
 		ticketsRowData.reduce(
-			(acc, ticket) => acc + round(ticket.sumVatAmount, 2),
+			(acc, ticketType) =>
+				acc +
+				round(
+					ticketType.reduce((acc, row) => acc + row.sumVatAmount, 0),
+					2
+				),
 			0
 		),
 		2
@@ -840,4 +819,63 @@ export const generatePdfVatDocument = async (
 		stream.on('data', (chunk) => (finalBase64String += chunk))
 		stream.on('end', () => resolve(finalBase64String))
 	})
+}
+function getRowDataForTicketType(
+	ticketsForPdf: TicketWithDiscountPercent[],
+	numberOfAdults: number,
+	numberOfChildren: number
+) {
+	const discountPercent = ticketsForPdf[0].discountPercent
+	const reverseDiscountInPercent = 100 - discountPercent
+
+	// TODO change to multiple ticketTypes and multiple discounts
+	const ticketType = ticketsForPdf[0].ticketType
+
+	const ticketsRowData = []
+	if (numberOfAdults > 0) {
+		let priceVat = ticketType.priceWithVat
+		// TODO change to multiple ticketTypes and multiple discounts
+		let ticketName = ticketType.name
+
+		if (discountPercent > 0) {
+			ticketName = `${i18next.t(
+				'translation:pdfVatDiscount'
+			)} ${discountPercent} % – ${ticketName}`
+			priceVat = getDiscount(
+				ticketType.priceWithVat,
+				reverseDiscountInPercent
+			).newTicketsPrice
+		}
+		ticketsRowData.push(
+			getTicketRowData(
+				ticketName,
+				numberOfAdults,
+				priceVat,
+				ticketType.vatPercentage
+			)
+		)
+	}
+
+	if (numberOfChildren > 0) {
+		let priceVat = ticketType.childrenPriceWithVat
+		let ticketName = getChildrenTicketName()
+		if (discountPercent > 0) {
+			ticketName = `${i18next.t(
+				'translation:pdfVatDiscount'
+			)} ${discountPercent} % – ${ticketName}`
+			priceVat = getDiscount(
+				ticketType.childrenPriceWithVat,
+				reverseDiscountInPercent
+			).newTicketsPrice
+		}
+		ticketsRowData.push(
+			getTicketRowData(
+				ticketName,
+				numberOfChildren,
+				priceVat,
+				ticketType.childrenVatPercentage
+			)
+		)
+	}
+	return ticketsRowData
 }
