@@ -73,6 +73,7 @@ export const sendOrderEmail = async (
 	})
 
 	// TODO check logic
+	// this will not work for multiple ticketTypes and multiple discounts
 	// example:what if i first make order with one adult than add childrens then add one more adult and then remove first adult will the first ticket be an adult?
 	const parentTicket = order.tickets[0]
 	if (!req) {

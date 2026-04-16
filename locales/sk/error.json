@@ -21,10 +21,9 @@
 	"swimmingPoolNotFound": "Kúpalisko sa nenašlo",
 	"associatedSwimmerNotExists": "Pouzivateľ neexistuje",
 	"checkDiscoundCodeNotAllowed": "Dry run nemôže kontrolovať zľavový kód",
-	"emailIsEmpty": "Nonregistered user need to have email",
 	"cityAccountDataMissing": "Data z mestského konta neboli nájdené",
 	"ticket": {
-		"agreementMissing": "Agreement missing",
+		"agreementMissing": "Súhlas s podmienkami je povinný",
 		"minimumOneTicket": "Objednávka musí obsahovať aspoň 1 vstupenku",
 		"minmumIsOneAdult": "Minimálne jeden dospelácky",
 		"checkoutAfterAllowedTime": "Výstup vykonaný po čase povoleného pobytu",
@@ -48,7 +47,7 @@
 		"maxtTicketsPerOrder": "Maximálny počet lístkov na objednávke je 10",
 		"notLoggedUserForTicket": "Pre kúpu tohoto lístku musíte byť prihlásený",
 		"minimumIsOneAdult": "Súčasťou lístka musí byť aspoň 1 dospelý",
-		"emailIsEmpty": "Nonregistered user need to have email",
+		"emailIsEmpty": "Email je povinný",
 		"emailNotFoundOnUser": "Nepodarilo sa získať emailovú adresu z mestského konta - kontaktujte prosím podporu",
 		"discountOnlyForOneUser": "Zľavový kód môže byť uplatnený iba pre jednu dospelú osobu, odstránte prosím ostatné dospelé osoby z objednávky."
 	},

@@ -1,11 +1,21 @@
 import faker from 'faker'
 import { QueryInterface } from 'sequelize'
 
+export const ticketId = 'c70954c7-970d-4f1a-acf4-12b91acabe01'
+export const ticketTypeSeasonalWithChildren =
+	'c70954c7-970d-4f1a-acf4-12b91acabe04'
+export const ticketTypeExpired = 'c70954c7-970d-4f1a-acf4-12b91acabe05'
+export const ticketTypeSeasonNameRequired =
+	'c70954c7-970d-4f1a-acf4-12b91acabe02'
+export const ticketTypePhotoRequiredId = 'c70954c7-970d-4f1a-acf4-12b91acabe07'
+export const ticket3Id = 'c70954c7-970d-4f1a-acf4-12b91acabe03'
+export const ticketTypeEntriesId = 'c70954c7-970d-4f1a-acf4-12b91acabe06'
+
 export async function up(queryInterface: QueryInterface) {
 	await queryInterface.bulkInsert('ticketTypes', [
 		// SEASONAL, NAME REQUIRED
 		{
-			id: 'c70954c7-970d-4f1a-acf4-12b91acabe02',
+			id: ticketTypeSeasonNameRequired,
 			name: 'Sezónny tiket',
 			description: faker.lorem.paragraph(15),
 			priceWithVat: 80,
@@ -21,7 +31,7 @@ export async function up(queryInterface: QueryInterface) {
 		},
 		// SEASONAL, DONT REQUIRE NAME, CHILDREN ARE FORBIDDEN
 		{
-			id: 'c70954c7-970d-4f1a-acf4-12b91acabe03',
+			id: ticket3Id,
 			name: 'Sezónny tiket',
 			description: faker.lorem.paragraph(15),
 			priceWithVat: 2000,
@@ -37,7 +47,7 @@ export async function up(queryInterface: QueryInterface) {
 		},
 		// SEASONAL WITH CHILDREN
 		{
-			id: 'c70954c7-970d-4f1a-acf4-12b91acabe04',
+			id: ticketTypeSeasonalWithChildren,
 			name: 'Sezónny tiket',
 			description: faker.lorem.paragraph(15),
 			priceWithVat: 2000,
@@ -60,7 +70,7 @@ export async function up(queryInterface: QueryInterface) {
 		},
 		// EXPIRED TICKET
 		{
-			id: 'c70954c7-970d-4f1a-acf4-12b91acabe05',
+			id: ticketTypeExpired,
 			name: 'Sezónny tiket',
 			description: faker.lorem.paragraph(15),
 			priceWithVat: 20,
@@ -76,7 +86,7 @@ export async function up(queryInterface: QueryInterface) {
 		},
 		// ENTRIES TICKET
 		{
-			id: 'c70954c7-970d-4f1a-acf4-12b91acabe06',
+			id: ticketTypeEntriesId,
 			name: 'Viacvstupovy tiket',
 			description: faker.lorem.paragraph(15),
 			priceWithVat: 3999,
@@ -93,7 +103,7 @@ export async function up(queryInterface: QueryInterface) {
 		},
 		// PHOTO TESTS
 		{
-			id: 'c70954c7-970d-4f1a-acf4-12b91acabe07',
+			id: ticketTypePhotoRequiredId,
 			name: 'Viacvstupovy tiket',
 			description: faker.lorem.paragraph(15),
 			priceWithVat: 3999,

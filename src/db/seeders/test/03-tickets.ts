@@ -15,12 +15,12 @@ import faker from 'faker'
 export const ticketId = 'c70954c7-970d-4f1a-acf4-12b91acabe01'
 export const ticketAllowedSwimmingPoolId =
 	'c70954c7-970d-4f1a-acf4-12b91acabe05'
-export const ticket2Id = 'c70954c7-970d-4f1a-acf4-12b91acabe02'
+export const ticketTypeSeasonNameRequired =
+	'c70954c7-970d-4f1a-acf4-12b91acabe02'
 export const ticket2AllowedSwimmingPoolId =
 	'c70954c7-970d-4f1a-acf4-12b91acabe07'
 export const ticket3Id = 'c70954c7-970d-4f1a-acf4-12b91acabe03'
-export const ticket3AllowedSwimmingPoolId =
-	'c70954c7-970d-4f1a-acf4-12b91acabe06'
+export const ticketTypeIdEntries = 'c70954c7-970d-4f1a-acf4-12b91acabe06'
 
 export async function up(queryInterface: QueryInterface) {
 	const employee = await UserModel.create({
@@ -65,7 +65,7 @@ export async function up(queryInterface: QueryInterface) {
 				},
 			},
 			{
-				id: ticket2Id,
+				id: ticketTypeSeasonNameRequired,
 				priceWithVat: 399,
 				vatPercentage: 23,
 				isChildren: false,
@@ -188,7 +188,7 @@ export async function up(queryInterface: QueryInterface) {
 					entriesNumber: 5,
 					swimmingPools: [
 						createSwimmingPool(),
-						createSwimmingPool(ticket3AllowedSwimmingPoolId),
+						createSwimmingPool(ticketTypeIdEntries),
 					],
 				},
 			},

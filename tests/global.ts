@@ -3,11 +3,11 @@ import { createJwt } from '../src/utils/authorization'
 import { IPassportConfig } from '../src/types/interfaces'
 import {
 	ticketId,
-	ticket2Id,
+	ticketTypeSeasonNameRequired,
 	ticket3Id,
 	ticketAllowedSwimmingPoolId,
 	ticket2AllowedSwimmingPoolId,
-	ticket3AllowedSwimmingPoolId,
+	ticketTypeIdEntries,
 } from '../src/db/seeders/test/03-tickets'
 import {
 	superAdmin,
@@ -60,8 +60,8 @@ export default async () => {
 	// Tickets
 	env.ticketId = ticketId
 	env.ticketAllowedSwimmingPoolId = ticketAllowedSwimmingPoolId
-	env.ticket2Id = ticket2Id
+	env.ticket2Id = ticketTypeSeasonNameRequired
 	env.ticket2AllowedSwimmingPoolId = ticket2AllowedSwimmingPoolId
 	env.ticket3Id = ticket3Id
-	env.ticket3AllowedSwimmingPoolId = ticket3AllowedSwimmingPoolId
+	env.ticket3AllowedSwimmingPoolId = ticketTypeIdEntries
 }
