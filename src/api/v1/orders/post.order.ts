@@ -38,6 +38,7 @@ import { CityAccountUser } from '../../../utils/cityAccountDto'
 import i18next from 'i18next'
 import { DiscountCodeModel } from '../../../db/models/discountCode'
 import { SwimmingLoggedUserModel } from '../../../db/models/swimmingLoggedUser'
+import { random } from 'lodash'
 
 const {
 	SwimmingLoggedUser,
@@ -72,7 +73,6 @@ export const postOrderCommonBodySchema = z.object({
 	tickets: z.array(postOrderTicketSchema).min(1, {
 		message: i18next.t('error:ticket.minimumOneTicket'),
 	}),
-	// email: z.email().max(255).nullable().optional(),
 })
 
 export const postOrderDryRunBodySchema = postOrderCommonBodySchema.extend({
@@ -85,11 +85,11 @@ export const postOrderDryRunBodySchema = postOrderCommonBodySchema.extend({
 
 export const postOrderBodySchema = postOrderCommonBodySchema.extend({
 	discountCodes: z.array(z.string().min(5).max(20)).optional(),
-	agreement: z.boolean({
-		message: i18next.t('error:ticket.agreementMissing'),
+	agreement: z.literal<boolean>(true, {
+		error: () => ({ message: i18next.t('error:ticket.agreementMissing') }),
 	}),
 	paymentMethod: z.enum(ORDER_PAYMENT_METHOD_STATE),
-	email: z.email().max(255).nullable(),
+	email: z.email().max(255).optional(),
 })
 
 export type PostOrderTicket = z.infer<typeof postOrderTicketSchema>
@@ -132,6 +132,7 @@ type TicketWithAdditionalProperties = PostOrderTicket & {
 		reverseDiscountInPercent: number
 	}
 	discountCode?: DiscountCodeModel
+	priceWithVat: number
 }
 
 export const workflowDryRun = async (
@@ -146,12 +147,13 @@ export const workflowDryRun = async (
 			? await getCityAccountData(req.headers.authorization)
 			: null
 
-		const { pricing } = await getTicketsAndPricing(
+		const { mappedTickets } = await getMappedTickets(
 			body.tickets,
 			cityAccountData,
 			body.discountsPercent,
 			undefined
 		)
+		const pricing = await getOrderPrice(mappedTickets)
 		return res.json({
 			data: {
 				pricing,
@@ -176,34 +178,25 @@ export const workflow = async (
 	try {
 		const { body } = req
 
+		// TODO this should live in authorization middleware and attach the city account data to the request object
 		const cityAccountData = req.headers.authorization
 			? await getCityAccountData(req.headers.authorization)
 			: null
 
-		const { mappedTickets, pricing } = await getTicketsAndPricing(
+		const { mappedTickets } = await getMappedTickets(
 			body.tickets,
 			cityAccountData,
 			undefined,
 			body.discountCodes ?? []
 		)
+		const pricing = await getOrderPrice(mappedTickets)
 
-		let email: string | null = null
-		if (body.email) {
-			email = body.email
-		} else if (!cityAccountData) {
-			throw new ErrorBuilder(
-				400,
-				i18next.t('error:cityAccountDataMissing')
-			)
-		} else {
-			email = cityAccountData.email
-		}
+		const email = body.email ?? cityAccountData?.email ?? null
 
 		if (!email) {
 			throw new ErrorBuilder(400, i18next.t('error:ticket.emailIsEmpty'))
 		}
 		const order = await createAndProcessOrder(email, mappedTickets, pricing)
-
 		if (
 			mappedTickets.every((ticket) => ticket.discountCode?.amount === 100)
 		) {
@@ -239,9 +232,7 @@ export const workflow = async (
 				],
 			})
 		}
-
 		const paymentData = await createPayment(order, body.paymentMethod)
-
 		return res.json({
 			data: {
 				id: order.id,
@@ -259,6 +250,7 @@ export const workflow = async (
 	}
 }
 
+// TODO use same computation here and in pdfGenerator.ts
 // Compute price
 const getOrderPrice = async (
 	ticketsWithAdditionalProperties: TicketWithAdditionalProperties[]
@@ -285,8 +277,8 @@ const getOrderPrice = async (
 		discount += totals.discount
 	}
 	return {
-		orderPriceWithVat: orderPrice,
-		discount: discount,
+		orderPriceWithVat: Math.round(orderPrice),
+		discount: Math.round(discount),
 	}
 }
 
@@ -320,6 +312,8 @@ const getUser = async (
 				i18next.t('error:ticket.swimmingLoggedUserNotFound')
 			)
 		if (!cityAccountData)
+			// for the time being this is unreachable code, because cityAccountData is always present when we have swimmingLoggedUser
+			// therefore no testing for this case
 			throw new ErrorBuilder(401, i18next.t('error:ticket.userNotFound'))
 		if (!cityAccountData.email)
 			throw new ErrorBuilder(
@@ -338,6 +332,7 @@ const getUser = async (
 				cityAccountType: cityAccountData['custom:account_type'],
 			}
 		} else {
+			// should we check if associatedSwimmer is linked to the swimmingLoggedUser?
 			const associatedSwimmer = await AssociatedSwimmer.findByPk(
 				ticket.personId
 			)
@@ -452,7 +447,7 @@ const uploadProfilePhotos = async (ticket: TicketModel) => {
 
 const basicChecks = async (
 	ticketsWithTicketType: TicketWithAdditionalProperties[],
-	cognitoId: string | null
+	userLogged: boolean
 ) => {
 	const numberOfChildren = ticketsWithTicketType.filter(
 		(ticketWithTicketType) => ticketWithTicketType.isChildren
@@ -473,12 +468,32 @@ const basicChecks = async (
 	}
 
 	ticketsWithTicketType.forEach((ticketWithTicketType) => {
+		const ticketWithSameTicketType = ticketsWithTicketType.filter(
+			(ticketWithTicketTypeInstance) =>
+				ticketWithTicketType.ticketType.id ===
+				ticketWithTicketTypeInstance.ticketType.id
+		)
+		const numberOfChildrenForTicketType = ticketWithSameTicketType.filter(
+			(ticketWithTicketTypeInstance) =>
+				ticketWithTicketTypeInstance.isChildren
+		).length
+
+		const numberOfAdultsForTicketType =
+			ticketWithSameTicketType.length - numberOfChildrenForTicketType
+		// minimum is one adult
+		if (numberOfAdults < 1) {
+			throw new ErrorBuilder(
+				400,
+				i18next.t('error:ticket.minimumIsOneAdult')
+			)
+		}
 		if (!ticketWithTicketType.ticketType) {
 			throw new ErrorBuilder(404, i18next.t('error:ticketTypeNotFound'))
 		}
+		// fix incorrect comment
 		// if discount in seasonpass, only for one user
 		if (
-			numberOfAdults > 1 &&
+			numberOfAdultsForTicketType > 1 &&
 			ticketWithTicketType.discount?.reverseDiscountInPercent &&
 			ticketWithTicketType.discount?.reverseDiscountInPercent !== 100
 		) {
@@ -487,7 +502,7 @@ const basicChecks = async (
 				i18next.t('error:ticket.discountOnlyForOneUser')
 			)
 		}
-		if (ticketWithTicketType.ticketType.nameRequired && !cognitoId) {
+		if (ticketWithTicketType.ticketType.nameRequired && !userLogged) {
 			throw new ErrorBuilder(
 				400,
 				i18next.t('error:ticket.notLoggedUserForTicket')
@@ -554,6 +569,9 @@ const mapPropertiesToTickets = async (
 					},
 				},
 				order: [['amount', 'DESC']],
+				include: {
+					association: 'ticketTypes',
+				},
 		  })
 		: []
 	const ticketsWithTicketType = await Promise.all(
@@ -603,11 +621,17 @@ const mapPropertiesToTickets = async (
 			)
 			const isChildren = getIsChildrenForTicketType(user, ticketType)
 
+			const ticketPriceWithVat = await getTicketPrice(
+				isChildren,
+				ticketType
+			)
+
 			return {
 				...ticket,
 				ticketType,
 				isChildren: isChildren,
 				user: user,
+				priceWithVat: ticketPriceWithVat,
 				discount: {
 					discountPercent: discountPercent,
 					reverseDiscountInPercent: reverseDiscountInPercent,
@@ -618,7 +642,7 @@ const mapPropertiesToTickets = async (
 	)
 	return ticketsWithTicketType
 }
-const getTicketsAndPricing = async (
+const getMappedTickets = async (
 	tickets: PostOrderTicket[],
 	cityAccountData: Partial<CityAccountUser> | null,
 	discountsPercent?: { ticketTypeId: string; discountPercent: number }[],
@@ -630,6 +654,7 @@ const getTicketsAndPricing = async (
 		  })
 		: null
 
+	// TODO swimmingLoggedUser and cityAccountData should be combined into a single object
 	const mappedTickets = await mapPropertiesToTickets(
 		tickets,
 		swimmingLoggedUser,
@@ -638,11 +663,12 @@ const getTicketsAndPricing = async (
 		discountCodes
 	)
 
-	await basicChecks(mappedTickets, cityAccountData?.sub ?? null)
+	await basicChecks(mappedTickets, !!cityAccountData?.sub)
 
-	const pricing = await getOrderPrice(mappedTickets)
-	return { mappedTickets, pricing }
+	return { mappedTickets }
 }
+
+// TODO we should use transaction here
 const createAndProcessOrder = async (
 	email: string,
 	mappedTickets: TicketWithAdditionalProperties[],
@@ -651,16 +677,10 @@ const createAndProcessOrder = async (
 	const order = await Order.create({
 		priceWithVat: 0,
 		state: ORDER_STATE.CREATED,
-		orderNumber: new Date().getTime(),
+		orderNumber: new Date().getTime() + random(1, 100).toString(), // tests runs too fast and creates same order number :)
 	})
-
 	// for each instance add unique ticket
 	for (const ticketWithTicketType of mappedTickets) {
-		const ticketPrice = await getTicketPrice(
-			ticketWithTicketType.isChildren,
-			ticketWithTicketType.ticketType
-		)
-
 		// TODO creating ticket should happen after transaction is paid,
 		// probably there will be problem with age of users,
 		// should we take age from user when order is created or when it is paid?
@@ -670,7 +690,7 @@ const createAndProcessOrder = async (
 			ticketWithTicketType.ticketType,
 			order.id,
 			ticketWithTicketType.isChildren,
-			ticketPrice,
+			ticketWithTicketType.priceWithVat,
 			ticketWithTicketType.ticketType.vatPercentage
 		)
 		if (ticketWithTicketType.ticketType.photoRequired) {
@@ -688,12 +708,9 @@ const createAndProcessOrder = async (
 		}
 	}
 
-	const orderPriceWithVat = pricing.orderPriceWithVat
-	const discount = pricing.discount
-
 	await order.update({
-		priceWithVat: orderPriceWithVat,
-		discount: discount,
+		priceWithVat: pricing.orderPriceWithVat,
+		discount: pricing.discount,
 	})
 	return order
 }
