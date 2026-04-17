@@ -30,6 +30,7 @@ export const getAllAges = (ageInterval: number, ageMinimum: number) => {
 	return allAges
 }
 
+// TODO this should live in authorization middleware and attach the city account data to the request object
 export const getCityAccountData = async (accessToken: string) => {
 	const result = await fetch(`${process.env.CITY_ACCOUNT_BE_URL}/auth/user`, {
 		headers: {
