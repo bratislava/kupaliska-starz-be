@@ -21,10 +21,8 @@ import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { TicketTypeModel } from '../../../db/models/ticketType'
 import { validate } from '../../../utils/validation'
 import { createPayment } from '../../../services/webpayService'
-import { getDiscountCode } from '../../../services/discountCodeValidationService'
 import { createJwt } from '../../../utils/authorization'
 import { sendOrderEmail } from '../../../utils/emailSender'
-import { getCognitoIdOfLoggedInUser } from '../../../utils/azureAuthentication'
 import {
 	getDiscount,
 	getCityAccountData,
