@@ -3,10 +3,7 @@ import { TicketModel } from '../db/models/ticket'
 import { sendEmail } from '../services/mailerService'
 import { IAppConfig, IMailgunserviceConfig } from '../types/interfaces'
 import { generateQrCodeBuffer } from './qrCodeGenerator'
-import {
-	getChildrenTicketName,
-	getTicketNameTranslation,
-} from './translationsHelpers'
+import { getChildrenTicketName } from './translationsHelpers'
 import config from 'config'
 import { OrderModel } from '../db/models/order'
 import { Request } from 'express'
@@ -78,7 +75,6 @@ export const sendOrderEmail = async (
 	// TODO check logic
 	// this will not work for multiple ticketTypes and multiple discounts
 	// example:what if i first make order with one adult than add childrens then add one more adult and then remove first adult will the first ticket be an adult?
-	const parentTicket = order.tickets[0]
 	if (!req) {
 		await i18next
 			.use(i18nextMiddleware.LanguageDetector)
@@ -105,32 +101,16 @@ export const sendOrderEmail = async (
 		})
 	)
 	await sendEmail(
-		req,
-		parentTicket.profile.email,
-		req?.t
-			? req.t('email:orderSubject', {
-					// TODO change to multiple ticketTypes and multiple discounts, maybe just some generic name?
-					ticketName: getTicketNameTranslation(
-						parentTicket.ticketType,
-						1,
-						'a'
-					),
-			  })
-			: i18next.t('email:orderSubject', {
-					ticketName: getTicketNameTranslation(
-						parentTicket.ticketType,
-						1,
-						'a'
-					),
-			  }),
+		// TODO move email to order model, move standing tickets email to order model as well, remove email from ticket model
+		order.tickets[0].profile.email,
+		i18next.t('email:orderSubject'),
 		orderTemplate,
 		// TODO refactor in getOrderEmailData we are using order.getItems where adults and children are grouped and counted by ticketType
 		// and then we are using mappedTickets to generate pdfs and qr codes
-		getOrderEmailData(parentTicket, order),
+		getOrderEmailData(order),
 		order.tickets.length < 10
 			? await getOrderEmailInlineAttachments(order.tickets)
 			: undefined,
-
 		await getOrderEmailAttachments(
 			mappedTickets,
 			order.priceWithVat,
@@ -205,7 +185,7 @@ const getOrderEmailAttachments = async (
 	)
 }
 
-const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
+const getOrderEmailData = (order: OrderModel) => {
 	const items = order.getItems()
 
 	const summaryItems = [
@@ -225,7 +205,6 @@ const getOrderEmailData = (parentTicket: TicketModel, order: OrderModel) => {
 	// TODO send discount to email as well
 	return {
 		// TODO now we have multiple ticketTypes in single email add some generic text to not use isDisposable property
-		disposable: parentTicket.ticketType.isDisposable,
 		hasManyTickets: order.tickets.length > 10,
 		tickets:
 			order.tickets.length < 10
