@@ -465,6 +465,10 @@ const basicChecks = async (
 		)
 	}
 
+	// minimum is one adult
+	if (numberOfAdults < 1) {
+		throw new ErrorBuilder(400, i18next.t('error:ticket.minimumIsOneAdult'))
+	}
 	ticketsWithTicketType.forEach((ticketWithTicketType) => {
 		const ticketWithSameTicketType = ticketsWithTicketType.filter(
 			(ticketWithTicketTypeInstance) =>
@@ -478,13 +482,6 @@ const basicChecks = async (
 
 		const numberOfAdultsForTicketType =
 			ticketWithSameTicketType.length - numberOfChildrenForTicketType
-		// minimum is one adult
-		if (numberOfAdults < 1) {
-			throw new ErrorBuilder(
-				400,
-				i18next.t('error:ticket.minimumIsOneAdult')
-			)
-		}
 		if (!ticketWithTicketType.ticketType) {
 			throw new ErrorBuilder(404, i18next.t('error:ticketTypeNotFound'))
 		}
