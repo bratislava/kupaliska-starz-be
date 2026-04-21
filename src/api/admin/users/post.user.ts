@@ -135,7 +135,6 @@ export const workflow = async (
 
 		// send email to reset pass
 		await sendEmail(
-			req,
 			body.email,
 			req.t('email:setPasswordSubject'),
 			setPasswordTemplate,

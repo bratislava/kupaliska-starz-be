@@ -60,7 +60,6 @@ export const workflow = async (
 
 		// send email
 		await sendEmail(
-			req,
 			body.email,
 			req.t('email:resetPasswordSubject'),
 			resetPasswordTemplate,
