@@ -278,12 +278,10 @@ export const generatePdfVatDocument = async (
 	orderPriceWithVat: number,
 	orderVatDocumentNumber: string
 ): Promise<string> => {
-	let ticketsForPdf = [...tickets]
-
 	let numberOfChildren = 0
 	let numberOfAdults = 0
 
-	for (const ticket of ticketsForPdf) {
+	for (const ticket of tickets) {
 		if (ticket.isChildren) {
 			numberOfChildren++
 		} else {
@@ -473,8 +471,8 @@ export const generatePdfVatDocument = async (
 					font: { size: fontSizeMedium },
 					align: { x: 'right', y: 'top' },
 					text:
-						ticketsForPdf.length > 0
-							? ticketsForPdf[0].createdAt
+						tickets.length > 0
+							? tickets[0].createdAt
 									.toLocaleDateString('sk-SK') // 18. 05. 2025
 									.replace(/\.\s+/g, '.') // 18.05.2025
 							: '',
@@ -566,7 +564,7 @@ export const generatePdfVatDocument = async (
 
 	doc.font('resources/fonts/WorkSans-Medium.ttf')
 
-	const ticketsByTicketType = groupBy(ticketsForPdf, 'ticketTypeId')
+	const ticketsByTicketType = groupBy(tickets, 'ticketTypeId')
 
 	const ticketsRowData = []
 	for (const ticketType of Object.values(ticketsByTicketType)) {
