@@ -34,6 +34,7 @@ import {
 	ticketTypeEntriesId,
 	ticketTypeExpired,
 	ticketTypeSeasonalWithChildren,
+	ticketTypeSeasonalWithChildren2,
 	ticketTypeSeasonNameRequired,
 } from '../../../../../src/db/seeders/test/01-ticketTypes'
 import { DiscountCodeModel } from '../../../../../src/db/models/discountCode'
@@ -709,6 +710,54 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				)
 				expect(discountCodeInstance?.usedAt).not.toBeNull()
 				expect(order?.discountCodes[0].id).toBe(discountCodeId)
+			})
+
+			it('Order should have pass through throw numberOfChildrenExceeded', async () => {
+				const response = await request
+					.post(endpointOrder)
+					.set(authHeader)
+					.set('Content-Type', 'application/json')
+					.send({
+						tickets: [
+							{
+								ticketTypeId: ticketTypeSeasonalWithChildren,
+								age: 18,
+								zip: '03251',
+							},
+							...Array.from(
+								{
+									length: 2, //ticketTypeSeasonalWithChildren.childrenMaxNumber,
+								},
+								() => ({
+									ticketTypeId:
+										ticketTypeSeasonalWithChildren,
+									age: 10,
+									zip: '81101',
+								})
+							),
+							{
+								ticketTypeId: ticketTypeSeasonalWithChildren2,
+								age: 18,
+								zip: '03251',
+							},
+							...Array.from(
+								{
+									length: 2, //ticketTypeSeasonalWithChildren2.childrenMaxNumber,
+								},
+								() => ({
+									ticketTypeId:
+										ticketTypeSeasonalWithChildren2,
+									age: 10,
+									zip: '81101',
+								})
+							),
+						],
+						agreement: true,
+						paymentMethod: ORDER_PAYMENT_METHOD_STATE.CARD,
+						token: 'recaptcha123',
+					})
+
+				expect(response.status).toBe(200)
 			})
 			it('Order should have correct discount for multiple discount codes present in the request', async () => {
 				const response = await request

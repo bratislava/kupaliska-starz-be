@@ -36,7 +36,7 @@ import { CityAccountUser } from '../../../utils/cityAccountDto'
 import i18next from 'i18next'
 import { DiscountCodeModel } from '../../../db/models/discountCode'
 import { SwimmingLoggedUserModel } from '../../../db/models/swimmingLoggedUser'
-import { random } from 'lodash'
+import { groupBy, random } from 'lodash'
 
 const {
 	SwimmingLoggedUser,
@@ -469,34 +469,56 @@ const basicChecks = async (
 	if (numberOfAdults < 1) {
 		throw new ErrorBuilder(400, i18next.t('error:ticket.minimumIsOneAdult'))
 	}
-	ticketsWithTicketType.forEach((ticketWithTicketType) => {
-		const ticketWithSameTicketType = ticketsWithTicketType.filter(
-			(ticketWithTicketTypeInstance) =>
-				ticketWithTicketType.ticketType.id ===
-				ticketWithTicketTypeInstance.ticketType.id
-		)
-		const numberOfChildrenForTicketType = ticketWithSameTicketType.filter(
-			(ticketWithTicketTypeInstance) =>
-				ticketWithTicketTypeInstance.isChildren
-		).length
 
-		const numberOfAdultsForTicketType =
-			ticketWithSameTicketType.length - numberOfChildrenForTicketType
-		if (!ticketWithTicketType.ticketType) {
-			throw new ErrorBuilder(404, i18next.t('error:ticketTypeNotFound'))
-		}
+	// TODO do this better
+	const ticketsWithTicketTypeByTicketTypes = groupBy(
+		ticketsWithTicketType,
+		'ticketType.id'
+	)
+	for (const ticketsWithTicketTypeByTicketType of Object.values(
+		ticketsWithTicketTypeByTicketTypes
+	)) {
+		const { numberOfAdultsForTicketType, numberOfChildrenForTicketType } =
+			getAdultsAndChildrenCountForTicketType(
+				ticketsWithTicketTypeByTicketType
+			)
+
 		// fix incorrect comment
 		// if discount in seasonpass, only for one user
 		if (
 			numberOfAdultsForTicketType > 1 &&
-			ticketWithTicketType.discount?.reverseDiscountInPercent &&
-			ticketWithTicketType.discount?.reverseDiscountInPercent !== 100
+			ticketsWithTicketTypeByTicketType.some(
+				(ticketWithTicketType) =>
+					ticketWithTicketType.discount?.reverseDiscountInPercent &&
+					ticketWithTicketType.discount?.reverseDiscountInPercent !==
+						100
+			)
 		) {
 			throw new ErrorBuilder(
 				400,
 				i18next.t('error:ticket.discountOnlyForOneUser')
 			)
 		}
+
+		const ticketType =
+			ticketsWithTicketTypeByTicketType.length > 0
+				? ticketsWithTicketTypeByTicketType[0].ticketType
+				: null
+		if (!ticketType) {
+			throw new ErrorBuilder(404, i18next.t('error:ticketTypeNotFound'))
+		}
+		// children allowed rules
+		if (ticketType.childrenAllowed) {
+			validate(
+				true,
+				numberOfChildrenForTicketType,
+				Joi.number().max(ticketType.childrenMaxNumber),
+				i18next.t('error:ticket.numberOfChildrenExceeded'),
+				'numberOfChildrenExceeded'
+			)
+		}
+	}
+	ticketsWithTicketType.forEach((ticketWithTicketType) => {
 		if (ticketWithTicketType.ticketType.nameRequired && !userLogged) {
 			throw new ErrorBuilder(
 				400,
@@ -518,18 +540,6 @@ const basicChecks = async (
 			throw new ErrorBuilder(
 				400,
 				i18next.t('error:ticket.userNotAllowedTicketType')
-			)
-		}
-		// children allowed rules
-		if (ticketWithTicketType.ticketType.childrenAllowed) {
-			validate(
-				true,
-				numberOfChildren,
-				Joi.number().max(
-					ticketWithTicketType.ticketType.childrenMaxNumber
-				),
-				i18next.t('error:ticket.numberOfChildrenExceeded'),
-				'numberOfChildrenExceeded'
 			)
 		}
 	})
@@ -708,4 +718,19 @@ const createAndProcessOrder = async (
 		discount: pricing.discount,
 	})
 	return order
+}
+
+export const getAdultsAndChildrenCountForTicketType = (
+	ticketsWithTicketType: {
+		ticketType: { id: string }
+		isChildren: boolean
+	}[]
+) => {
+	const numberOfChildrenForTicketType = ticketsWithTicketType.filter(
+		(ticketWithTicketType) => ticketWithTicketType.isChildren
+	).length
+	const numberOfAdultsForTicketType =
+		ticketsWithTicketType.length - numberOfChildrenForTicketType
+
+	return { numberOfAdultsForTicketType, numberOfChildrenForTicketType }
 }
