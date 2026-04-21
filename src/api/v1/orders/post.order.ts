@@ -29,6 +29,7 @@ import {
 	payOrderWithNextOrderNumber,
 	isDefined,
 	getReverseDiscountInPercent,
+	getAdultsAndChildrenCountForTicketType,
 } from '../../../utils/helpers'
 import { TicketModel } from '../../../db/models/ticket'
 import { FE_ROUTES } from '../../../utils/constants'
@@ -718,19 +719,4 @@ const createAndProcessOrder = async (
 		discount: pricing.discount,
 	})
 	return order
-}
-
-export const getAdultsAndChildrenCountForTicketType = (
-	ticketsWithTicketType: {
-		ticketType: { id: string }
-		isChildren: boolean
-	}[]
-) => {
-	const numberOfChildrenForTicketType = ticketsWithTicketType.filter(
-		(ticketWithTicketType) => ticketWithTicketType.isChildren
-	).length
-	const numberOfAdultsForTicketType =
-		ticketsWithTicketType.length - numberOfChildrenForTicketType
-
-	return { numberOfAdultsForTicketType, numberOfChildrenForTicketType }
 }

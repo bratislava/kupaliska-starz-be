@@ -143,3 +143,18 @@ export const calculateAge = (dateOfBirth: string) => {
 export const getReverseDiscountInPercent = (discountPercent?: number) => {
 	return 100 - (discountPercent ?? 0)
 }
+
+export const getAdultsAndChildrenCountForTicketType = (
+	ticketsWithTicketType: {
+		ticketType: { id: string }
+		isChildren: boolean
+	}[]
+) => {
+	const numberOfChildrenForTicketType = ticketsWithTicketType.filter(
+		(ticketWithTicketType) => ticketWithTicketType.isChildren
+	).length
+	const numberOfAdultsForTicketType =
+		ticketsWithTicketType.length - numberOfChildrenForTicketType
+
+	return { numberOfAdultsForTicketType, numberOfChildrenForTicketType }
+}

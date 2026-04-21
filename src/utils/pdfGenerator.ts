@@ -5,7 +5,11 @@ import i18next from 'i18next'
 import { Base64Encode } from 'base64-stream'
 import { getChildrenTicketName } from './translationsHelpers'
 import { groupBy, round } from 'lodash'
-import { getDiscount, printDecimal2 } from './helpers'
+import {
+	getAdultsAndChildrenCountForTicketType,
+	getDiscount,
+	printDecimal2,
+} from './helpers'
 import { TicketWithDiscountPercent } from './emailSender'
 
 export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
@@ -29,6 +33,7 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 	const numberOfChildrenWithoutAdult =
 		numberOfChildren - numberOfChildrenWithAdult
 
+	// is this still desired the way it was when we have multiple ticketTypes?
 	ticketsForPdf = sortTickets(ticketsForPdf)
 
 	let startPadding = 79.5
@@ -564,15 +569,17 @@ export const generatePdfVatDocument = async (
 
 	doc.font('resources/fonts/WorkSans-Medium.ttf')
 
-	const ticketsByTicketType = groupBy(tickets, 'ticketTypeId')
+	const ticketsByTicketTypes = groupBy(tickets, 'ticketTypeId')
 
 	const ticketsRowData = []
-	for (const ticketType of Object.values(ticketsByTicketType)) {
+	for (const ticketsByTicketType of Object.values(ticketsByTicketTypes)) {
+		const { numberOfAdultsForTicketType, numberOfChildrenForTicketType } =
+			getAdultsAndChildrenCountForTicketType(ticketsByTicketType)
 		ticketsRowData.push(
 			getRowDataForTicketType(
-				ticketType,
-				numberOfAdults,
-				numberOfChildren
+				ticketsByTicketType,
+				numberOfAdultsForTicketType,
+				numberOfChildrenForTicketType
 			)
 		)
 	}
@@ -832,7 +839,6 @@ function getRowDataForTicketType(
 	const ticketsRowData = []
 	if (numberOfAdults > 0) {
 		let priceVat = ticketType.priceWithVat
-		// TODO change to multiple ticketTypes and multiple discounts
 		let ticketName = ticketType.name
 
 		if (discountPercent > 0) {
