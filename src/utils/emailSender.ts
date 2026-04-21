@@ -18,13 +18,14 @@ import i18nextBackend from 'i18next-node-fs-backend'
 import { CustomFile } from 'mailgun.js'
 import { models } from '../db/models'
 import { DiscountCodeModel } from '../db/models/discountCode'
+import ErrorBuilder from './ErrorBuilder'
 
 const i18NextConfig: InitOptions = config.get('i18next')
 const appConfig: IAppConfig = config.get('app')
 const mailgunConfig: IMailgunserviceConfig = config.get('mailgunService')
 const orderTemplate = mailgunConfig.templates.order
 
-const { Order, DiscountCode } = models
+const { Order } = models
 
 export type TicketWithDiscountPercent = TicketModel & {
 	discountPercent: number
@@ -58,20 +59,22 @@ export const sendOrderEmail = async (
 					{
 						association: 'ticketType',
 					},
+				],
+			},
+			{
+				association: 'discountCodes',
+				include: [
 					{
-						association: 'discountCodes',
-						include: [
-							{
-								association: 'ticketTypes',
-								order: [['amount', 'DESC']],
-							},
-						],
+						association: 'ticketTypes',
 					},
 				],
+				order: [['amount', 'DESC']],
 			},
 		],
 	})
-
+	if (!order) {
+		throw new ErrorBuilder(404, i18next.t('error:orderNotFound'))
+	}
 	// TODO check logic
 	// this will not work for multiple ticketTypes and multiple discounts
 	// example:what if i first make order with one adult than add childrens then add one more adult and then remove first adult will the first ticket be an adult?
@@ -101,7 +104,6 @@ export const sendOrderEmail = async (
 			),
 		})
 	)
-
 	await sendEmail(
 		req,
 		parentTicket.profile.email,
@@ -122,6 +124,8 @@ export const sendOrderEmail = async (
 					),
 			  }),
 		orderTemplate,
+		// TODO refactor in getOrderEmailData we are using order.getItems where adults and children are grouped and counted by ticketType
+		// and then we are using mappedTickets to generate pdfs and qr codes
 		getOrderEmailData(parentTicket, order),
 		order.tickets.length < 10
 			? await getOrderEmailInlineAttachments(order.tickets)
