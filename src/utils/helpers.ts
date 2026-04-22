@@ -92,8 +92,9 @@ export const getDiscount = (
 	ticketPriceWithVat: number,
 	reverseDiscountInPercent: number
 ) => {
-	const priceWithDiscount =
+	const priceWithDiscount = Math.round(
 		(ticketPriceWithVat * reverseDiscountInPercent) / 100
+	)
 
 	return {
 		newTicketsPrice: priceWithDiscount,
