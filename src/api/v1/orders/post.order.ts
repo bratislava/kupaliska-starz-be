@@ -276,8 +276,8 @@ const getOrderPrice = async (
 		discount += totals.discount
 	}
 	return {
-		orderPriceWithVat: Math.round(orderPrice),
-		discount: Math.round(discount),
+		orderPriceWithVat: orderPrice,
+		discount: discount,
 	}
 }
 
