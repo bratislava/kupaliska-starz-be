@@ -186,23 +186,6 @@ const getOrderEmailAttachments = async (
 }
 
 const getOrderEmailData = (order: OrderModel) => {
-	const items = order.getItems()
-
-	const summaryItems = [
-		{
-			name: items.adults.name, // ticket name
-			amount: items.adults.amount,
-			priceWithVat: (items.adults.priceWithVat / 100).toFixed(2),
-		},
-	]
-	if (items.children.amount > 0) {
-		summaryItems.push({
-			name: items.children.name, // ticket name for children is always same
-			amount: items.children.amount,
-			priceWithVat: (items.children.priceWithVat / 100).toFixed(2),
-		})
-	}
-	// TODO send discount to email as well
 	return {
 		// TODO now we have multiple ticketTypes in single email add some generic text to not use isDisposable property
 		hasManyTickets: order.tickets.length > 10,
@@ -234,9 +217,5 @@ const getOrderEmailData = (order: OrderModel) => {
 						}
 				  })
 				: [],
-		summary: {
-			items: summaryItems, // sorted by adult/children condition
-			totalPrice: (order.priceWithVat / 100).toFixed(2), // could be omitted
-		},
 	}
 }
