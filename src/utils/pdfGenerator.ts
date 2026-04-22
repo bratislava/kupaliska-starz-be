@@ -576,7 +576,7 @@ export const generatePdfVatDocument = async (
 		const { numberOfAdultsForTicketType, numberOfChildrenForTicketType } =
 			getAdultsAndChildrenCountForTicketType(ticketsByTicketType)
 		ticketsRowData.push(
-			getRowDataForTicketType(
+			getDataForTicketType(
 				ticketsByTicketType,
 				numberOfAdultsForTicketType,
 				numberOfChildrenForTicketType
@@ -585,52 +585,50 @@ export const generatePdfVatDocument = async (
 	}
 	// ticketType, adult/children, row proeprties (ticketName, quantity, ticketPriceWithVat, ticketPriceWithoutVat, sumPriceWithoutVat, vatPercentage, sumVatAmount, sumPriceWithVat)
 	const ticketsRowDataFormatted = ticketsRowData.map((row) =>
-		row.map((row) => {
-			return [
-				{
-					font: { size: fontSizeMedium },
-					text: row.ticketName,
-				},
-				{
-					font: { size: fontSizeMedium },
-					align: { x: 'right', y: 'top' },
-					text:
-						row.quantity +
-						' ' +
-						i18next.t('translation:pdfVatQuantity'), // ks
-				},
-				{
-					font: { size: fontSizeMedium },
-					align: { x: 'right', y: 'top' },
-					text: printDecimal2(row.ticketPriceWithVat),
-				},
-				{
-					font: { size: fontSizeMedium },
-					align: { x: 'right', y: 'top' },
-					text: printDecimal2(row.ticketPriceWithoutVat),
-				},
-				{
-					font: { size: fontSizeMedium },
-					align: { x: 'right', y: 'top' },
-					text: printDecimal2(row.sumPriceWithoutVat),
-				},
-				{
-					font: { size: fontSizeMedium },
-					align: { x: 'right', y: 'top' },
-					text: row.vatPercentage,
-				},
-				{
-					font: { size: fontSizeMedium },
-					align: { x: 'right', y: 'top' },
-					text: printDecimal2(row.sumVatAmount),
-				},
-				{
-					font: { size: fontSizeMedium },
-					align: { x: 'right', y: 'top' },
-					text: printDecimal2(row.sumPriceWithVat),
-				},
-			]
-		})
+		row.map((row) => [
+			{
+				font: { size: fontSizeMedium },
+				text: row.ticketName,
+			},
+			{
+				font: { size: fontSizeMedium },
+				align: { x: 'right', y: 'top' },
+				text:
+					row.quantity +
+					' ' +
+					i18next.t('translation:pdfVatQuantity'), // ks
+			},
+			{
+				font: { size: fontSizeMedium },
+				align: { x: 'right', y: 'top' },
+				text: printDecimal2(row.ticketPriceWithVat),
+			},
+			{
+				font: { size: fontSizeMedium },
+				align: { x: 'right', y: 'top' },
+				text: printDecimal2(row.ticketPriceWithoutVat),
+			},
+			{
+				font: { size: fontSizeMedium },
+				align: { x: 'right', y: 'top' },
+				text: printDecimal2(row.sumPriceWithoutVat),
+			},
+			{
+				font: { size: fontSizeMedium },
+				align: { x: 'right', y: 'top' },
+				text: row.vatPercentage,
+			},
+			{
+				font: { size: fontSizeMedium },
+				align: { x: 'right', y: 'top' },
+				text: printDecimal2(row.sumVatAmount),
+			},
+			{
+				font: { size: fontSizeMedium },
+				align: { x: 'right', y: 'top' },
+				text: printDecimal2(row.sumPriceWithVat),
+			},
+		])
 	)
 
 	doc.font('resources/fonts/Inconsolata-Regular.ttf')
@@ -645,7 +643,7 @@ export const generatePdfVatDocument = async (
 			padding: { left: '1em', right: '1em' },
 			backgroundColor: '#FFFFFF',
 		},
-		data: ticketsRowDataFormatted,
+		data: ticketsRowDataFormatted.flat(),
 	})
 
 	const orderPriceWithoutVat = round(
@@ -825,7 +823,7 @@ export const generatePdfVatDocument = async (
 		stream.on('end', () => resolve(finalBase64String))
 	})
 }
-function getRowDataForTicketType(
+function getDataForTicketType(
 	ticketsForPdf: TicketWithDiscountPercent[],
 	numberOfAdults: number,
 	numberOfChildren: number
