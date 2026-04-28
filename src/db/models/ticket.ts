@@ -144,6 +144,7 @@ export default (sequelize: Sequelize) => {
 					return value !== undefined ? parseFloat(value) : undefined
 				},
 			},
+			// TODO rename to isChildTicket
 			isChildren: {
 				type: DataTypes.BOOLEAN,
 				allowNull: false,

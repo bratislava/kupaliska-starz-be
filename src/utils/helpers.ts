@@ -148,11 +148,11 @@ export const getReverseDiscountInPercent = (discountPercent?: number) => {
 export const getAdultsAndChildrenCountForTicketType = (
 	ticketsWithTicketType: {
 		ticketType: { id: string }
-		isChildren: boolean
+		isChildTicket: boolean
 	}[]
 ) => {
 	const numberOfChildrenForTicketType = ticketsWithTicketType.filter(
-		(ticketWithTicketType) => ticketWithTicketType.isChildren
+		(ticketWithTicketType) => ticketWithTicketType.isChildTicket
 	).length
 	const numberOfAdultsForTicketType =
 		ticketsWithTicketType.length - numberOfChildrenForTicketType

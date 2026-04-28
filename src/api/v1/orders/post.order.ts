@@ -124,7 +124,7 @@ export type RequestPostOrder = CoreRequest<
 
 type TicketWithAdditionalProperties = PostOrderTicket & {
 	ticketType: TicketTypeModel
-	isChildren: boolean
+	isChildTicket: boolean
 	user: User
 	discount?: {
 		discountPercent: number
@@ -259,8 +259,8 @@ const getOrderPrice = async (
 
 	//price computation
 	for (const ticketWithAdditionalProperties of ticketsWithAdditionalProperties) {
-		const { isChildren, ticketType } = ticketWithAdditionalProperties
-		const ticketPrice = getTicketPrice(isChildren, ticketType)
+		const { isChildTicket, ticketType } = ticketWithAdditionalProperties
+		const ticketPrice = getTicketPrice(isChildTicket, ticketType)
 
 		let totals = { newTicketsPrice: ticketPrice, discount: discount }
 		if (
@@ -281,8 +281,11 @@ const getOrderPrice = async (
 	}
 }
 
-const getTicketPrice = (isChildren: boolean, ticketType: TicketTypeModel) => {
-	return isChildren
+const getTicketPrice = (
+	isChildTicket: boolean,
+	ticketType: TicketTypeModel
+) => {
+	return isChildTicket
 		? ticketType.childrenPriceWithVat
 		: ticketType.priceWithVat
 }
@@ -356,20 +359,20 @@ const getUser = async (
 	}
 }
 
-const getIsChildrenForTicketType = (
+const getIsChildTicketForTicketType = (
 	user: User,
 	ticketType: TicketTypeModel
 ) => {
-	let isChildren = false
+	let isChildTicket = false
 	if (
 		ticketType.childrenAllowed &&
 		user.age &&
 		user.age >= ticketType.childrenAgeFrom &&
 		user.age <= ticketType.childrenAgeTo
 	) {
-		isChildren = true
+		isChildTicket = true
 	}
-	return isChildren
+	return isChildTicket
 }
 
 /**
@@ -380,7 +383,7 @@ const createTicketWithProfile = async (
 	user: User,
 	ticketType: TicketTypeModel,
 	orderId: string,
-	isChildren: boolean,
+	isChildTicket: boolean,
 	ticketPriceWithVat: number,
 	vatPercentage: number
 ) => {
@@ -389,7 +392,7 @@ const createTicketWithProfile = async (
 	// ;(ticket.modelIds || (ticket.modelIds = [])).push(profileId)
 	return await Ticket.create(
 		{
-			isChildren: isChildren,
+			isChildren: isChildTicket,
 			ticketTypeId: ticketType.id,
 			orderId,
 			priceWithVat: ticketPriceWithVat,
@@ -449,7 +452,7 @@ const basicChecks = async (
 	userLogged: boolean
 ) => {
 	const numberOfChildren = ticketsWithTicketType.filter(
-		(ticketWithTicketType) => ticketWithTicketType.isChildren
+		(ticketWithTicketType) => ticketWithTicketType.isChildTicket
 	).length
 
 	const numberOfAdults = ticketsWithTicketType.length - numberOfChildren
@@ -625,17 +628,20 @@ const mapPropertiesToTickets = async (
 				swimmingLoggedUser,
 				cityAccountData
 			)
-			const isChildren = getIsChildrenForTicketType(user, ticketType)
+			const isChildTicket = getIsChildTicketForTicketType(
+				user,
+				ticketType
+			)
 
 			const ticketPriceWithVat = await getTicketPrice(
-				isChildren,
+				isChildTicket,
 				ticketType
 			)
 
 			return {
 				...ticket,
 				ticketType,
-				isChildren: isChildren,
+				isChildTicket,
 				user: user,
 				priceWithVat: ticketPriceWithVat,
 				discount: {
@@ -695,7 +701,7 @@ const createAndProcessOrder = async (
 			ticketWithTicketType.user,
 			ticketWithTicketType.ticketType,
 			order.id,
-			ticketWithTicketType.isChildren,
+			ticketWithTicketType.isChildTicket,
 			ticketWithTicketType.priceWithVat,
 			ticketWithTicketType.ticketType.vatPercentage
 		)
