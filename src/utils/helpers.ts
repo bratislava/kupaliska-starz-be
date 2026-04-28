@@ -141,7 +141,7 @@ export const calculateAge = (dateOfBirth: string) => {
 	return age
 }
 
-export const getReverseDiscountInPercent = (discountPercent?: number) => {
+export const getInverseDiscountInPercent = (discountPercent?: number) => {
 	return 100 - (discountPercent ?? 0)
 }
 

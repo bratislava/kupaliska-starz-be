@@ -28,7 +28,7 @@ import {
 	getCityAccountData,
 	payOrderWithNextOrderNumber,
 	isDefined,
-	getReverseDiscountInPercent,
+	getInverseDiscountInPercent,
 	getAdultsAndChildrenCountForTicketType,
 } from '../../../utils/helpers'
 import { TicketModel } from '../../../db/models/ticket'
@@ -128,7 +128,7 @@ type TicketWithAdditionalProperties = PostOrderTicket & {
 	user: User
 	discount?: {
 		discountPercent: number
-		reverseDiscountInPercent: number
+		inverseDiscountInPercent: number
 	}
 	discountCode?: DiscountCodeModel
 	priceWithVat: number
@@ -254,7 +254,7 @@ export const workflow = async (
 const getOrderPrice = async (
 	ticketsWithAdditionalProperties: TicketWithAdditionalProperties[]
 ) => {
-	let orderPrice = 0
+	let orderPriceWithVat = 0
 	let discount = 0
 
 	//price computation
@@ -265,19 +265,19 @@ const getOrderPrice = async (
 		let totals = { newTicketsPrice: ticketPrice, discount: discount }
 		if (
 			ticketWithAdditionalProperties.discount
-				?.reverseDiscountInPercent !== undefined
+				?.inverseDiscountInPercent !== undefined
 		) {
 			totals = getDiscount(
 				ticketPrice,
-				ticketWithAdditionalProperties.discount.reverseDiscountInPercent
+				ticketWithAdditionalProperties.discount.inverseDiscountInPercent
 			)
 		}
-		orderPrice += totals.newTicketsPrice
+		orderPriceWithVat += totals.newTicketsPrice
 		discount += totals.discount
 	}
 	return {
-		orderPriceWithVat: orderPrice,
-		discount: discount,
+		orderPriceWithVat,
+		discount,
 	}
 }
 
@@ -378,7 +378,7 @@ const createTicketWithProfile = async (
 	ticketType: TicketTypeModel,
 	orderId: string,
 	isChildTicket: boolean,
-	ticketPriceWithVat: number,
+	priceWithVat: number,
 	vatPercentage: number
 ) => {
 	const profileId = uuidv4()
@@ -389,14 +389,14 @@ const createTicketWithProfile = async (
 			isChildren: isChildTicket,
 			ticketTypeId: ticketType.id,
 			orderId,
-			priceWithVat: ticketPriceWithVat,
-			vatPercentage: vatPercentage,
+			priceWithVat,
+			vatPercentage,
 			remainingEntries: ticketType.entriesNumber,
 			swimmingLoggedUserId: user.loggedUserId,
 			associatedSwimmerId: user.associatedSwimmerId,
 			profile: {
 				id: profileId,
-				email: email,
+				email,
 				name: ticketType.nameRequired ? user.name : null,
 				age: ticketType.nameRequired ? user.age : null,
 				zip: user.zip,
@@ -580,6 +580,7 @@ const mapPropertiesToTickets = async (
 					i18next.t('error:ticketTypeNotFound')
 				)
 
+			// earlier we sorted discount codes by amount in descending order so code below will pick the highest discount code for given ticket type
 			const currentDiscountCodeModel = discountCodesModels.find(
 				(discountCode) =>
 					discountCode.ticketTypes.some(
@@ -593,15 +594,15 @@ const mapPropertiesToTickets = async (
 			)?.discountPercent
 
 			let discountPercent = 0
-			let reverseDiscountInPercent = 100
+			let inverseDiscountInPercent = 100
 
 			if (currentDiscountCodeModel) {
 				discountPercent = currentDiscountCodeModel.amount
-				reverseDiscountInPercent =
+				inverseDiscountInPercent =
 					currentDiscountCodeModel.getInverseAmount
 			} else if (currentDiscountPercent !== undefined) {
 				discountPercent = currentDiscountPercent
-				reverseDiscountInPercent = getReverseDiscountInPercent(
+				inverseDiscountInPercent = getInverseDiscountInPercent(
 					currentDiscountPercent
 				)
 			}
@@ -619,20 +620,17 @@ const mapPropertiesToTickets = async (
 				ticketType
 			)
 
-			const ticketPriceWithVat = await getTicketPrice(
-				isChildTicket,
-				ticketType
-			)
+			const priceWithVat = await getTicketPrice(isChildTicket, ticketType)
 
 			return {
 				...ticket,
 				ticketType,
 				isChildTicket,
-				user: user,
-				priceWithVat: ticketPriceWithVat,
+				user,
+				priceWithVat,
 				discount: {
-					discountPercent: discountPercent,
-					reverseDiscountInPercent: reverseDiscountInPercent,
+					discountPercent,
+					inverseDiscountInPercent,
 				},
 				discountCode: currentDiscountCodeModel,
 			}
@@ -675,6 +673,7 @@ const createAndProcessOrder = async (
 	const order = await Order.create({
 		priceWithVat: 0,
 		state: ORDER_STATE.CREATED,
+		// TODO fix this race condition in separate PR
 		orderNumber: new Date().getTime() + random(1, 100).toString(), // tests runs too fast and creates same order number :)
 	})
 	// for each instance add unique ticket
