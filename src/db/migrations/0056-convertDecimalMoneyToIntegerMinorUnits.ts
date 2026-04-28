@@ -28,7 +28,7 @@ const toDecimalMoney = async (
 	transaction: Transaction
 ) => {
 	await queryInterface.sequelize.query(
-		`ALTER TABLE "${table}" ALTER COLUMN "${column}" TYPE DECIMAL(10, 2) USING ("${column}"::numeric / 100, 2);`,
+		`ALTER TABLE "${table}" ALTER COLUMN "${column}" TYPE DECIMAL(10, 2) USING ("${column}"::numeric / 100);`,
 		{ transaction }
 	)
 }
@@ -138,6 +138,10 @@ export async function up(queryInterface: QueryInterface) {
 export async function down(queryInterface: QueryInterface) {
 	const transaction = await DB.transaction()
 	try {
+		await DB.query(`ALTER SYSTEM SET log_lock_waits = 'on';`)
+		await DB.query(`ALTER SYSTEM SET log_statement = 'all';`)
+		await DB.query(`SELECT pg_reload_conf();`)
+
 		const tablePaymentOrdersExists = await queryInterface.tableExists(
 			'paymentOrders',
 			{
@@ -231,6 +235,7 @@ export async function down(queryInterface: QueryInterface) {
 
 		await transaction.commit()
 	} catch (err) {
+		console.log(await DB.query(`SELECT  pg_current_logfile();`))
 		await transaction.rollback()
 		throw err
 	}
