@@ -574,7 +574,13 @@ export const generatePdfVatDocument = async (
 	const ticketsRowData = []
 	for (const ticketsByTicketType of Object.values(ticketsByTicketTypes)) {
 		const { numberOfAdultsForTicketType, numberOfChildrenForTicketType } =
-			getAdultsAndChildrenCountForTicketType(ticketsByTicketType)
+			getAdultsAndChildrenCountForTicketType(
+				ticketsByTicketType.map((ticket) => ({
+					ticketType: ticket.ticketType,
+					// TODO as stated in model isChildren should be renamed to isChildTicket
+					isChildTicket: ticket.isChildren,
+				}))
+			)
 		ticketsRowData.push(
 			getDataForTicketType(
 				ticketsByTicketType,
