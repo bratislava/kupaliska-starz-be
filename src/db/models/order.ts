@@ -6,9 +6,6 @@ import { Sequelize, DataTypes, literal, UUIDV4, Op } from 'sequelize'
 import { DatabaseModel } from '../../types/models'
 import { TicketModel } from './ticket'
 import { ORDER_STATE } from '../../utils/enums'
-import { reduce } from 'lodash'
-import i18next from 'i18next'
-import { getChildrenTicketName } from '../../utils/translationsHelpers'
 import { DiscountCodeModel } from './discountCode'
 
 export interface OrderItem {
@@ -38,51 +35,6 @@ export class OrderModel extends DatabaseModel {
 	// functions
 	isPaid() {
 		return this.state === ORDER_STATE.PAID
-	}
-	getItems() {
-		const self = this as OrderModel
-		const adults = reduce<TicketModel[], OrderItem>(
-			self.tickets,
-			(obj: OrderItem, ticket: TicketModel) => {
-				return ticket.isChildren === false
-					? {
-							name: ticket.ticketType.name,
-							amount: obj.amount + 1,
-							accPriceWithVat:
-								obj.accPriceWithVat + ticket.priceWithVat,
-							priceWithVat:
-								obj.accPriceWithVat + ticket.priceWithVat,
-					  }
-					: obj
-			},
-			{ name: '', amount: 0, priceWithVat: 0, accPriceWithVat: 0 }
-		)
-
-		const children = reduce<TicketModel[], OrderItem>(
-			self.tickets,
-			(obj: OrderItem, ticket: TicketModel) => {
-				return ticket.isChildren
-					? {
-							name: getChildrenTicketName(),
-							amount: obj.amount + 1,
-							accPriceWithVat:
-								obj.accPriceWithVat + ticket.priceWithVat,
-							priceWithVat:
-								obj.accPriceWithVat + ticket.priceWithVat,
-					  }
-					: obj
-			},
-			{ name: '', amount: 0, priceWithVat: 0, accPriceWithVat: 0 }
-		)
-
-		const discount = {
-			name: i18next.t('discountItem'),
-			amount: 1,
-			accPriceWithVat: -1 * self.discount, // could be recounted in order to not have discount in order model
-			priceWithVat: -self.discount.toFixed(0),
-		}
-
-		return { adults, children, discount }
 	}
 }
 
