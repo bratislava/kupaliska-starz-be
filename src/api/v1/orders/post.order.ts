@@ -307,55 +307,49 @@ const getUser = async (
 			age: ticket.age ?? null,
 			zip: ticket.zip ?? null,
 		}
-	} else {
-		if (!swimmingLoggedUser)
-			throw new ErrorBuilder(
-				401,
-				i18next.t('error:ticket.swimmingLoggedUserNotFound')
-			)
-		if (!cityAccountData)
-			// for the time being this is unreachable code, because cityAccountData is always present when we have swimmingLoggedUser
-			// therefore no testing for this case
-			throw new ErrorBuilder(401, i18next.t('error:ticket.userNotFound'))
-		if (!cityAccountData.email)
-			throw new ErrorBuilder(
-				500,
-				i18next.t('error:ticket.emailNotFoundOnUser')
-			)
-		if (ticket.personId === null) {
-			return {
-				associatedSwimmerId: null,
-				loggedUserId: swimmingLoggedUser.id,
-				name: [cityAccountData.given_name, cityAccountData.family_name]
-					.filter(isDefined)
-					.join(' '),
-				age: swimmingLoggedUser.age,
-				zip: swimmingLoggedUser.zip,
-				cityAccountType: cityAccountData['custom:account_type'],
-			}
-		} else {
-			// should we check if associatedSwimmer is linked to the swimmingLoggedUser?
-			const associatedSwimmer = await AssociatedSwimmer.findByPk(
-				ticket.personId
-			)
-			if (!associatedSwimmer) {
-				throw new ErrorBuilder(
-					404,
-					i18next.t('error:associatedSwimmerNotExists')
-				)
-			} else {
-				return {
-					associatedSwimmerId: associatedSwimmer.id,
-					loggedUserId: swimmingLoggedUser.id,
-					name:
-						associatedSwimmer.firstname +
-						' ' +
-						associatedSwimmer.lastname,
-					age: associatedSwimmer.age,
-					zip: associatedSwimmer.zip,
-				}
-			}
+	}
+
+	if (!swimmingLoggedUser)
+		throw new ErrorBuilder(
+			401,
+			i18next.t('error:ticket.swimmingLoggedUserNotFound')
+		)
+	if (!cityAccountData)
+		// for the time being this is unreachable code, because cityAccountData is always present when we have swimmingLoggedUser
+		// therefore no testing for this case
+		throw new ErrorBuilder(401, i18next.t('error:ticket.userNotFound'))
+	if (!cityAccountData.email)
+		throw new ErrorBuilder(
+			500,
+			i18next.t('error:ticket.emailNotFoundOnUser')
+		)
+	if (ticket.personId === null) {
+		return {
+			associatedSwimmerId: null,
+			loggedUserId: swimmingLoggedUser.id,
+			name: [cityAccountData.given_name, cityAccountData.family_name]
+				.filter(isDefined)
+				.join(' '),
+			age: swimmingLoggedUser.age,
+			zip: swimmingLoggedUser.zip,
+			cityAccountType: cityAccountData['custom:account_type'],
 		}
+	}
+	// should we check if associatedSwimmer is linked to the swimmingLoggedUser?
+	const associatedSwimmer = await AssociatedSwimmer.findByPk(ticket.personId)
+	if (!associatedSwimmer) {
+		throw new ErrorBuilder(
+			404,
+			i18next.t('error:associatedSwimmerNotExists')
+		)
+	}
+
+	return {
+		associatedSwimmerId: associatedSwimmer.id,
+		loggedUserId: swimmingLoggedUser.id,
+		name: associatedSwimmer.firstname + ' ' + associatedSwimmer.lastname,
+		age: associatedSwimmer.age,
+		zip: associatedSwimmer.zip,
 	}
 }
 
@@ -456,7 +450,8 @@ const basicChecks = async (
 	).length
 
 	const numberOfAdults = ticketsWithTicketType.length - numberOfChildren
-	// minimum is one adult
+	// by default all of tickets appears as for adults, "children tickets" are used here to have discounted price for for ticket combos with children,
+	// orders which contains ticket that have this combo feature (children allowed) must have at least one adult ticket
 	if (numberOfAdults < 1) {
 		throw new ErrorBuilder(400, i18next.t('error:ticket.minimumIsOneAdult'))
 	}
@@ -468,35 +463,26 @@ const basicChecks = async (
 			i18next.t('error:ticket.maxtTicketsPerOrder')
 		)
 	}
-
-	// minimum is one adult
-	if (numberOfAdults < 1) {
-		throw new ErrorBuilder(400, i18next.t('error:ticket.minimumIsOneAdult'))
-	}
-
 	// TODO do this better
-	const ticketsWithTicketTypeByTicketTypes = groupBy(
+	const ticketsGroupedByTicketTypes = groupBy(
 		ticketsWithTicketType,
 		'ticketType.id'
 	)
-	for (const ticketsWithTicketTypeByTicketType of Object.values(
-		ticketsWithTicketTypeByTicketTypes
+	for (const ticketsWithSameTicketType of Object.values(
+		ticketsGroupedByTicketTypes
 	)) {
-		const { numberOfAdultsForTicketType, numberOfChildrenForTicketType } =
-			getAdultsAndChildrenCountForTicketType(
-				ticketsWithTicketTypeByTicketType
-			)
+		// all tickets with same ticket type have same discount
+		const discountPercent =
+			ticketsWithSameTicketType[0].discount?.discountPercent
 
-		// fix incorrect comment
-		// if discount in seasonpass, only for one user
+		const { numberOfAdultsForTicketType, numberOfChildrenForTicketType } =
+			getAdultsAndChildrenCountForTicketType(ticketsWithSameTicketType)
+
+		// discount is ment to be used only for one adult ticket
 		if (
 			numberOfAdultsForTicketType > 1 &&
-			ticketsWithTicketTypeByTicketType.some(
-				(ticketWithTicketType) =>
-					ticketWithTicketType.discount?.reverseDiscountInPercent &&
-					ticketWithTicketType.discount?.reverseDiscountInPercent !==
-						100
-			)
+			discountPercent !== undefined &&
+			discountPercent !== 0
 		) {
 			throw new ErrorBuilder(
 				400,
@@ -505,8 +491,8 @@ const basicChecks = async (
 		}
 
 		const ticketType =
-			ticketsWithTicketTypeByTicketType.length > 0
-				? ticketsWithTicketTypeByTicketType[0].ticketType
+			ticketsWithSameTicketType.length > 0
+				? ticketsWithSameTicketType[0].ticketType
 				: null
 		if (!ticketType) {
 			throw new ErrorBuilder(404, i18next.t('error:ticketTypeNotFound'))
