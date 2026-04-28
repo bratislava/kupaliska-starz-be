@@ -90,10 +90,10 @@ export function isDefined<T>(value: T | undefined | null): value is T {
  */
 export const getDiscount = (
 	ticketPriceWithVat: number,
-	reverseDiscountInPercent: number
+	inverseDiscountInPercent: number
 ) => {
 	const priceWithDiscount = Math.round(
-		(ticketPriceWithVat * reverseDiscountInPercent) / 100
+		(ticketPriceWithVat * inverseDiscountInPercent) / 100
 	)
 
 	return {
