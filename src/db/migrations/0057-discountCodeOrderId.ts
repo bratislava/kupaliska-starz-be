@@ -27,6 +27,11 @@ export async function up(queryInterface: QueryInterface) {
 			{ transaction }
 		)
 
+		await queryInterface.addIndex('discountCodes', ['orderId'], {
+			name: 'discountCodes_orderId_idx',
+			transaction,
+		})
+
 		await transaction.commit()
 	} catch (err) {
 		await transaction.rollback()
@@ -45,6 +50,13 @@ export async function down(queryInterface: QueryInterface) {
 			await transaction.rollback()
 			return
 		}
+		await queryInterface.removeIndex(
+			'discountCodes',
+			'discountCodes_orderId_idx',
+			{
+				transaction,
+			}
+		)
 
 		await queryInterface.removeColumn('discountCodes', 'orderId', {
 			transaction,

@@ -1,12 +1,11 @@
 import { QueryInterface, Transaction } from 'sequelize'
 import DB from '../../db/models'
-import { checkTableExists } from '../../utils/helpers'
 
 /**
- * Converts DECIMAL(10,2) money columns (marked // TODO change to integer on models)
+ * Converts DECIMAL(10,2) money columns
  * to INTEGER storing minor units (e.g. euros → cents): new_value = round(old * 100).
  *
- * INTEGER is used so values up to DECIMAL(10,2) max still fit after ×100.
+ * We handle hundreds of euros at most, so INTEGER is enough in any our use case
  * Application code and raw SQL must treat these columns as minor units after this migration.
  */
 
@@ -17,7 +16,7 @@ const toMinorUnits = async (
 	transaction: Transaction
 ) => {
 	await queryInterface.sequelize.query(
-		`ALTER TABLE "${table}" ALTER COLUMN "${column}" TYPE INTEGER USING (ROUND("${column}"::numeric * 100));`,
+		`ALTER TABLE "${table}" ALTER COLUMN "${column}" TYPE INTEGER USING (("${column}"::numeric * 100)::integer);`,
 		{ transaction }
 	)
 }
@@ -29,8 +28,7 @@ const toDecimalMoney = async (
 	transaction: Transaction
 ) => {
 	await queryInterface.sequelize.query(
-		// not sure if it is necessary to round to 2 decimal places? Ask Lukas
-		`ALTER TABLE "${table}" ALTER COLUMN "${column}" TYPE DECIMAL(10, 2) USING (ROUND("${column}"::numeric / 100, 2));`,
+		`ALTER TABLE "${table}" ALTER COLUMN "${column}" TYPE DECIMAL(10, 2) USING ("${column}"::numeric / 100, 2);`,
 		{ transaction }
 	)
 }
@@ -38,68 +36,96 @@ const toDecimalMoney = async (
 export async function up(queryInterface: QueryInterface) {
 	const transaction = await DB.transaction()
 	try {
-		if (await checkTableExists(queryInterface, 'paymentOrders')) {
-			const table = await queryInterface.describeTable('paymentOrders')
-			if (table.paymentAmount) {
-				await toMinorUnits(
-					queryInterface,
-					'paymentOrders',
-					'paymentAmount',
-					transaction
-				)
+		const tablePaymentOrdersExists = await queryInterface.tableExists(
+			'paymentOrders',
+			{
+				transaction,
 			}
+		)
+
+		const tableOrdersExists = await queryInterface.tableExists('orders', {
+			transaction,
+		})
+
+		const tableTicketsExists = await queryInterface.tableExists('tickets', {
+			transaction,
+		})
+
+		const tableTicketTypesExists = await queryInterface.tableExists(
+			'ticketTypes',
+			{
+				transaction,
+			}
+		)
+
+		if (
+			!tablePaymentOrdersExists ||
+			!tableOrdersExists ||
+			!tableTicketsExists ||
+			!tableTicketTypesExists
+		) {
+			await transaction.rollback()
+			return
 		}
 
-		if (await checkTableExists(queryInterface, 'orders')) {
-			const table = await queryInterface.describeTable('orders')
-			if (table.priceWithVat) {
-				await toMinorUnits(
-					queryInterface,
-					'orders',
-					'priceWithVat',
-					transaction
-				)
-			}
-			if (table.discount) {
-				await toMinorUnits(
-					queryInterface,
-					'orders',
-					'discount',
-					transaction
-				)
-			}
+		const tablePaymentOrders = await queryInterface.describeTable(
+			'paymentOrders'
+		)
+		if (tablePaymentOrders.paymentAmount) {
+			await toMinorUnits(
+				queryInterface,
+				'paymentOrders',
+				'paymentAmount',
+				transaction
+			)
 		}
 
-		if (await checkTableExists(queryInterface, 'tickets')) {
-			const table = await queryInterface.describeTable('tickets')
-			if (table.priceWithVat) {
-				await toMinorUnits(
-					queryInterface,
-					'tickets',
-					'priceWithVat',
-					transaction
-				)
-			}
+		const tableOrders = await queryInterface.describeTable('orders')
+		if (tableOrders.priceWithVat) {
+			await toMinorUnits(
+				queryInterface,
+				'orders',
+				'priceWithVat',
+				transaction
+			)
+		}
+		if (tableOrders.discount) {
+			await toMinorUnits(
+				queryInterface,
+				'orders',
+				'discount',
+				transaction
+			)
 		}
 
-		if (await checkTableExists(queryInterface, 'ticketTypes')) {
-			const table = await queryInterface.describeTable('ticketTypes')
-			if (table.priceWithVat) {
-				await toMinorUnits(
-					queryInterface,
-					'ticketTypes',
-					'priceWithVat',
-					transaction
-				)
-			}
-			if (table.childrenPriceWithVat) {
-				await toMinorUnits(
-					queryInterface,
-					'ticketTypes',
-					'childrenPriceWithVat',
-					transaction
-				)
-			}
+		const tableTickets = await queryInterface.describeTable('tickets')
+		if (tableTickets.priceWithVat) {
+			await toMinorUnits(
+				queryInterface,
+				'tickets',
+				'priceWithVat',
+				transaction
+			)
+		}
+
+		const tableTicketTypes = await queryInterface.describeTable(
+			'ticketTypes'
+		)
+		if (tableTicketTypes.priceWithVat) {
+			await toMinorUnits(
+				queryInterface,
+				'ticketTypes',
+				'priceWithVat',
+				transaction
+			)
+		}
+		if (tableTicketTypes.childrenPriceWithVat) {
+			await toMinorUnits(
+				queryInterface,
+				'ticketTypes',
+				'childrenPriceWithVat',
+				transaction
+			)
 		}
 
 		await transaction.commit()
@@ -112,68 +138,95 @@ export async function up(queryInterface: QueryInterface) {
 export async function down(queryInterface: QueryInterface) {
 	const transaction = await DB.transaction()
 	try {
-		if (await checkTableExists(queryInterface, 'paymentOrders')) {
-			const table = await queryInterface.describeTable('paymentOrders')
-			if (table.paymentAmount) {
-				await toDecimalMoney(
-					queryInterface,
-					'paymentOrders',
-					'paymentAmount',
-					transaction
-				)
+		const tablePaymentOrdersExists = await queryInterface.tableExists(
+			'paymentOrders',
+			{
+				transaction,
 			}
+		)
+
+		const tableOrdersExists = await queryInterface.tableExists('orders', {
+			transaction,
+		})
+
+		const tableTicketsExists = await queryInterface.tableExists('tickets', {
+			transaction,
+		})
+
+		const tableTicketTypesExists = await queryInterface.tableExists(
+			'ticketTypes',
+			{
+				transaction,
+			}
+		)
+
+		if (
+			!tablePaymentOrdersExists ||
+			!tableOrdersExists ||
+			!tableTicketsExists ||
+			!tableTicketTypesExists
+		) {
+			await transaction.rollback()
+			return
+		}
+		const tablePaymentOrders = await queryInterface.describeTable(
+			'paymentOrders'
+		)
+		if (tablePaymentOrders.paymentAmount) {
+			await toDecimalMoney(
+				queryInterface,
+				'paymentOrders',
+				'paymentAmount',
+				transaction
+			)
 		}
 
-		if (await checkTableExists(queryInterface, 'orders')) {
-			const table = await queryInterface.describeTable('orders')
-			if (table.priceWithVat) {
-				await toDecimalMoney(
-					queryInterface,
-					'orders',
-					'priceWithVat',
-					transaction
-				)
-			}
-			if (table.discount) {
-				await toDecimalMoney(
-					queryInterface,
-					'orders',
-					'discount',
-					transaction
-				)
-			}
+		const tableOrders = await queryInterface.describeTable('orders')
+		if (tableOrders.priceWithVat) {
+			await toDecimalMoney(
+				queryInterface,
+				'orders',
+				'priceWithVat',
+				transaction
+			)
+		}
+		if (tableOrders.discount) {
+			await toDecimalMoney(
+				queryInterface,
+				'orders',
+				'discount',
+				transaction
+			)
 		}
 
-		if (await checkTableExists(queryInterface, 'tickets')) {
-			const table = await queryInterface.describeTable('tickets')
-			if (table.priceWithVat) {
-				await toDecimalMoney(
-					queryInterface,
-					'tickets',
-					'priceWithVat',
-					transaction
-				)
-			}
+		const tableTickets = await queryInterface.describeTable('tickets')
+		if (tableTickets.priceWithVat) {
+			await toDecimalMoney(
+				queryInterface,
+				'tickets',
+				'priceWithVat',
+				transaction
+			)
 		}
 
-		if (await checkTableExists(queryInterface, 'ticketTypes')) {
-			const table = await queryInterface.describeTable('ticketTypes')
-			if (table.priceWithVat) {
-				await toDecimalMoney(
-					queryInterface,
-					'ticketTypes',
-					'priceWithVat',
-					transaction
-				)
-			}
-			if (table.childrenPriceWithVat) {
-				await toDecimalMoney(
-					queryInterface,
-					'ticketTypes',
-					'childrenPriceWithVat',
-					transaction
-				)
-			}
+		const tableTicketTypes = await queryInterface.describeTable(
+			'ticketTypes'
+		)
+		if (tableTicketTypes.priceWithVat) {
+			await toDecimalMoney(
+				queryInterface,
+				'ticketTypes',
+				'priceWithVat',
+				transaction
+			)
+		}
+		if (tableTicketTypes.childrenPriceWithVat) {
+			await toDecimalMoney(
+				queryInterface,
+				'ticketTypes',
+				'childrenPriceWithVat',
+				transaction
+			)
 		}
 
 		await transaction.commit()

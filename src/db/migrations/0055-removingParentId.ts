@@ -13,7 +13,9 @@ export async function up(queryInterface: QueryInterface) {
 			return
 		}
 
-		await queryInterface.removeColumn('tickets', 'parentTicketId')
+		await queryInterface.removeColumn('tickets', 'parentTicketId', {
+			transaction,
+		})
 
 		await transaction.commit()
 	} catch (err) {
