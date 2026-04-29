@@ -265,7 +265,10 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 
 				expect(response.status).toBe(200)
 				const order = await OrderModel.findByPk(response.body.data.id, {
-					include: { association: 'tickets' },
+					include: {
+						association: 'tickets',
+						order: [['priceWithVat', 'DESC']],
+					},
 				})
 				expect(order?.priceWithVat).toStrictEqual(2200)
 				expect(order?.tickets[0].priceWithVat).toStrictEqual(2000)
@@ -680,6 +683,36 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 
 	describe('business logic tests', () => {
 		describe('Order with discount code', () => {
+			afterEach(async () => {
+				const discountCodeInstance = await DiscountCodeModel.findByPk(
+					discountCodeId
+				)
+				const discountCodeInstance2 = await DiscountCodeModel.findByPk(
+					discountCodeId2
+				)
+				const discountCodeInstance3 = await DiscountCodeModel.findByPk(
+					discountCodeId3
+				)
+
+				if (discountCodeInstance) {
+					await discountCodeInstance.update({
+						usedAt: null,
+						orderId: null,
+					})
+				}
+				if (discountCodeInstance2) {
+					await discountCodeInstance2.update({
+						usedAt: null,
+						orderId: null,
+					})
+				}
+				if (discountCodeInstance3) {
+					await discountCodeInstance3.update({
+						usedAt: null,
+						orderId: null,
+					})
+				}
+			})
 			it('Order should have correct discount', async () => {
 				const response = await request
 					.post(endpointOrder)
