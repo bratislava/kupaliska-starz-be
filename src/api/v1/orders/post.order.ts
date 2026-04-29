@@ -678,9 +678,10 @@ const createAndProcessOrder = async (
 	})
 	// for each instance add unique ticket
 	for (const ticketWithTicketType of mappedTickets) {
-		// TODO creating ticket should happen after transaction is paid,
-		// probably there will be problem with age of users,
-		// should we take age from user when order is created or when it is paid?
+		// creating order is commitment to pay for order (industry standard)
+		// and age verification is later done on site
+		// business ask us to have age claim at creation of order not at site.
+		// That is the reasons why we create ticket with profile at creation of order.
 		const createdTicket = await createTicketWithProfile(
 			email,
 			ticketWithTicketType.user,
@@ -693,11 +694,11 @@ const createAndProcessOrder = async (
 		if (ticketWithTicketType.ticketType.photoRequired) {
 			await uploadProfilePhotos(createdTicket)
 		}
-		// TODO: we should update discount code after order is paid
-		// not possible because user will create multiple orders with the same discount code and waiting in payment screen and pay later
-		// possible solution is to have data in discount code "in progress" which will not allow further usage and update it after order is paid
-		// but when to unblock it?
+
 		if (ticketWithTicketType.discountCode) {
+			// creating order is commitment to pay for order (industry standard)
+			// so if the person later decides not to pay,
+			// the code cannot be claimed again just because they didn't pay.
 			await ticketWithTicketType.discountCode.update({
 				usedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
 				orderId: order.id,
