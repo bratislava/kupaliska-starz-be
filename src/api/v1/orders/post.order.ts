@@ -254,30 +254,26 @@ export const workflow = async (
 const getOrderPrice = async (
 	ticketsWithAdditionalProperties: TicketWithAdditionalProperties[]
 ) => {
+	// TODO change naming
 	let orderPriceWithVat = 0
-	let discount = 0
+	let discountAcc = 0
 
 	//price computation
 	for (const ticketWithAdditionalProperties of ticketsWithAdditionalProperties) {
-		const { isChildTicket, ticketType } = ticketWithAdditionalProperties
+		const { isChildTicket, ticketType, discount } =
+			ticketWithAdditionalProperties
 		const ticketPrice = getTicketPrice(isChildTicket, ticketType)
 
-		let totals = { newTicketsPrice: ticketPrice, discount: discount }
-		if (
-			ticketWithAdditionalProperties.discount
-				?.inverseDiscountInPercent !== undefined
-		) {
-			totals = getDiscount(
-				ticketPrice,
-				ticketWithAdditionalProperties.discount.inverseDiscountInPercent
-			)
+		let totals = { newTicketsPrice: ticketPrice, discount: discountAcc }
+		if (discount?.inverseDiscountInPercent !== undefined) {
+			totals = getDiscount(ticketPrice, discount.inverseDiscountInPercent)
 		}
 		orderPriceWithVat += totals.newTicketsPrice
-		discount += totals.discount
+		discountAcc += totals.discount
 	}
 	return {
 		orderPriceWithVat,
-		discount,
+		discount: discountAcc,
 	}
 }
 
@@ -538,11 +534,11 @@ const mapPropertiesToTickets = async (
 	tickets: PostOrderTicket[],
 	swimmingLoggedUser: SwimmingLoggedUserModel | null,
 	cityAccountData: Partial<CityAccountUser> | null,
+	discountCodesModels: DiscountCodeModel[],
 	discountsPercentObj?: {
 		ticketTypeId: string
 		discountPercent: number
-	}[],
-	discountCodes?: string[]
+	}[]
 ) => {
 	const ticketTypeIds = Array.from(
 		new Set(tickets.map((ticket) => ticket.ticketTypeId))
@@ -556,19 +552,6 @@ const mapPropertiesToTickets = async (
 		},
 	})
 
-	const discountCodesModels = discountCodes
-		? await DiscountCode.findAll({
-				where: {
-					code: {
-						[Op.in]: discountCodes,
-					},
-				},
-				order: [['amount', 'DESC']],
-				include: {
-					association: 'ticketTypes',
-				},
-		  })
-		: []
 	const ticketsWithTicketType = await Promise.all(
 		tickets.map(async (ticket) => {
 			const ticketType = ticketTypes.find(
@@ -650,13 +633,44 @@ const getMappedTickets = async (
 		  })
 		: null
 
+	const discountCodesModels = discountCodes
+		? await DiscountCode.findAll({
+				where: {
+					code: {
+						[Op.in]: discountCodes.map((discountCode) =>
+							discountCode.toUpperCase()
+						),
+					},
+					usedAt: {
+						[Op.is]: null, // not used yet
+					},
+				},
+				order: [['amount', 'DESC']],
+				include: {
+					association: 'ticketTypes',
+				},
+		  })
+		: []
+
+	// TODO if all discount code applicable ticketTypeIds does not match any of requested ticket type, throw error?
+	// right now we are just not applying it
+
+	// TODO this should live in basic checks?
+	if (
+		discountCodesModels &&
+		discountCodes &&
+		discountCodesModels.length !== discountCodes.length
+	) {
+		throw new ErrorBuilder(404, i18next.t('error:discountCodeNotValid'))
+	}
+
 	// TODO swimmingLoggedUser and cityAccountData should be combined into a single object
 	const mappedTickets = await mapPropertiesToTickets(
 		tickets,
 		swimmingLoggedUser,
 		cityAccountData,
-		discountsPercent,
-		discountCodes
+		discountCodesModels,
+		discountsPercent
 	)
 
 	await basicChecks(mappedTickets, !!cityAccountData?.sub)

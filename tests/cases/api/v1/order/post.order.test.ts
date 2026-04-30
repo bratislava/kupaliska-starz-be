@@ -783,6 +783,27 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				expect(order?.discountCodes[0].id).toBe(discountCodeId2)
 				expect(order?.discountCodes[1].id).toBe(discountCodeId3)
 			})
+			it('throws discountCodeNotValid when discount code is not found', async () => {
+				const { next } = await callWorkflow(
+					{
+						tickets: [
+							{
+								ticketTypeId: ticketTypeEntriesId,
+								age: 18,
+								zip: '03251',
+							},
+						],
+						discountCodes: ['RRRRRRRR'],
+						agreement: true,
+						paymentMethod: ORDER_PAYMENT_METHOD_STATE.CARD,
+					},
+					{ authorization: 'Bearer t' }
+				)
+				expectErrorNext(next, 404)
+				expect(
+					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
+				).toBe(i18next.t('error:discountCodeNotValid'))
+			})
 		})
 	})
 })
