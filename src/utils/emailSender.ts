@@ -28,12 +28,14 @@ export type TicketWithDiscountPercent = TicketModel & {
 	discountPercent: number
 }
 
-function getDiscountPercentForTicket(
+const getDiscountPercentForTicket = (
 	ticket: TicketModel,
-	discountCodes: DiscountCodeModel[]
-): number {
-	if (!discountCodes?.length) return 0
-	const code = discountCodes.find((dc) =>
+	sortedDiscountCodesModels: DiscountCodeModel[]
+): number => {
+	if (!sortedDiscountCodesModels?.length) {
+		return 0
+	}
+	const code = sortedDiscountCodesModels.find((dc) =>
 		dc.ticketTypes?.some((tt) => tt.id === ticket.ticketTypeId)
 	)
 	return code ? code.amount : 0
@@ -96,6 +98,8 @@ export const sendOrderEmail = async (
 		Object.assign(ticket, {
 			discountPercent: getDiscountPercentForTicket(
 				ticket,
+				// earlier we sorted discount codes by amount in descending order
+				// so code below will pick the highest discount code for given ticket type
 				order.discountCodes
 			),
 		})

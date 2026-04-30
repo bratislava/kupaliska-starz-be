@@ -534,7 +534,7 @@ const mapPropertiesToTickets = async (
 	tickets: PostOrderTicket[],
 	swimmingLoggedUser: SwimmingLoggedUserModel | null,
 	cityAccountData: Partial<CityAccountUser> | null,
-	discountCodesModels: DiscountCodeModel[],
+	sortedDiscountCodesModels: DiscountCodeModel[],
 	discountsPercentObj?: {
 		ticketTypeId: string
 		discountPercent: number
@@ -563,8 +563,9 @@ const mapPropertiesToTickets = async (
 					i18next.t('error:ticketTypeNotFound')
 				)
 
-			// earlier we sorted discount codes by amount in descending order so code below will pick the highest discount code for given ticket type
-			const currentDiscountCodeModel = discountCodesModels.find(
+			// earlier we sorted discount codes by amount in descending order
+			// so code below will pick the highest discount code for given ticket type
+			const currentDiscountCodeModel = sortedDiscountCodesModels.find(
 				(discountCode) =>
 					discountCode.ticketTypes.some(
 						(ticketType) => ticketType.id === ticket.ticketTypeId
