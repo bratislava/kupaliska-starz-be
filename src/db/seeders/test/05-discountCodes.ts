@@ -7,9 +7,9 @@ import { DiscountCodeModel } from '../../models/discountCode'
 export const discountCodeId = uuidv4()
 export const discountCodeId2 = uuidv4()
 export const discountCodeId3 = uuidv4()
-export const discountCode = faker.random.alphaNumeric(8).toUpperCase()
-export const discountCode2 = faker.random.alphaNumeric(8).toUpperCase()
-export const discountCode3 = faker.random.alphaNumeric(8).toUpperCase()
+export const discountCode = 'AAAAAAAA'
+export const discountCode2 = 'BBBBBBBB'
+export const discountCode3 = 'CCCCCCCC'
 
 export async function up(queryInterface: QueryInterface) {
 	await DiscountCodeModel.bulkCreate([

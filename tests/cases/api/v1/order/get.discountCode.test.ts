@@ -10,8 +10,8 @@ import MockDate from 'mockdate'
 const endpoint = (discountCode: string) =>
 	`/api/v1/orders/discountCodes/${discountCode}`
 
-const discountCode = faker.random.alphaNumeric(8)
-const discountCodeUsedAt = faker.random.alphaNumeric(8)
+const discountCode = 'EEEEEEEE'
+const discountCodeUsedAt = 'FFFFFFFF'
 const discountCodeId = uuidv4()
 const discountCodeUsedId = uuidv4()
 

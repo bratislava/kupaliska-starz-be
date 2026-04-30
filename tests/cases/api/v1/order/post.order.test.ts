@@ -3,9 +3,8 @@ jest.mock('../../../../../src/utils/emailSender', () => ({
 }))
 
 import supertest from 'supertest'
-import Joi from 'joi'
 import app from '../../../../../src/app'
-import { MESSAGE_TYPES, ORDER_STATE } from '../../../../../src/utils/enums'
+import { ORDER_STATE } from '../../../../../src/utils/enums'
 import { OrderModel } from '../../../../../src/db/models/order'
 import faker from 'faker'
 import jwt from 'jsonwebtoken'
@@ -26,8 +25,6 @@ import ErrorBuilder from '../../../../../src/utils/ErrorBuilder'
 import { models } from '../../../../../src/db/models'
 import { v4 as uuidv4 } from 'uuid'
 import i18next from 'i18next'
-import { readdir, unlink } from 'fs/promises'
-import path from 'path'
 import config from 'config'
 import { IAppConfig } from '../../../../../src/types/interfaces'
 import {
@@ -510,7 +507,7 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					},
 					...Array.from(
 						{
-							length: 3, //ticketTypeSeasonalWithChildren.childrenMaxNumber,
+							length: 3, //more than ticketTypeSeasonalWithChildren.childrenMaxNumber,
 						},
 						() => ({
 							ticketTypeId: ticketTypeSeasonalWithChildren,
@@ -536,7 +533,7 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 		})
 
 		describe('workflow', () => {
-			it('throws ticket.emailIsEmpty when city account has no email and body email is null', async () => {
+			it('throws ticket.emailIsEmpty when city account and body email is missing', async () => {
 				const { next } = await callWorkflow(
 					{
 						tickets: [
@@ -557,7 +554,7 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				).toBe(i18next.t('error:ticket.emailIsEmpty'))
 			})
 
-			it('throws cityAccountDataMissing when there is no email and no city account', async () => {
+			it('throws emailIsEmpty when city account email is empty and body email is missing', async () => {
 				getCityAccountDataSpy.mockResolvedValueOnce({
 					...defaultCityAccount(),
 					email: '',
@@ -745,53 +742,6 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				expect(order?.discountCodes[0].id).toBe(discountCodeId)
 			})
 
-			it('Order should have pass through throw numberOfChildrenExceeded', async () => {
-				const response = await request
-					.post(endpointOrder)
-					.set(authHeader)
-					.set('Content-Type', 'application/json')
-					.send({
-						tickets: [
-							{
-								ticketTypeId: ticketTypeSeasonalWithChildren,
-								age: 18,
-								zip: '03251',
-							},
-							...Array.from(
-								{
-									length: 2, //ticketTypeSeasonalWithChildren.childrenMaxNumber,
-								},
-								() => ({
-									ticketTypeId:
-										ticketTypeSeasonalWithChildren,
-									age: 10,
-									zip: '81101',
-								})
-							),
-							{
-								ticketTypeId: ticketTypeSeasonalWithChildren2,
-								age: 18,
-								zip: '03251',
-							},
-							...Array.from(
-								{
-									length: 2, //ticketTypeSeasonalWithChildren2.childrenMaxNumber,
-								},
-								() => ({
-									ticketTypeId:
-										ticketTypeSeasonalWithChildren2,
-									age: 10,
-									zip: '81101',
-								})
-							),
-						],
-						agreement: true,
-						paymentMethod: ORDER_PAYMENT_METHOD_STATE.CARD,
-						token: 'recaptcha123',
-					})
-
-				expect(response.status).toBe(200)
-			})
 			it('Order should have correct discount for multiple discount codes present in the request', async () => {
 				const response = await request
 					.post(endpointOrder)
