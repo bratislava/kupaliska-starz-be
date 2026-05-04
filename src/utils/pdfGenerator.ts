@@ -33,7 +33,7 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 	const numberOfChildrenWithoutAdult =
 		numberOfChildren - numberOfChildrenWithAdult
 
-	// is this still desired the way it was when we have multiple ticketTypes?
+	// is this still desired the way it was when we have multiple ticketTypes, asked service designer and answer is it doesn't matter
 	ticketsForPdf = sortTickets(ticketsForPdf)
 
 	let startPadding = 79.5
