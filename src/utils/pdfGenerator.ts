@@ -258,12 +258,12 @@ const getTicketRowData = (
 	vatPercentage: number
 ) => {
 	const vatBasePercentage = 100 + vatPercentage
-	const vatBase = 100 / vatBasePercentage
 	const sumPriceVat = quantity * priceWithVat
 	const sumVatAmount = Math.round(
 		(sumPriceVat * vatPercentage) / vatBasePercentage
 	)
-	const ticketPrice = Math.round(priceWithVat * vatBase)
+	// order of operations is important here, multiply by 100, then divide by vatBasePercentage
+	const ticketPrice = Math.round((priceWithVat * 100) / vatBasePercentage)
 	const sumPriceWithoutVat = Math.round(sumPriceVat - sumVatAmount)
 
 	return {
