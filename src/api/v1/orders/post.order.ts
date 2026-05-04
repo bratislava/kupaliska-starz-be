@@ -455,6 +455,39 @@ const basicChecks = async (
 			i18next.t('error:ticket.maxtTicketsPerOrder')
 		)
 	}
+
+	for (const { ticketType } of ticketsWithTicketType) {
+		validate(
+			true,
+			ticketType.validTo,
+			Joi.date().min(new Date()),
+			i18next.t('error:ticket.ticketHasExpired'),
+			'ticketHasExpired'
+		)
+	}
+
+	ticketsWithTicketType.some(({ ticketType }) => {
+		if (ticketType.nameRequired && !userLogged) {
+			throw new ErrorBuilder(
+				401,
+				i18next.t('error:ticket.notLoggedUserForTicket')
+			)
+		}
+	})
+
+	ticketsWithTicketType.some(({ ticketType, user }) => {
+		if (
+			ticketType.nameRequired &&
+			user.cityAccountType &&
+			user.cityAccountType !== AccountType.FO
+		) {
+			throw new ErrorBuilder(
+				400,
+				i18next.t('error:ticket.userNotAllowedTicketType')
+			)
+		}
+	})
+
 	// TODO do this better
 	const ticketsGroupedByTicketTypes = groupBy(
 		ticketsWithTicketType,
@@ -499,31 +532,6 @@ const basicChecks = async (
 			)
 		}
 	}
-	ticketsWithTicketType.forEach((ticketWithTicketType) => {
-		if (ticketWithTicketType.ticketType.nameRequired && !userLogged) {
-			throw new ErrorBuilder(
-				400,
-				i18next.t('error:ticket.notLoggedUserForTicket')
-			)
-		}
-		validate(
-			true,
-			ticketWithTicketType.ticketType.validTo,
-			Joi.date().min(new Date()),
-			i18next.t('error:ticket.ticketHasExpired'),
-			'ticketHasExpired'
-		)
-		if (
-			ticketWithTicketType.ticketType.nameRequired &&
-			ticketWithTicketType.user.cityAccountType &&
-			ticketWithTicketType.user.cityAccountType !== AccountType.FO
-		) {
-			throw new ErrorBuilder(
-				400,
-				i18next.t('error:ticket.userNotAllowedTicketType')
-			)
-		}
-	})
 }
 const mapPropertiesToTickets = async (
 	tickets: PostOrderTicket[],
