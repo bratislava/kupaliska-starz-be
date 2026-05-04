@@ -90,8 +90,9 @@ export function isDefined<T>(value: T | undefined | null): value is T {
  */
 export const getDiscount = (
 	ticketPriceWithVat: number,
-	inverseDiscountInPercent: number
+	discountPercent: number
 ) => {
+	const inverseDiscountInPercent = 100 - (discountPercent ?? 0)
 	const priceWithDiscount = Math.round(
 		(ticketPriceWithVat * inverseDiscountInPercent) / 100
 	)
@@ -139,10 +140,6 @@ export const payOrderWithNextOrderNumber = async (order: OrderModel) => {
 export const calculateAge = (dateOfBirth: string) => {
 	const age = dayjs().diff(dayjs(dateOfBirth), 'year')
 	return age
-}
-
-export const getInverseDiscountInPercent = (discountPercent?: number) => {
-	return 100 - (discountPercent ?? 0)
 }
 
 export const getAdultsAndChildrenCountForTicketType = (

@@ -835,9 +835,6 @@ function getDataForTicketType(
 	numberOfChildren: number
 ) {
 	const discountPercent = ticketsForPdf[0].discountPercent
-	const inverseDiscountInPercent = 100 - discountPercent
-
-	// TODO change to multiple ticketTypes and multiple discounts
 	const ticketType = ticketsForPdf[0].ticketType
 
 	const ticketsRowData = []
@@ -851,7 +848,7 @@ function getDataForTicketType(
 			)} ${discountPercent} % – ${ticketName}`
 			priceVat = getDiscount(
 				ticketType.priceWithVat,
-				inverseDiscountInPercent
+				discountPercent
 			).newTicketsPrice
 		}
 		ticketsRowData.push(
@@ -873,7 +870,7 @@ function getDataForTicketType(
 			)} ${discountPercent} % – ${ticketName}`
 			priceVat = getDiscount(
 				ticketType.childrenPriceWithVat,
-				inverseDiscountInPercent
+				discountPercent
 			).newTicketsPrice
 		}
 		ticketsRowData.push(

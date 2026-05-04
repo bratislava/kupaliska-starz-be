@@ -28,7 +28,6 @@ import {
 	getCityAccountData,
 	payOrderWithNextOrderNumber,
 	isDefined,
-	getInverseDiscountInPercent,
 	getAdultsAndChildrenCountForTicketType,
 } from '../../../utils/helpers'
 import { TicketModel } from '../../../db/models/ticket'
@@ -126,10 +125,7 @@ type TicketWithAdditionalProperties = PostOrderTicket & {
 	ticketType: TicketTypeModel
 	isChildTicket: boolean
 	user: User
-	discount?: {
-		discountPercent: number
-		inverseDiscountInPercent: number
-	}
+	discountPercent?: number
 	discountCode?: DiscountCodeModel
 	priceWithVat: number
 }
@@ -260,13 +256,13 @@ const getOrderPrice = async (
 
 	//price computation
 	for (const ticketWithAdditionalProperties of ticketsWithAdditionalProperties) {
-		const { isChildTicket, ticketType, discount } =
+		const { isChildTicket, ticketType, discountPercent } =
 			ticketWithAdditionalProperties
 		const ticketPrice = getTicketPrice(isChildTicket, ticketType)
 
 		let totals = { newTicketsPrice: ticketPrice, discount: discountAcc }
-		if (discount?.inverseDiscountInPercent !== undefined) {
-			totals = getDiscount(ticketPrice, discount.inverseDiscountInPercent)
+		if (discountPercent !== undefined) {
+			totals = getDiscount(ticketPrice, discountPercent)
 		}
 		orderPriceWithVat += totals.newTicketsPrice
 		discountAcc += totals.discount
@@ -468,8 +464,7 @@ const basicChecks = async (
 		ticketsGroupedByTicketTypes
 	)) {
 		// all tickets with same ticket type have same discount
-		const discountPercent =
-			ticketsWithSameTicketType[0].discount?.discountPercent
+		const discountPercent = ticketsWithSameTicketType[0].discountPercent
 
 		const { numberOfAdultsForTicketType, numberOfChildrenForTicketType } =
 			getAdultsAndChildrenCountForTicketType(ticketsWithSameTicketType)
@@ -578,17 +573,11 @@ const mapPropertiesToTickets = async (
 			)?.discountPercent
 
 			let discountPercent = 0
-			let inverseDiscountInPercent = 100
 
 			if (currentDiscountCodeModel) {
 				discountPercent = currentDiscountCodeModel.amount
-				inverseDiscountInPercent =
-					currentDiscountCodeModel.getInverseAmount
 			} else if (currentDiscountPercent !== undefined) {
 				discountPercent = currentDiscountPercent
-				inverseDiscountInPercent = getInverseDiscountInPercent(
-					currentDiscountPercent
-				)
 			}
 			const ticketWithTicketType = {
 				...ticket,
@@ -614,7 +603,6 @@ const mapPropertiesToTickets = async (
 				priceWithVat,
 				discount: {
 					discountPercent,
-					inverseDiscountInPercent,
 				},
 				discountCode: currentDiscountCodeModel,
 			}
