@@ -35,8 +35,10 @@ const getDiscountPercentForTicket = (
 	if (!sortedDiscountCodesModels?.length) {
 		return 0
 	}
-	const code = sortedDiscountCodesModels.find((dc) =>
-		dc.ticketTypes?.some((tt) => tt.id === ticket.ticketTypeId)
+	const code = sortedDiscountCodesModels.find((discountCodeModel) =>
+		discountCodeModel.ticketTypes?.some(
+			(ticketType) => ticketType.id === ticket.ticketTypeId
+		)
 	)
 	return code ? code.amount : 0
 }
