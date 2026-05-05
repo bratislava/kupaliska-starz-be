@@ -158,6 +158,33 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				discount: 0,
 			})
 		})
+		it('returns 200 with pricing for valid tickets with discount applied', async () => {
+			const response = await request
+				.post(endpointGetUnauthenticatedPrice)
+				.set('Content-Type', 'application/json')
+				.send({
+					tickets: [
+						{
+							ticketTypeId: ticketTypeEntriesId,
+							age: 30,
+							zip: '81101',
+						},
+					],
+					discountsPercent: [
+						{
+							ticketTypeId: ticketTypeEntriesId,
+							discountPercent: 10,
+						},
+					],
+				})
+
+			expect(response.status).toBe(200)
+			expect(response.type).toBe('application/json')
+			expect(response.body.data.pricing).toEqual({
+				orderPriceWithVat: 3599,
+				discount: 400,
+			})
+		})
 	})
 
 	//   add test for recaptcha token
@@ -320,6 +347,10 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					{
 						tickets: [
 							{
+								ticketTypeId: ticketTypeSeasonNameRequired,
+								age: 38,
+							},
+							{
 								ticketTypeId: ticketTypeSeasonalWithChildren,
 								age: 8,
 								zip: '81101',
@@ -433,7 +464,7 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					},
 					{}
 				)
-				expectErrorNext(next, 400)
+				expectErrorNext(next, 401)
 				expect(
 					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
 				).toBe(i18next.t('error:ticket.notLoggedUserForTicket'))
