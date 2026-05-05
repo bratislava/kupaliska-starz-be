@@ -26,6 +26,7 @@ import { models } from '../../../../../src/db/models'
 import { v4 as uuidv4 } from 'uuid'
 import i18next from 'i18next'
 import config from 'config'
+import { Op } from 'sequelize'
 import { IAppConfig } from '../../../../../src/types/interfaces'
 import {
 	ticketTypeEntriesId,
@@ -809,6 +810,37 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 							},
 						],
 						discountCodes: ['RRRRRRRR'],
+						agreement: true,
+						paymentMethod: ORDER_PAYMENT_METHOD_STATE.CARD,
+					},
+					{ authorization: 'Bearer t' }
+				)
+				expectErrorNext(next, 404)
+				expect(
+					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
+				).toBe(i18next.t('error:discountCodeNotValid'))
+			})
+			it('throws discountCodeNotValid when discount code is already used', async () => {
+				await DiscountCodeModel.update(
+					{ usedAt: '2021-04-11 23:59:59' },
+					{
+						where: {
+							code: {
+								[Op.eq]: discountCode2,
+							},
+						},
+					}
+				)
+				const { next } = await callWorkflow(
+					{
+						tickets: [
+							{
+								ticketTypeId: ticketTypeEntriesId,
+								age: 18,
+								zip: '03251',
+							},
+						],
+						discountCodes: [discountCode2],
 						agreement: true,
 						paymentMethod: ORDER_PAYMENT_METHOD_STATE.CARD,
 					},
