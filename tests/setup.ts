@@ -31,6 +31,7 @@ jest.mock('minio', () => {
 		},
 	}
 })
+// TODO we should start using this instead of private key from filesystem
 // jest.mock('../src/services/webpayService');
 
 beforeAll(async () => {
