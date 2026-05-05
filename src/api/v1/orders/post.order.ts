@@ -455,27 +455,30 @@ const basicChecks = async (
 		)
 	}
 
-	ticketsWithTicketType.some(({ ticketType }) => {
-		if (ticketType.nameRequired && !userLogged) {
-			throw new ErrorBuilder(
-				401,
-				i18next.t('error:ticket.notLoggedUserForTicket')
-			)
-		}
-	})
+	if (
+		ticketsWithTicketType.some(
+			({ ticketType }) => ticketType.nameRequired && !userLogged
+		)
+	) {
+		throw new ErrorBuilder(
+			401,
+			i18next.t('error:ticket.notLoggedUserForTicket')
+		)
+	}
 
-	ticketsWithTicketType.some(({ ticketType, user }) => {
-		if (
-			ticketType.nameRequired &&
-			user.cityAccountType &&
-			user.cityAccountType !== AccountType.FO
-		) {
-			throw new ErrorBuilder(
-				400,
-				i18next.t('error:ticket.userNotAllowedTicketType')
-			)
-		}
-	})
+	if (
+		ticketsWithTicketType.some(
+			({ ticketType, user }) =>
+				ticketType.nameRequired &&
+				user.cityAccountType &&
+				user.cityAccountType !== AccountType.FO
+		)
+	) {
+		throw new ErrorBuilder(
+			400,
+			i18next.t('error:ticket.userNotAllowedTicketType')
+		)
+	}
 
 	// TODO do this better
 	const ticketsGroupedByTicketTypes = groupBy(
