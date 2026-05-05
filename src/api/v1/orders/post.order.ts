@@ -609,9 +609,7 @@ const mapPropertiesToTickets = async (
 				isChildTicket,
 				user,
 				priceWithVat,
-				discount: {
-					discountPercent,
-				},
+				discountPercent,
 				discountCode: currentDiscountCodeModel,
 			}
 		})
