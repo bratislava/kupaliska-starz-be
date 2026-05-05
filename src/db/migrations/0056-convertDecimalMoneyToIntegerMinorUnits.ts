@@ -9,7 +9,7 @@ import DB from '../../db/models'
  * Application code and raw SQL must treat these columns as minor units after this migration.
  */
 
-const toMinorUnits = async (
+const toInteger = async (
 	queryInterface: QueryInterface,
 	table: string,
 	column: string,
@@ -21,7 +21,7 @@ const toMinorUnits = async (
 	)
 }
 
-const toDecimalMoney = async (
+const toDecimal = async (
 	queryInterface: QueryInterface,
 	table: string,
 	column: string,
@@ -72,7 +72,7 @@ export async function up(queryInterface: QueryInterface) {
 			'paymentOrders'
 		)
 		if (tablePaymentOrders.paymentAmount) {
-			await toMinorUnits(
+			await toInteger(
 				queryInterface,
 				'paymentOrders',
 				'paymentAmount',
@@ -82,7 +82,7 @@ export async function up(queryInterface: QueryInterface) {
 
 		const tableOrders = await queryInterface.describeTable('orders')
 		if (tableOrders.priceWithVat) {
-			await toMinorUnits(
+			await toInteger(
 				queryInterface,
 				'orders',
 				'priceWithVat',
@@ -90,17 +90,12 @@ export async function up(queryInterface: QueryInterface) {
 			)
 		}
 		if (tableOrders.discount) {
-			await toMinorUnits(
-				queryInterface,
-				'orders',
-				'discount',
-				transaction
-			)
+			await toInteger(queryInterface, 'orders', 'discount', transaction)
 		}
 
 		const tableTickets = await queryInterface.describeTable('tickets')
 		if (tableTickets.priceWithVat) {
-			await toMinorUnits(
+			await toInteger(
 				queryInterface,
 				'tickets',
 				'priceWithVat',
@@ -112,7 +107,7 @@ export async function up(queryInterface: QueryInterface) {
 			'ticketTypes'
 		)
 		if (tableTicketTypes.priceWithVat) {
-			await toMinorUnits(
+			await toInteger(
 				queryInterface,
 				'ticketTypes',
 				'priceWithVat',
@@ -120,7 +115,7 @@ export async function up(queryInterface: QueryInterface) {
 			)
 		}
 		if (tableTicketTypes.childrenPriceWithVat) {
-			await toMinorUnits(
+			await toInteger(
 				queryInterface,
 				'ticketTypes',
 				'childrenPriceWithVat',
@@ -173,7 +168,7 @@ export async function down(queryInterface: QueryInterface) {
 			'paymentOrders'
 		)
 		if (tablePaymentOrders.paymentAmount) {
-			await toDecimalMoney(
+			await toDecimal(
 				queryInterface,
 				'paymentOrders',
 				'paymentAmount',
@@ -183,7 +178,7 @@ export async function down(queryInterface: QueryInterface) {
 
 		const tableOrders = await queryInterface.describeTable('orders')
 		if (tableOrders.priceWithVat) {
-			await toDecimalMoney(
+			await toDecimal(
 				queryInterface,
 				'orders',
 				'priceWithVat',
@@ -191,17 +186,12 @@ export async function down(queryInterface: QueryInterface) {
 			)
 		}
 		if (tableOrders.discount) {
-			await toDecimalMoney(
-				queryInterface,
-				'orders',
-				'discount',
-				transaction
-			)
+			await toDecimal(queryInterface, 'orders', 'discount', transaction)
 		}
 
 		const tableTickets = await queryInterface.describeTable('tickets')
 		if (tableTickets.priceWithVat) {
-			await toDecimalMoney(
+			await toDecimal(
 				queryInterface,
 				'tickets',
 				'priceWithVat',
@@ -213,7 +203,7 @@ export async function down(queryInterface: QueryInterface) {
 			'ticketTypes'
 		)
 		if (tableTicketTypes.priceWithVat) {
-			await toDecimalMoney(
+			await toDecimal(
 				queryInterface,
 				'ticketTypes',
 				'priceWithVat',
@@ -221,7 +211,7 @@ export async function down(queryInterface: QueryInterface) {
 			)
 		}
 		if (tableTicketTypes.childrenPriceWithVat) {
-			await toDecimalMoney(
+			await toDecimal(
 				queryInterface,
 				'ticketTypes',
 				'childrenPriceWithVat',
