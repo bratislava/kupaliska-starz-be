@@ -11,7 +11,7 @@ const endpoint = (discountCode: string) =>
 	`/api/v1/orders/discountCodes/${discountCode}`
 
 const discountCode = 'EEEEEEEE'
-const discountCodeUsedAt = 'FFFFFFFF'
+const discountCodeUsed = 'FFFFFFFF'
 const discountCodeId = uuidv4()
 const discountCodeUsedId = uuidv4()
 
@@ -25,7 +25,7 @@ describe(`[GET] ${endpoint}`, () => {
 				amount: 20,
 			},
 			{
-				...createDiscountCode(discountCodeUsedId, discountCodeUsedAt),
+				...createDiscountCode(discountCodeUsedId, discountCodeUsed),
 				usedAt: '2021-04-11 23:59:59',
 			},
 		])
@@ -76,7 +76,7 @@ describe(`[GET] ${endpoint}`, () => {
 		MockDate.set('2021-05-03 17:19:35')
 
 		const response = await request
-			.get(endpoint(discountCodeUsedAt))
+			.get(endpoint(discountCodeUsed))
 			.set('Content-Type', 'application/json')
 
 		expect(response.status).toBe(404)
