@@ -644,9 +644,7 @@ const getMappedTickets = async (
 				},
 		  })
 		: []
-
-	// TODO if all discount code applicable ticketTypeIds does not match any of requested ticket type, throw error?
-	// right now we are just not applying it
+	// purposefully letting pass when all discount code applicable ticketTypeIds does not match any of requested ticket types
 
 	// TODO this should live in basic checks?
 	if (
