@@ -437,17 +437,6 @@ const basicChecks = async (
 	ticketsWithTicketType: TicketWithAdditionalProperties[],
 	userLogged: boolean
 ) => {
-	const numberOfChildren = ticketsWithTicketType.filter(
-		(ticketWithTicketType) => ticketWithTicketType.isChildTicket
-	).length
-
-	const numberOfAdults = ticketsWithTicketType.length - numberOfChildren
-	// by default all of tickets appears as for adults, "children tickets" are used here to have discounted price for for ticket combos with children,
-	// orders which contains ticket that have this combo feature (children allowed) must have at least one adult ticket
-	if (numberOfAdults < 1) {
-		throw new ErrorBuilder(400, i18next.t('error:ticket.minimumIsOneAdult'))
-	}
-
 	// check maximum tickets
 	if (ticketsWithTicketType.length > appConfig.maxTicketPurchaseLimit) {
 		throw new ErrorBuilder(
@@ -496,13 +485,22 @@ const basicChecks = async (
 	for (const ticketsWithSameTicketType of Object.values(
 		ticketsGroupedByTicketTypes
 	)) {
-		// all tickets with same ticket type have same discount
+		// all tickets with same ticket type have same discount,
+		// used to discount single adult ticket and children tickets associated with this adult ticket
 		const discountPercent = ticketsWithSameTicketType[0].discountPercent
 
 		const { numberOfAdultsForTicketType, numberOfChildrenForTicketType } =
 			getAdultsAndChildrenCountForTicketType(ticketsWithSameTicketType)
 
-		// discount is ment to be used only for one adult ticket
+		// by default all of tickets appears as for adults, "children tickets" are used here to have discounted price for for ticket combos with children,
+		// orders which contains ticket that have this combo feature (children allowed) must have at least one adult ticket
+		if (numberOfAdultsForTicketType < 1) {
+			throw new ErrorBuilder(
+				400,
+				i18next.t('error:ticket.minimumIsOneAdult')
+			)
+		}
+		// discount is meant to be used only for one adult ticket
 		if (
 			numberOfAdultsForTicketType > 1 &&
 			discountPercent !== undefined &&
