@@ -712,34 +712,18 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 	describe('business logic tests', () => {
 		describe('Order with discount code', () => {
 			afterEach(async () => {
-				const discountCodeInstance = await DiscountCodeModel.findByPk(
-					discountCodeId
+				await DiscountCodeModel.update(
+					{ usedAt: null, orderId: null },
+					{
+						where: {
+							id: [
+								discountCodeId,
+								discountCodeId2,
+								discountCodeId3,
+							],
+						},
+					}
 				)
-				const discountCodeInstance2 = await DiscountCodeModel.findByPk(
-					discountCodeId2
-				)
-				const discountCodeInstance3 = await DiscountCodeModel.findByPk(
-					discountCodeId3
-				)
-
-				if (discountCodeInstance) {
-					await discountCodeInstance.update({
-						usedAt: null,
-						orderId: null,
-					})
-				}
-				if (discountCodeInstance2) {
-					await discountCodeInstance2.update({
-						usedAt: null,
-						orderId: null,
-					})
-				}
-				if (discountCodeInstance3) {
-					await discountCodeInstance3.update({
-						usedAt: null,
-						orderId: null,
-					})
-				}
 			})
 			it('Order should have correct discount', async () => {
 				const response = await request
