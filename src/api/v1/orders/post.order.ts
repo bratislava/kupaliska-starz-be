@@ -62,6 +62,9 @@ const passportConfig: IPassportConfig = config.get('passport')
 
 const postOrderTicketSchema = z.object({
 	personId: z.uuid().nullable().optional(),
+	// TODO move age and zip to higher level,
+	// only time when we have this information is when user buys a ticket which don't require name
+	// and that is still asked only once in order and then copied to evey ticket
 	age: z.number().int().min(0).max(150).nullable().optional(),
 	zip: z.string().max(10).nullable().optional(),
 	ticketTypeId: z.uuid(),
