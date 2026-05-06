@@ -5,15 +5,14 @@ import { createDiscountCode } from '../../../../../src/db/factories/discountCode
 import faker from 'faker'
 import { v4 as uuidv4 } from 'uuid'
 import { DiscountCodeTicketTypeModel } from '../../../../../src/db/models/discountCodeTicketType'
+import { discountCodeUsed } from '../../../../../src/db/seeders/test/05-discountCodes'
 import MockDate from 'mockdate'
 
 const endpoint = (discountCode: string) =>
 	`/api/v1/orders/discountCodes/${discountCode}`
 
 const discountCode = 'EEEEEEEE'
-const discountCodeUsed = 'FFFFFFFF'
 const discountCodeId = uuidv4()
-const discountCodeUsedId = uuidv4()
 
 describe(`[GET] ${endpoint}`, () => {
 	const request = supertest(app)
@@ -24,20 +23,12 @@ describe(`[GET] ${endpoint}`, () => {
 				...createDiscountCode(discountCodeId, discountCode),
 				amount: 20,
 			},
-			{
-				...createDiscountCode(discountCodeUsedId, discountCodeUsed),
-				usedAt: '2021-04-11 23:59:59',
-			},
 		])
 
 		await DiscountCodeTicketTypeModel.bulkCreate([
 			{
 				ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe06',
 				discountCodeId: discountCodeId,
-			},
-			{
-				ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe06',
-				discountCodeId: discountCodeUsedId,
 			},
 		])
 	})

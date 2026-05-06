@@ -32,7 +32,6 @@ import {
 	ticketTypeEntriesId,
 	ticketTypeExpired,
 	ticketTypeSeasonalWithChildren,
-	ticketTypeSeasonalWithChildren2,
 	ticketTypeSeasonNameRequired,
 } from '../../../../../src/db/seeders/test/01-ticketTypes'
 import { DiscountCodeModel } from '../../../../../src/db/models/discountCode'
@@ -43,6 +42,7 @@ import {
 	discountCode,
 	discountCode2,
 	discountCode3,
+	discountCodeUsed,
 } from '../../../../../src/db/seeders/test/05-discountCodes'
 
 const { SwimmingLoggedUser } = models
@@ -821,16 +821,6 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				).toBe(i18next.t('error:discountCodeNotValid'))
 			})
 			it('throws discountCodeNotValid when discount code is already used', async () => {
-				await DiscountCodeModel.update(
-					{ usedAt: '2021-04-11 23:59:59' },
-					{
-						where: {
-							code: {
-								[Op.eq]: discountCode2,
-							},
-						},
-					}
-				)
 				const { next } = await callWorkflow(
 					{
 						tickets: [
@@ -840,7 +830,7 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 								zip: '03251',
 							},
 						],
-						discountCodes: [discountCode2],
+						discountCodes: [discountCodeUsed],
 						agreement: true,
 						paymentMethod: ORDER_PAYMENT_METHOD_STATE.CARD,
 					},
