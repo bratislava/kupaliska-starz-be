@@ -491,22 +491,21 @@ const basicChecks = async (
 	for (const ticketsWithSameTicketType of Object.values(
 		ticketsGroupedByTicketTypes
 	)) {
-		// all tickets with same ticket type have same discount,
-		// used to discount single adult ticket and children tickets associated with this adult ticket
-		const discountPercent = ticketsWithSameTicketType[0].discountPercent
-
 		const { numberOfAdultsForTicketType, numberOfChildrenForTicketType } =
 			getAdultsAndChildrenCountForTicketType(ticketsWithSameTicketType)
 
-		// by default all of tickets appears as for adults, "children tickets" are used here to have discounted price for for ticket combos with children,
-		// orders which contains ticket that have this combo feature (children allowed) must have at least one adult ticket
+		// flag isChildTicket is only used for seasonal child tickets which are not allowed to be bought alone (without adult seasonal ticket)
 		if (numberOfAdultsForTicketType < 1) {
 			throw new ErrorBuilder(
 				400,
 				i18next.t('error:ticket.minimumIsOneAdult')
 			)
 		}
-		// discount is meant to be used only for one adult ticket
+
+		// discout code can be applied only to one ticket, during order creation it is assigned to all compatible tickets by type
+		// (only exception: when there is exactly one adult seasonal ticket then the same discount
+		// can be applied to it and all children seasonal tickets, because they are the same ticket type)
+		const discountPercent = ticketsWithSameTicketType[0].discountPercent
 		if (
 			numberOfAdultsForTicketType > 1 &&
 			discountPercent !== undefined &&
