@@ -1,3 +1,5 @@
+import passport from 'passport'
+import { ExtractJwt, Strategy as JwtStrategy } from 'passport-jwt'
 import { sequelize } from '../src/db/models'
 import { seedsUp } from '../src/db/seeders/test'
 import clearDB from './clearDB'
@@ -29,9 +31,25 @@ jest.mock('minio', () => {
 		},
 	}
 })
+// TODO we should start using this instead of private key from filesystem
 // jest.mock('../src/services/webpayService');
 
 beforeAll(async () => {
+	// Keep original passport.authenticate and replace only jwt-cognito strategy in tests.
+	// This avoids external JWKS calls and lets tests use locally signed Bearer tokens.
+	passport.use(
+		'jwt-cognito',
+		new JwtStrategy(
+			{
+				jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+				secretOrKey: process.env.JWT_SECRET || 'jwtrandomsecret',
+				algorithms: ['HS256'],
+				ignoreExpiration: false,
+			},
+			(payload, done) => done(null, payload)
+		)
+	)
+
 	// Sequence running of seeds (some seeds depend on others)
 	await seedsUp.reduce(
 		(promise, seed): Promise<any> =>

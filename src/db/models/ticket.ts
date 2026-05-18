@@ -1,9 +1,11 @@
-import { getHours, getMinutes } from './../../utils/helpers'
-/* eslint import/no-cycle: 0 */
 import { Sequelize, DataTypes, literal, UUIDV4 } from 'sequelize'
 
 import { DatabaseModel } from '../../types/models'
-import { getLocalTimezoneTime } from '../../utils/helpers'
+import {
+	getHours,
+	getMinutes,
+	getLocalTimezoneTime,
+} from '../../utils/timeUtils'
 import { EntryModel } from './entry'
 import { OrderModel } from './order'
 import { ProfileModel } from './profile'
@@ -25,9 +27,6 @@ export class TicketModel extends DatabaseModel {
 	ticketTypeId: string
 	order: OrderModel
 	orderId: string
-	parentTicket: TicketModel
-	parentTicketId: string
-	children: TicketModel[]
 	entries: EntryModel[]
 	todaysEntries: EntryModel[]
 	numberOfVisits: number
@@ -134,12 +133,8 @@ export default (sequelize: Sequelize) => {
 				defaultValue: UUIDV4,
 			},
 			priceWithVat: {
-				type: DataTypes.DECIMAL(10, 2),
+				type: DataTypes.INTEGER,
 				allowNull: false,
-				get() {
-					const value = this.getDataValue('priceWithVat')
-					return value !== undefined ? parseFloat(value) : undefined
-				},
 			},
 			vatPercentage: {
 				type: DataTypes.DECIMAL(10, 2),
@@ -149,6 +144,7 @@ export default (sequelize: Sequelize) => {
 					return value !== undefined ? parseFloat(value) : undefined
 				},
 			},
+			// TODO rename to isChildTicket
 			isChildren: {
 				type: DataTypes.BOOLEAN,
 				allowNull: false,
@@ -212,13 +208,6 @@ export default (sequelize: Sequelize) => {
 			},
 			as: 'order',
 		})
-		TicketModel.belongsTo(models.Ticket, {
-			foreignKey: {
-				name: 'parentTicketId',
-				allowNull: true,
-			},
-			as: 'parentTicket',
-		})
 		TicketModel.belongsTo(models.TicketType, {
 			foreignKey: {
 				name: 'ticketTypeId',
@@ -227,13 +216,6 @@ export default (sequelize: Sequelize) => {
 			as: 'ticketType',
 		})
 
-		TicketModel.hasMany(models.Ticket, {
-			foreignKey: {
-				name: 'parentTicketId',
-				allowNull: true,
-			},
-			as: 'children',
-		})
 		TicketModel.hasMany(models.Entry, {
 			foreignKey: {
 				name: 'ticketId',

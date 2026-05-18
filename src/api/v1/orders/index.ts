@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { Request, Response, NextFunction } from 'express'
 import * as PostOrder from './post.order'
+import { RequestPostOrder, RequestPostOrderDryRun } from './post.order'
 import * as GetDiscountCode from './get.discountCode'
 import * as GetSuccessfulOrder from './get.successfulOrder'
 import * as GetPostPaymentResponse from './get.post.paymentResponse'
@@ -11,12 +12,14 @@ import passport from 'passport'
 import schemaMiddleware from '../../../middlewares/schemaMiddleware'
 import recaptchaMiddleware from '../../../middlewares/recaptchaMiddleware'
 import offseasonMiddleware from '../../../middlewares/offseasonMiddleware'
+import schemaZodMiddleware from '../../../middlewares/schemaZodMiddleware'
 
 const router = Router()
 
 export default () => {
 	router.get(
-		'/discountCodes/:code/ticketTypes/:ticketTypeId',
+		'/discountCodes/:code',
+		recaptchaMiddleware,
 		schemaMiddleware(GetDiscountCode.schema),
 		GetDiscountCode.workflow
 	)
@@ -26,8 +29,8 @@ export default () => {
 		offseasonMiddleware,
 		passport.authenticate('jwt-cognito'),
 		recaptchaMiddleware,
-		schemaMiddleware(PostOrder.schema),
-		(req: Request, res: Response, next: NextFunction) => {
+		schemaZodMiddleware(PostOrder.postOrderBodySchema),
+		(req: RequestPostOrder, res: Response, next: NextFunction) => {
 			PostOrder.workflow(req, res, next)
 		}
 	)
@@ -37,8 +40,8 @@ export default () => {
 		'/unauthenticated',
 		offseasonMiddleware,
 		recaptchaMiddleware,
-		schemaMiddleware(PostOrder.schema),
-		(req: Request, res: Response, next: NextFunction) => {
+		schemaZodMiddleware(PostOrder.postOrderBodySchema),
+		(req: RequestPostOrder, res: Response, next: NextFunction) => {
 			PostOrder.workflow(req, res, next)
 		}
 	)
@@ -52,8 +55,8 @@ export default () => {
 	router.post(
 		'/getPrice',
 		passport.authenticate('jwt-cognito'),
-		schemaMiddleware(PostOrder.schema),
-		(req: Request, res: Response, next: NextFunction) => {
+		schemaZodMiddleware(PostOrder.postOrderDryRunBodySchema),
+		(req: RequestPostOrderDryRun, res: Response, next: NextFunction) => {
 			PostOrder.workflowDryRun(req, res, next)
 		}
 	)
@@ -61,8 +64,8 @@ export default () => {
 	// TODO: remove this route after FE removes it's usage
 	router.post(
 		'/getPrice/unauthenticated',
-		schemaMiddleware(PostOrder.schema),
-		(req: Request, res: Response, next: NextFunction) => {
+		schemaZodMiddleware(PostOrder.postOrderDryRunBodySchema),
+		(req: RequestPostOrderDryRun, res: Response, next: NextFunction) => {
 			PostOrder.workflowDryRun(req, res, next)
 		}
 	)

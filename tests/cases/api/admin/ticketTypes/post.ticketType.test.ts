@@ -68,7 +68,7 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Sezónny tiket',
 				description: faker.lorem.paragraph(15),
-				priceWithVat: 20,
+				priceWithVat: 2000,
 				vatPercentage: 23,
 				type: TICKET_TYPE.SEASONAL,
 				nameRequired: true,
@@ -76,7 +76,7 @@ describe(`[POST] ${endpoint})`, () => {
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
 				childrenAllowed: true,
 				childrenMaxNumber: 5,
-				childrenPriceWithVat: 1,
+				childrenPriceWithVat: 100,
 				childrenVatPercentage: 23,
 				childrenAgeFrom: 3,
 				childrenAgeTo: 18,
@@ -101,7 +101,7 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				priceWithVat: 40,
+				priceWithVat: 4000,
 				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
@@ -130,7 +130,7 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				priceWithVat: 40,
+				priceWithVat: 4000,
 				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
@@ -156,7 +156,7 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				priceWithVat: 40,
+				priceWithVat: 4000,
 				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
@@ -219,7 +219,7 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				priceWithVat: 40,
+				priceWithVat: 4000,
 				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
@@ -252,7 +252,7 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				priceWithVat: 40,
+				priceWithVat: 4000,
 				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: [
@@ -281,7 +281,7 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Časovy listok tiket',
 				description: faker.lorem.paragraph(15),
-				priceWithVat: 40,
+				priceWithVat: 4000,
 				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
@@ -312,7 +312,7 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Časovy listok tiket',
 				description: faker.lorem.paragraph(15),
-				priceWithVat: 40,
+				priceWithVat: 4000,
 				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
@@ -348,7 +348,7 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Časovy listok tiket',
 				description: faker.lorem.paragraph(15),
-				priceWithVat: 40,
+				priceWithVat: 4000,
 				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],
@@ -382,7 +382,7 @@ describe(`[POST] ${endpoint})`, () => {
 			.send({
 				name: 'Jednorázový tiket',
 				description: faker.lorem.paragraph(15),
-				priceWithVat: 40,
+				priceWithVat: 4000,
 				vatPercentage: 23,
 				type: TICKET_TYPE.ENTRIES,
 				swimmingPools: ['c70954c7-970d-4f1a-acf4-12b91acabe01'],

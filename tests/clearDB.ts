@@ -5,7 +5,8 @@ export default async () => {
 		await (model as any).unscoped().destroy({
 			where: {},
 			force: true,
-			truncate: { cascade: true },
+			truncate: true,
+			cascade: true,
 		})
 	}
 }

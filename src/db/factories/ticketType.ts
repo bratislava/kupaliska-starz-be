@@ -6,7 +6,7 @@ export const createTicketType = (ticketTypeId = uuidv4()) => ({
 	id: ticketTypeId,
 	name: 'Sezónny tiket',
 	description: faker.lorem.paragraph(15),
-	priceWithVat: 20,
+	priceWithVat: 2000,
 	vatPercentage: 23,
 	type: TICKET_TYPE.SEASONAL,
 	nameRequired: true,

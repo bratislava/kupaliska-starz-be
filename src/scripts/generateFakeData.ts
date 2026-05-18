@@ -117,7 +117,6 @@ async function generateData() {
 											? faker.random.number(80) + 17
 											: null,
 								},
-								parentTicketId: null,
 								ticketTypeId: seasonalTicketType.id,
 								entries: generateEntries(
 									numberOfEntries,
@@ -143,7 +142,6 @@ async function generateData() {
 										? faker.random.number(20) + 3
 										: null,
 							},
-							parentTicketId: ticketId,
 							ticketTypeId: seasonalTicketType.id,
 							entries: generateEntries(
 								numberOfEntries,
@@ -209,7 +207,6 @@ async function generateData() {
 									? faker.random.number(80) + 17
 									: null,
 						},
-						parentTicketId: null,
 						ticketTypeId: entriesTicketType.id,
 						entries: generateEntries(
 							numberOfEntries,

@@ -5,15 +5,14 @@ import { createDiscountCode } from '../../../../../src/db/factories/discountCode
 import faker from 'faker'
 import { v4 as uuidv4 } from 'uuid'
 import { DiscountCodeTicketTypeModel } from '../../../../../src/db/models/discountCodeTicketType'
+import { discountCodeUsed } from '../../../../../src/db/seeders/test/05-discountCodes'
 import MockDate from 'mockdate'
 
-const endpoint = (discountCode: string, ticketTypeId: string) =>
-	`/api/v1/orders/discountCodes/${discountCode}/ticketTypes/${ticketTypeId}`
+const endpoint = (discountCode: string) =>
+	`/api/v1/orders/discountCodes/${discountCode}`
 
-const discountCode = faker.random.alphaNumeric(8)
-const discountCodeUsedAt = faker.random.alphaNumeric(8)
+const discountCode = 'EEEEEEEE'
 const discountCodeId = uuidv4()
-const discountCodeUsedId = uuidv4()
 
 describe(`[GET] ${endpoint}`, () => {
 	const request = supertest(app)
@@ -24,10 +23,6 @@ describe(`[GET] ${endpoint}`, () => {
 				...createDiscountCode(discountCodeId, discountCode),
 				amount: 20,
 			},
-			{
-				...createDiscountCode(discountCodeUsedId, discountCodeUsedAt),
-				usedAt: '2021-04-11 23:59:59',
-			},
 		])
 
 		await DiscountCodeTicketTypeModel.bulkCreate([
@@ -35,22 +30,13 @@ describe(`[GET] ${endpoint}`, () => {
 				ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe06',
 				discountCodeId: discountCodeId,
 			},
-			{
-				ticketTypeId: 'c70954c7-970d-4f1a-acf4-12b91acabe06',
-				discountCodeId: discountCodeUsedId,
-			},
 		])
 	})
 
 	it('Discount code not found', async () => {
 		const invalidDiscountCode = faker.random.alphaNumeric(8)
 		const response = await request
-			.get(
-				endpoint(
-					invalidDiscountCode,
-					'c70954c7-970d-4f1a-acf4-12b91acabe06'
-				)
-			)
+			.get(endpoint(invalidDiscountCode))
 			.set('Content-Type', 'application/json')
 
 		expect(response.status).toBe(404)
@@ -61,7 +47,7 @@ describe(`[GET] ${endpoint}`, () => {
 		MockDate.set('2021-04-11 23:59:59')
 
 		let response = await request
-			.get(endpoint(discountCode, 'c70954c7-970d-4f1a-acf4-12b91acabe06'))
+			.get(endpoint(discountCode))
 			.set('Content-Type', 'application/json')
 
 		expect(response.status).toBe(404)
@@ -69,7 +55,7 @@ describe(`[GET] ${endpoint}`, () => {
 		MockDate.set('2021-07-13 00:00:00')
 
 		response = await request
-			.get(endpoint(discountCode, 'c70954c7-970d-4f1a-acf4-12b91acabe06'))
+			.get(endpoint(discountCode))
 			.set('Content-Type', 'application/json')
 
 		expect(response.status).toBe(404)
@@ -81,25 +67,7 @@ describe(`[GET] ${endpoint}`, () => {
 		MockDate.set('2021-05-03 17:19:35')
 
 		const response = await request
-			.get(
-				endpoint(
-					discountCodeUsedAt,
-					'c70954c7-970d-4f1a-acf4-12b91acabe06'
-				)
-			)
-			.set('Content-Type', 'application/json')
-
-		expect(response.status).toBe(404)
-		expect(response.type).toBe('application/json')
-
-		MockDate.reset()
-	})
-
-	it('Bad ticket type', async () => {
-		MockDate.set('2021-06-11 23:59:59')
-
-		const response = await request
-			.get(endpoint(discountCode, uuidv4()))
+			.get(endpoint(discountCodeUsed))
 			.set('Content-Type', 'application/json')
 
 		expect(response.status).toBe(404)
@@ -112,7 +80,7 @@ describe(`[GET] ${endpoint}`, () => {
 		MockDate.set('2021-04-12 00:00:00')
 
 		let response = await request
-			.get(endpoint(discountCode, 'c70954c7-970d-4f1a-acf4-12b91acabe06'))
+			.get(endpoint(discountCode))
 			.set('Content-Type', 'application/json')
 
 		expect(response.status).toBe(200)
@@ -124,11 +92,12 @@ describe(`[GET] ${endpoint}`, () => {
 		MockDate.set('2021-07-12 23:59:59')
 
 		response = await request
-			.get(endpoint(discountCode, 'c70954c7-970d-4f1a-acf4-12b91acabe06'))
+			.get(endpoint(discountCode))
 			.set('Content-Type', 'application/json')
 
 		expect(response.status).toBe(200)
 
 		MockDate.reset()
 	})
+	// TODO test recaptcha middleware
 })

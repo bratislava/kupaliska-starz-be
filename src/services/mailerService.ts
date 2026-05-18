@@ -19,7 +19,6 @@ const mg = mailgun.client({
 })
 
 export const sendEmail = async (
-	req: Request,
 	recipient: string,
 	subject: string,
 	template: string,
@@ -43,11 +42,7 @@ export const sendEmail = async (
 		await mg.messages.create(mailgunConfig.domain, mailData)
 	} catch (err) {
 		logger.error(err)
-		logger.error(
-			`${424} - EMAIL ERROR - ${err.message} - ${req.originalUrl} - ${
-				req.method
-			} - ${req.ip}`
-		)
+		// TODO error handling in whole app
 		throw new ErrorBuilder(424, i18next.t('error:emailFailed'))
 	}
 }

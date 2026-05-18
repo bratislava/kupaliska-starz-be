@@ -19,8 +19,6 @@ export class DiscountCodeModel extends DatabaseModel {
 	deletedAt: Date
 	// foreign
 	order: OrderModel
-	// getters
-	getInverseAmount: number
 }
 
 export default (sequelize: Sequelize) => {
@@ -57,6 +55,10 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.DATE,
 				allowNull: true,
 			},
+			orderId: {
+				type: DataTypes.UUID,
+				allowNull: true,
+			},
 			createdAt: {
 				type: DataTypes.DATE,
 				allowNull: false,
@@ -69,11 +71,6 @@ export default (sequelize: Sequelize) => {
 			},
 		},
 		{
-			getterMethods: {
-				getInverseAmount() {
-					return 1 - this.amount / 100
-				},
-			},
 			paranoid: true,
 			timestamps: true,
 			sequelize,
@@ -95,19 +92,6 @@ export default (sequelize: Sequelize) => {
 		})
 	)
 
-	DiscountCodeModel.addScope('byTicketType', (ticketTypeId) => ({
-		include: {
-			association: 'ticketTypes',
-			attributes: ['id'],
-			required: true,
-			where: {
-				id: {
-					[Op.eq]: ticketTypeId,
-				},
-			},
-		},
-	}))
-
 	DiscountCodeModel.associate = (models) => {
 		DiscountCodeModel.belongsToMany(models.TicketType, {
 			through: {
@@ -124,9 +108,9 @@ export default (sequelize: Sequelize) => {
 			as: 'ticketTypes',
 		})
 
-		DiscountCodeModel.hasOne(models.Order, {
+		DiscountCodeModel.belongsTo(models.Order, {
 			foreignKey: {
-				name: 'discountCodeId',
+				name: 'orderId',
 				allowNull: true,
 			},
 			as: 'order',

@@ -57,7 +57,6 @@ export const formatTicket = (ticket: TicketModel) => {
 		email: ticket.profile.email,
 		name: ticket.profile.name,
 		zip: ticket.profile.zip,
-		parentTicketId: ticket.parentTicketId,
 		ticketTypeId: ticket.ticketType.id,
 		qrCode: ticket.qrCode,
 	}
@@ -197,7 +196,7 @@ export const formatOrder = (order: OrderModel) => {
 	return {
 		id: order.id,
 		price: order.priceWithVat,
-		discount: order.discount,
+		discount: order.discount, // TODO could be recounted in order to not have discount in order model
 		state: order.state,
 		orderNumber: order.orderNumber,
 		numberOfTickets: order.tickets ? order.tickets.length : undefined,

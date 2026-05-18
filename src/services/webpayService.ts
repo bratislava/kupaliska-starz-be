@@ -177,7 +177,7 @@ export const createPayment = async (
 		MERCHANTNUMBER: webpayConfig.merchantNumber,
 		OPERATION: PAYMENT_OPERATION.CREATE_ORDER,
 		ORDERNUMBER: order.orderNumber,
-		AMOUNT: Math.round(paymentOrder.paymentAmount * 100), // in cents
+		AMOUNT: paymentOrder.paymentAmount, // in cents
 		CURRENCY: Number(webpayConfig.currency), // num code based on ISO 4217
 		DEPOSITFLAG: 1, // 1 - Require immediate payment | 0 - Do not require immediate payment
 		URL: `${appConfig.host}/api/v1/orders/webpay/response`, // BE URL where will result be sent

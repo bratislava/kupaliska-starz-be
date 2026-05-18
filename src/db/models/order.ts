@@ -6,15 +6,12 @@ import { Sequelize, DataTypes, literal, UUIDV4, Op } from 'sequelize'
 import { DatabaseModel } from '../../types/models'
 import { TicketModel } from './ticket'
 import { ORDER_STATE } from '../../utils/enums'
-import { reduce } from 'lodash'
-import i18next from 'i18next'
-import { getChildrenTicketName } from '../../utils/translationsHelpers'
 import { DiscountCodeModel } from './discountCode'
 
 export interface OrderItem {
 	name: string
 	amount: number
-	priceWithVat: string
+	priceWithVat: number
 	accPriceWithVat: number
 }
 
@@ -26,10 +23,8 @@ export class OrderModel extends DatabaseModel {
 	state: ORDER_STATE
 	// foreign
 	tickets: TicketModel[]
-	parentTicket: TicketModel
 	paymentOrder: PaymentOrderModel
-	discountCodeId: string
-	discountCode: DiscountCodeModel
+	discountCodes: DiscountCodeModel[]
 	//vat document
 	orderNumberInYear: number
 	orderPaidInYear: number
@@ -40,53 +35,6 @@ export class OrderModel extends DatabaseModel {
 	// functions
 	isPaid() {
 		return this.state === ORDER_STATE.PAID
-	}
-	getItems() {
-		const self = this as OrderModel
-		const adults = reduce<TicketModel[], OrderItem>(
-			self.tickets,
-			(obj: OrderItem, ticket: TicketModel) => {
-				return ticket.isChildren === false
-					? {
-							name: ticket.ticketType.name,
-							amount: obj.amount + 1,
-							accPriceWithVat:
-								obj.accPriceWithVat + ticket.priceWithVat,
-							priceWithVat: (
-								obj.accPriceWithVat + ticket.priceWithVat
-							).toFixed(2),
-					  }
-					: obj
-			},
-			{ name: '', amount: 0, priceWithVat: '0.00', accPriceWithVat: 0 }
-		)
-
-		const children = reduce<TicketModel[], OrderItem>(
-			self.tickets,
-			(obj: OrderItem, ticket: TicketModel) => {
-				return ticket.isChildren
-					? {
-							name: getChildrenTicketName(),
-							amount: obj.amount + 1,
-							accPriceWithVat:
-								obj.accPriceWithVat + ticket.priceWithVat,
-							priceWithVat: (
-								obj.accPriceWithVat + ticket.priceWithVat
-							).toFixed(2),
-					  }
-					: obj
-			},
-			{ name: '', amount: 0, priceWithVat: '0.00', accPriceWithVat: 0 }
-		)
-
-		const discount = {
-			name: i18next.t('discountItem'),
-			amount: 1,
-			accPriceWithVat: -1 * self.discount,
-			priceWithVat: `-${self.discount.toFixed(2)}`,
-		}
-
-		return { adults, children, discount }
 	}
 }
 
@@ -110,21 +58,13 @@ export default (sequelize: Sequelize) => {
 				defaultValue: ORDER_STATE.CREATED,
 			},
 			priceWithVat: {
-				type: DataTypes.DECIMAL(10, 2),
+				type: DataTypes.INTEGER,
 				allowNull: false,
-				get() {
-					const value = this.getDataValue('priceWithVat')
-					return value !== undefined ? parseFloat(value) : undefined
-				},
 			},
 			discount: {
-				type: DataTypes.DECIMAL(10, 2),
+				type: DataTypes.INTEGER,
 				allowNull: false,
 				defaultValue: 0,
-				get() {
-					const value = this.getDataValue('discount')
-					return value !== undefined ? parseFloat(value) : undefined
-				},
 			},
 			orderNumberInYear: {
 				type: DataTypes.BIGINT,
@@ -171,21 +111,6 @@ export default (sequelize: Sequelize) => {
 			as: 'tickets',
 		})
 
-		OrderModel.hasOne(models.Ticket, {
-			foreignKey: {
-				name: 'orderId',
-				allowNull: false,
-			},
-			scope: {
-				where: {
-					parentTicketId: {
-						[Op.is]: null,
-					},
-				},
-			},
-			as: 'parentTicket',
-		})
-
 		OrderModel.hasOne(models.PaymentOrder, {
 			foreignKey: {
 				name: 'orderId',
@@ -194,12 +119,12 @@ export default (sequelize: Sequelize) => {
 			as: 'paymentOrder',
 		})
 
-		OrderModel.belongsTo(models.DiscountCode, {
+		OrderModel.hasMany(models.DiscountCode, {
 			foreignKey: {
-				name: 'discountCodeId',
+				name: 'orderId',
 				allowNull: true,
 			},
-			as: 'discountCode',
+			as: 'discountCodes',
 		})
 	}
 

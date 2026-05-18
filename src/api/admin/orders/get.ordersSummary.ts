@@ -50,7 +50,7 @@ export const workflow = async (
 		}>(
 			`
 			SELECT
-				subq.ttid as "ticketTypeId", ROUND(SUM(subq."priceWithVat"), 2) as "amount"
+				subq.ttid as "ticketTypeId", SUM(subq."priceWithVat") as "amount"
 			FROM (
 				SELECT
 					DISTINCT ON (orders.id) orders.id, tickets.id, orders."priceWithVat", "ticketTypes".id as ttid from "ticketTypes"

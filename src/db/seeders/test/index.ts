@@ -3,8 +3,17 @@ import { up as ticketTypes } from './01-ticketTypes'
 import { up as swimmingPools } from './02-swimmingPools'
 import { up as tickets } from './03-tickets'
 import { up as orders } from './04-orders'
-
+import { up as discountCodes } from './05-discountCodes'
+import { up as discountCodeTicketType } from './06-discountCodeTicketType'
 export const up = () => Promise.resolve()
 export const down = () => Promise.resolve()
 
-export const seedsUp = [users, ticketTypes, swimmingPools, tickets, orders]
+export const seedsUp = [
+	users,
+	ticketTypes,
+	swimmingPools,
+	tickets,
+	orders,
+	discountCodes,
+	discountCodeTicketType,
+]

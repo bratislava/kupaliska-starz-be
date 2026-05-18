@@ -15,12 +15,12 @@ import faker from 'faker'
 export const ticketId = 'c70954c7-970d-4f1a-acf4-12b91acabe01'
 export const ticketAllowedSwimmingPoolId =
 	'c70954c7-970d-4f1a-acf4-12b91acabe05'
-export const ticket2Id = 'c70954c7-970d-4f1a-acf4-12b91acabe02'
+export const ticketTypeSeasonNameRequired =
+	'c70954c7-970d-4f1a-acf4-12b91acabe02'
 export const ticket2AllowedSwimmingPoolId =
 	'c70954c7-970d-4f1a-acf4-12b91acabe07'
 export const ticket3Id = 'c70954c7-970d-4f1a-acf4-12b91acabe03'
-export const ticket3AllowedSwimmingPoolId =
-	'c70954c7-970d-4f1a-acf4-12b91acabe06'
+export const ticketTypeIdEntries = 'c70954c7-970d-4f1a-acf4-12b91acabe06'
 
 export async function up(queryInterface: QueryInterface) {
 	const employee = await UserModel.create({
@@ -34,12 +34,12 @@ export async function up(queryInterface: QueryInterface) {
 		[
 			{
 				id: ticketId,
-				priceWithVat: 3.99,
+				priceWithVat: 399,
 				vatPercentage: 23,
 				isChildren: false,
 				remainingEntries: 4,
 				order: {
-					price: 3.99,
+					priceWithVat: 399,
 					orderNumber: 100,
 					state: ORDER_STATE.PAID,
 				},
@@ -47,7 +47,7 @@ export async function up(queryInterface: QueryInterface) {
 				ticketType: {
 					name: 'Sezónny tiket',
 					description: faker.lorem.paragraph(15),
-					priceWithVat: 20,
+					priceWithVat: 2000,
 					vatPercentage: 23,
 					type: TICKET_TYPE.ENTRIES,
 					entriesNumber: 10,
@@ -65,13 +65,13 @@ export async function up(queryInterface: QueryInterface) {
 				},
 			},
 			{
-				id: ticket2Id,
-				priceWithVat: 3.99,
+				id: ticketTypeSeasonNameRequired,
+				priceWithVat: 399,
 				vatPercentage: 23,
 				isChildren: false,
 				remainingEntries: 0,
 				order: {
-					price: 3.99,
+					priceWithVat: 399,
 					orderNumber: 101,
 					state: ORDER_STATE.CREATED,
 				},
@@ -79,7 +79,7 @@ export async function up(queryInterface: QueryInterface) {
 				ticketType: {
 					name: 'Vstupovy',
 					description: faker.lorem.paragraph(15),
-					priceWithVat: 20,
+					priceWithVat: 2000,
 					vatPercentage: 23,
 					type: TICKET_TYPE.ENTRIES,
 					nameRequired: true,
@@ -159,12 +159,12 @@ export async function up(queryInterface: QueryInterface) {
 			},
 			{
 				id: ticket3Id,
-				priceWithVat: 3.99,
+				priceWithVat: 399,
 				vatPercentage: 23,
 				isChildren: false,
 				remainingEntries: 0,
 				order: {
-					price: 3.99,
+					priceWithVat: 399,
 					orderNumber: 102,
 					state: ORDER_STATE.PAID,
 				},
@@ -172,7 +172,7 @@ export async function up(queryInterface: QueryInterface) {
 				ticketType: {
 					name: 'Vstupovy',
 					description: faker.lorem.paragraph(15),
-					priceWithVat: 20,
+					priceWithVat: 2000,
 					vatPercentage: 23,
 					type: TICKET_TYPE.ENTRIES,
 					nameRequired: true,
@@ -188,7 +188,7 @@ export async function up(queryInterface: QueryInterface) {
 					entriesNumber: 5,
 					swimmingPools: [
 						createSwimmingPool(),
-						createSwimmingPool(ticket3AllowedSwimmingPoolId),
+						createSwimmingPool(ticketTypeIdEntries),
 					],
 				},
 			},

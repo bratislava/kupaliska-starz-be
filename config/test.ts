@@ -5,15 +5,9 @@ import { forEach, isArray } from 'lodash'
 
 const filesPath = path.join(process.cwd(), 'test-files')
 const logsPath = path.join(process.cwd(), 'logs')
-const keysPath = process.env.GP_WEBPAY_KEYS_PATH
-const privateKeyPath = path.join(
-	process.env.GP_WEBPAY_KEYS_PATH,
-	'merchant-pvk.key'
-)
-const gpPublicKeyPath = path.join(
-	process.env.GP_WEBPAY_KEYS_PATH,
-	'gpe.signing.pem'
-)
+const keysPath = process.env.GP_WEBPAY_KEYS_PATH ?? 'resources/test-keys'
+const privateKeyPath = path.join(keysPath, 'merchant-pvk.key')
+const gpPublicKeyPath = path.join(keysPath, 'gpe.signing.pem')
 
 // eslint-disable-next-line no-unused-expressions
 fs.existsSync(keysPath) || fs.mkdirSync(keysPath, { recursive: true })

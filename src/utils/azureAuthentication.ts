@@ -27,7 +27,7 @@ interface JWTPayloadAzure extends JwtPayload {
 }
 
 export const getCognitoIdOfLoggedInUser = (req: Request): string | null => {
-	const user = req?.user ? (req.user as ICognitoAccessToken) : null
+	const user = req.user ? (req.user as ICognitoAccessToken) : null
 
 	return typeof user?.sub === 'string' ? user.sub : null
 }
