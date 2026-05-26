@@ -17,7 +17,7 @@ import schemaZodMiddleware from '../../../middlewares/schemaZodMiddleware'
 const router = Router()
 
 export default () => {
-	router.get(
+	router.post(
 		'/discountCodes/:code',
 		recaptchaMiddleware,
 		schemaMiddleware(GetDiscountCode.schema),

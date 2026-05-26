@@ -29,6 +29,9 @@ export const workflow = async (
 			discountCode: {
 				code: discountCode.code,
 				amount: discountCode.amount,
+				ticketTypeIds: discountCode.ticketTypes.map(
+					(ticketType) => ticketType.id
+				),
 			},
 		})
 	} catch (err) {

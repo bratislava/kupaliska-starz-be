@@ -11,6 +11,11 @@ export const getDiscountCode = async (code: string) => {
 				[Op.is]: null,
 			},
 		},
+		include: [
+			{
+				association: 'ticketTypes',
+			},
+		],
 		attributes: ['id', 'code', 'amount'],
 	})
 }
