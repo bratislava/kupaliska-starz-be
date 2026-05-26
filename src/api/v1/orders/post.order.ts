@@ -154,6 +154,8 @@ export const workflowDryRun = async (
 		const pricing = await getOrderPrice(mappedTickets)
 		return res.json({
 			data: {
+				// TODO this method used to also return number of children tickets, now it's not also because we have multiple ticketTypes in single order,
+				// what we could do is to return the number of children tickets for every ticketType
 				pricing,
 			},
 			messages: [
@@ -444,7 +446,9 @@ const basicChecks = async (
 	if (ticketsWithTicketType.length > appConfig.maxTicketPurchaseLimit) {
 		throw new ErrorBuilder(
 			400,
-			i18next.t('error:ticket.maxtTicketsPerOrder')
+			i18next.t('error:ticket.maxtTicketsPerOrder', {
+				maxTicketsPerOrder: appConfig.maxTicketPurchaseLimit,
+			})
 		)
 	}
 
