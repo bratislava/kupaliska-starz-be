@@ -6,7 +6,7 @@ import { Response, NextFunction } from 'express'
 import Joi from 'joi'
 import { z } from 'zod'
 import config from 'config'
-import { Op, Sequelize } from 'sequelize'
+import { Op, Sequelize, UniqueConstraintError } from 'sequelize'
 import formUrlEncoded from 'form-urlencoded'
 import { v4 as uuidv4 } from 'uuid'
 import { models } from '../../../db/models'
@@ -36,7 +36,7 @@ import { CityAccountUser } from '../../../utils/cityAccountDto'
 import i18next from 'i18next'
 import { DiscountCodeModel } from '../../../db/models/discountCode'
 import { SwimmingLoggedUserModel } from '../../../db/models/swimmingLoggedUser'
-import { groupBy, random } from 'lodash'
+import { groupBy } from 'lodash'
 
 const {
 	SwimmingLoggedUser,
@@ -674,18 +674,46 @@ const getMappedTickets = async (
 	return { mappedTickets }
 }
 
+// Date.now() gives us 13 digits, which fits comfortably under the GP Webpay
+// 15-digit ORDERNUMBER limit (and stays 13 digits until the year 2286). Two
+// requests landing in the same millisecond would collide, so we rely on the
+// `orderNumber` unique constraint as the source of truth: if it fires, we
+// retry with a fresh timestamp. Any other error must propagate unchanged.
+const MAX_ORDER_NUMBER_RETRIES = 50
+
+const createOrderWithUniqueNumber = async () => {
+	let lastError: unknown
+	for (let attempt = 0; attempt < MAX_ORDER_NUMBER_RETRIES; attempt++) {
+		try {
+			return await Order.create({
+				priceWithVat: 0,
+				state: ORDER_STATE.CREATED,
+				orderNumber: new Date().getTime(),
+			})
+		} catch (err) {
+			const isOrderNumberCollision =
+				err instanceof UniqueConstraintError &&
+				'orderNumber' in err.fields
+			if (!isOrderNumberCollision) {
+				throw err
+			}
+			lastError = err
+			// No explicit sleep needed: the next Order.create roundtrip is
+			// already well over 1ms, so Date.now() will have advanced by
+			// the time we retry.
+			await new Promise((resolve) => setTimeout(resolve, 1000))
+		}
+	}
+	throw lastError
+}
+
 // TODO we should use transaction here
 const createAndProcessOrder = async (
 	email: string,
 	mappedTickets: TicketWithAdditionalProperties[],
 	pricing: { orderPriceWithVat: number; discount: number }
 ) => {
-	const order = await Order.create({
-		priceWithVat: 0,
-		state: ORDER_STATE.CREATED,
-		// TODO fix this race condition in separate PR
-		orderNumber: new Date().getTime() + random(1, 100).toString(), // tests runs too fast and creates same order number :)
-	})
+	const order = await createOrderWithUniqueNumber()
 	// for each instance add unique ticket
 	for (const ticketWithTicketType of mappedTickets) {
 		// creating order is commitment to pay for order (industry standard)
