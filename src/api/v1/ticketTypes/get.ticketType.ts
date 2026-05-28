@@ -17,6 +17,7 @@ export const schema = Joi.object().keys({
 	}),
 })
 
+// TODO looks like this in not used anywhere, maybe delete?
 export const workflow = async (
 	req: Request,
 	res: Response,
