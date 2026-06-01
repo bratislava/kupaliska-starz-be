@@ -13,7 +13,7 @@ import { IAppleWalletConfig } from '../types/interfaces'
 const appleWalletConfig: IAppleWalletConfig = config.get('appleWallet')
 
 const template = new Template('generic', {
-	passTypeIdentifier: 'pass.sk.bratislava.kupaliska.v5',
+	passTypeIdentifier: 'pass.sk.bratislava.kupaliska.v6',
 	teamIdentifier: '2P6QC78LFR',
 	organizationName: 'STARZ Bratislava',
 	backgroundColor: hexToRgbString(
