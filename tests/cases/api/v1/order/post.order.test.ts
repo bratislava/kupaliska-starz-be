@@ -26,7 +26,6 @@ import { models } from '../../../../../src/db/models'
 import { v4 as uuidv4 } from 'uuid'
 import i18next from 'i18next'
 import config from 'config'
-import { Op } from 'sequelize'
 import { IAppConfig } from '../../../../../src/types/interfaces'
 import {
 	ticketTypeEntriesId,
@@ -396,7 +395,11 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				expectErrorNext(next, 400)
 				expect(
 					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-				).toBe(i18next.t('error:ticket.maxtTicketsPerOrder'))
+				).toBe(
+					i18next.t('error:ticket.maxtTicketsPerOrder', {
+						maxTicketsPerOrder: appConfig.maxTicketPurchaseLimit,
+					})
+				)
 			})
 
 			it('throws ticketTypeNotFound for unknown ticketTypeId', async () => {
