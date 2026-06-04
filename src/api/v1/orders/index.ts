@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { Request, Response, NextFunction } from 'express'
+import { Response, NextFunction } from 'express'
 import * as PostOrder from './post.order'
 import { RequestPostOrder, RequestPostOrderDryRun } from './post.order'
 import * as GetDiscountCode from './get.discountCode'
@@ -54,6 +54,7 @@ export default () => {
 
 	router.post(
 		'/getPrice',
+		offseasonMiddleware,
 		passport.authenticate('jwt-cognito'),
 		schemaZodMiddleware(PostOrder.postOrderDryRunBodySchema),
 		(req: RequestPostOrderDryRun, res: Response, next: NextFunction) => {
@@ -64,6 +65,7 @@ export default () => {
 	// TODO: remove this route after FE removes it's usage
 	router.post(
 		'/getPrice/unauthenticated',
+		offseasonMiddleware,
 		schemaZodMiddleware(PostOrder.postOrderDryRunBodySchema),
 		(req: RequestPostOrderDryRun, res: Response, next: NextFunction) => {
 			PostOrder.workflowDryRun(req, res, next)
