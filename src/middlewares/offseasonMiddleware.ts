@@ -9,6 +9,7 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 		attributes: ['alertText', 'showAlert', 'isOffSeason'],
 	})
 
+	// TODO: make sure that we have this info or send some default value maybe?
 	if (!general) {
 		throw new ErrorBuilder(404, req.t('error:generalNotFound'))
 	}
