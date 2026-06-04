@@ -26,7 +26,6 @@ import { models } from '../../../../../src/db/models'
 import { v4 as uuidv4 } from 'uuid'
 import i18next from 'i18next'
 import config from 'config'
-import { Op } from 'sequelize'
 import { IAppConfig } from '../../../../../src/types/interfaces'
 import {
 	ticketTypeEntriesId,
@@ -43,9 +42,11 @@ import {
 	discountCode2,
 	discountCode3,
 	discountCodeUsed,
+	up as seedDiscountCodes,
 } from '../../../../../src/db/seeders/test/05-discountCodes'
+import { up as seedDiscountCodeTicketTypes } from '../../../../../src/db/seeders/test/06-discountCodeTicketType'
 
-const { SwimmingLoggedUser } = models
+const { SwimmingLoggedUser, Order } = models
 
 const endpointOrder = '/api/v1/orders'
 const endpointGetUnauthenticatedPrice =
@@ -124,6 +125,20 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 	afterAll(() => {
 		MockDate.reset()
 		getCityAccountDataSpy.mockRestore()
+	})
+
+	afterEach(async () => {
+		// Truncating orders cascades through the `orderId` FK on discountCode
+		// (and in turn discountCodeTicketType), wiping the seeded discount
+		// codes. Re-seed them afterwards so discount-related tests still find
+		// them.
+		await OrderModel.destroy({
+			truncate: true,
+			force: true,
+			cascade: true,
+		})
+		await seedDiscountCodes(null as any)
+		await seedDiscountCodeTicketTypes(null as any)
 	})
 
 	const authHeader = {
@@ -712,20 +727,6 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 
 	describe('business logic tests', () => {
 		describe('Order with discount code', () => {
-			afterEach(async () => {
-				await DiscountCodeModel.update(
-					{ usedAt: null, orderId: null },
-					{
-						where: {
-							id: [
-								discountCodeId,
-								discountCodeId2,
-								discountCodeId3,
-							],
-						},
-					}
-				)
-			})
 			it('Order should have correct discount', async () => {
 				const response = await request
 					.post(endpointOrder)
@@ -745,6 +746,7 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 						token: 'recaptcha123',
 					})
 
+				// console.log('response', response)
 				expect(response.status).toBe(200)
 				const order = await OrderModel.findByPk(response.body.data.id, {
 					include: [{ association: 'discountCodes' }],
@@ -781,7 +783,8 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 						paymentMethod: ORDER_PAYMENT_METHOD_STATE.CARD,
 						token: 'recaptcha123',
 					})
-
+				// console.log('--------------------------------')
+				// console.log('response', response)
 				expect(response.status).toBe(200)
 				const order = await OrderModel.findByPk(response.body.data.id, {
 					include: [{ association: 'discountCodes' }],
@@ -843,4 +846,6 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 			})
 		})
 	})
+
+	// TODO make tests for createOrderWithUniqueNumber throw
 })
