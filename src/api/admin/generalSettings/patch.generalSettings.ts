@@ -7,6 +7,7 @@ import Joi from 'joi'
 export const generalSettingsPatchSchema = {
 	alertText: Joi.string().max(250).allow(null, ''),
 	showAlert: Joi.boolean().required(),
+	isOffSeason: Joi.boolean().required(),
 }
 
 export const schema = Joi.object().keys({
