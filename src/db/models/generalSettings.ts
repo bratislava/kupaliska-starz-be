@@ -51,6 +51,7 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.TEXT,
 				allowNull: false,
 			},
+			// TODO: rename to isSeasonActive
 			isOffSeason: {
 				type: DataTypes.BOOLEAN,
 				allowNull: false,
