@@ -240,10 +240,12 @@ export const workflow = async (
 		return res.json({
 			data: map(filteredResponseData, (ticketType: TicketTypeRecord) => {
 				const { priceWithVat, entryPrice, ...other } = ticketType
+				// TODO no longer needed to Math.round(() * 100) / 100, the price is now in cents so problem which this is solving is now solved
 				const finalPrice =
 					Math.round(
 						Number(entryPrice) * ticketType.numberOfUses * 100
 					) / 100
+				// TODO no longer needed to Math.round(() * 100) / 100, the price is now in cents so problem which this is solving is now solved
 				const commission =
 					Math.round(
 						finalPrice * appConfig.commissionCoefficient * 100
@@ -252,6 +254,7 @@ export const workflow = async (
 					finalPrice,
 					commission,
 					cleanPrice:
+						// TODO no longer needed to Math.round(() * 100) / 100, the price is now in cents so problem which this is solving is now solved
 						Math.round((finalPrice - commission) * 100) / 100,
 					priceWithVat: Number(priceWithVat),
 					entryPrice: Number(entryPrice),

@@ -5,7 +5,6 @@ import { NextFunction, Request, Response } from 'express'
 import sequelize from '../../../db/models'
 import { getFilters } from '../../../utils/dbFilters'
 import { map } from 'lodash'
-import { ENTRY_TYPE } from '../../../utils/enums'
 
 export const filtersSchema = Joi.object().keys({
 	ticketTypes: Joi.object().keys({
@@ -113,6 +112,8 @@ export const schema = Joi.object().keys({
 	}),
 })
 
+// this is used, fix price from float to integer, from euros to cents
+// for now not used in FE, code is commented out
 export const workflow = async (
 	req: Request,
 	res: Response,
