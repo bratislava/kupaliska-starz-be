@@ -746,7 +746,6 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 						token: 'recaptcha123',
 					})
 
-				// console.log('response', response)
 				expect(response.status).toBe(200)
 				const order = await OrderModel.findByPk(response.body.data.id, {
 					include: [{ association: 'discountCodes' }],
@@ -783,8 +782,6 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 						paymentMethod: ORDER_PAYMENT_METHOD_STATE.CARD,
 						token: 'recaptcha123',
 					})
-				// console.log('--------------------------------')
-				// console.log('response', response)
 				expect(response.status).toBe(200)
 				const order = await OrderModel.findByPk(response.body.data.id, {
 					include: [{ association: 'discountCodes' }],
