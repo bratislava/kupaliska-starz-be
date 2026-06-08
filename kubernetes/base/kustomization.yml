@@ -4,7 +4,7 @@ resources:
   - ingress.yml
   - statefulSet.yml
   - service-db.yml
-  - secrets/db.secret.yml
+  - secrets/database.secret.yml
 configurations:
   - configuration.yml
 namePrefix: ${BUILD_REPOSITORY_NAME}-
