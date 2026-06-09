@@ -45,20 +45,12 @@ export const schema = Joi.object().keys({
 			)
 			.empty(['', null])
 			.default('customerEmail'),
-		direction: Joi.string()
-			.lowercase()
-			.valid('asc', 'desc')
-			.empty(['', null])
-			.default('asc'),
+		direction: Joi.string().lowercase().valid('asc', 'desc').empty(['', null]).default('asc'),
 	}),
 	params: Joi.object(),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { query }: any = req
 		const { limit, page } = query
@@ -73,13 +65,9 @@ export const workflow = async (
 
 		let ageFilterSql = ''
 		if (age) {
-			ageFilterSql += age.from
-				? `$ageFrom <= any("customerAgesArr") `
-				: ''
+			ageFilterSql += age.from ? `$ageFrom <= any("customerAgesArr") ` : ''
 			const addAnd = age.from ? 'AND' : ''
-			ageFilterSql += age.to
-				? `${addAnd} $ageTo >= any("customerAgesArr") `
-				: ''
+			ageFilterSql += age.to ? `${addAnd} $ageTo >= any("customerAgesArr") ` : ''
 			ageFilterSql = age.showUnspecified
 				? `(${ageFilterSql} OR "customerAges" IS NULL)`
 				: ageFilterSql
@@ -93,10 +81,7 @@ export const workflow = async (
 		await user.reload({ include: { association: 'swimmingPools' } })
 		let swimmingPoolsFilterSql = ''
 		if (user.role === USER_ROLE.SWIMMING_POOL_OPERATOR) {
-			const usersSwimmingPools = map(
-				user.swimmingPools,
-				(pool) => pool.id
-			)
+			const usersSwimmingPools = map(user.swimmingPools, (pool) => pool.id)
 			const usersSwimmingPoolsArray = map(
 				usersSwimmingPools,
 				(_id, index) => `$swimmingPool${index}::uuid`
@@ -155,15 +140,11 @@ export const workflow = async (
 		return res.json({
 			customers: map(customers, (customer) => ({
 				customerEmail:
-					user.role === USER_ROLE.SWIMMING_POOL_OPERATOR
-						? '*****'
-						: customer.customerEmail,
+					user.role === USER_ROLE.SWIMMING_POOL_OPERATOR ? '*****' : customer.customerEmail,
 				customerAges: customer.customerAges,
 				customerZips: customer.customerZips,
 				customerNames:
-					user.role === USER_ROLE.SWIMMING_POOL_OPERATOR
-						? '*****'
-						: customer.customerNames,
+					user.role === USER_ROLE.SWIMMING_POOL_OPERATOR ? '*****' : customer.customerNames,
 				orderCount: customer.orderCount,
 				lastOrderAt: customer.lastOrderAt,
 				lastEntryAt: customer.lastEntryAt,

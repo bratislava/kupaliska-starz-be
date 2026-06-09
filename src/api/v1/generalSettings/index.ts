@@ -6,8 +6,4 @@ import * as GetGeneralSettings from './get.generalSettings'
 const router: Router = Router()
 
 export default () => router
-router.get(
-	'/',
-	schemaMiddleware(GetGeneralSettings.schema),
-	GetGeneralSettings.workflow
-)
+router.get('/', schemaMiddleware(GetGeneralSettings.schema), GetGeneralSettings.workflow)

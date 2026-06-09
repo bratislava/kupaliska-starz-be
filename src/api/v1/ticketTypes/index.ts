@@ -7,14 +7,6 @@ import * as GetTicketTypes from './get.ticketTypes'
 const router: Router = Router()
 
 export default () => router
-router.get(
-	'/',
-	schemaMiddleware(GetTicketTypes.schema),
-	GetTicketTypes.workflow
-)
+router.get('/', schemaMiddleware(GetTicketTypes.schema), GetTicketTypes.workflow)
 
-router.get(
-	'/:ticketTypeId',
-	schemaMiddleware(GetTicketType.schema),
-	GetTicketType.workflow
-)
+router.get('/:ticketTypeId', schemaMiddleware(GetTicketType.schema), GetTicketType.workflow)

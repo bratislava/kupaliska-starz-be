@@ -23,10 +23,7 @@ export const userPutSchema = {
 				.required()
 		)
 		.when('role', {
-			is: Joi.valid(
-				USER_ROLE.SWIMMING_POOL_EMPLOYEE,
-				USER_ROLE.SWIMMING_POOL_OPERATOR
-			),
+			is: Joi.valid(USER_ROLE.SWIMMING_POOL_EMPLOYEE, USER_ROLE.SWIMMING_POOL_OPERATOR),
 			then: Joi.required(),
 			otherwise: Joi.forbidden(),
 		}),
@@ -42,11 +39,7 @@ export const schema = Joi.object().keys({
 	}),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	const { User, SwimmingPool, SwimmingPoolUser } = models
 
 	let transaction: Transaction
@@ -63,10 +56,7 @@ export const workflow = async (
 
 		if (userExists) {
 			if (userExists.id !== params.userId) {
-				throw new ErrorBuilder(
-					409,
-					req.t('error:userEmailAlreadyExists')
-				)
+				throw new ErrorBuilder(409, req.t('error:userEmailAlreadyExists'))
 			}
 		}
 
@@ -91,10 +81,7 @@ export const workflow = async (
 				},
 			})
 			if (swimmingPools.length !== body.swimmingPools.length) {
-				throw new ErrorBuilder(
-					400,
-					req.t('error:incorrectSwimmingPools')
-				)
+				throw new ErrorBuilder(400, req.t('error:incorrectSwimmingPools'))
 			}
 		}
 

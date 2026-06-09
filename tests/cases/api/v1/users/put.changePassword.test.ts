@@ -25,9 +25,7 @@ describe(`[PUT] CHANGE PASSWORD - ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Expect status 401 | Invalid or missing auth token', async () => {
-		const response = await request
-			.put(endpoint())
-			.set('Content-Type', 'application/json')
+		const response = await request.put(endpoint()).set('Content-Type', 'application/json')
 		expect(response.status).toBe(401)
 	})
 

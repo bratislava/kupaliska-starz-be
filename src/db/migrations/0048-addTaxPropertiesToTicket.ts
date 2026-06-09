@@ -12,11 +12,7 @@ export async function up(queryInterface: QueryInterface) {
 		const table: any = await queryInterface.describeTable('tickets')
 
 		if (!table.priceWithVat) {
-			await queryInterface.renameColumn(
-				'tickets',
-				'price',
-				'priceWithVat'
-			)
+			await queryInterface.renameColumn('tickets', 'price', 'priceWithVat')
 		}
 		if (!table.vatPercentage) {
 			await queryInterface.addColumn('tickets', 'vatPercentage', {

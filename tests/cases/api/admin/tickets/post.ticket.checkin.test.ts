@@ -11,10 +11,8 @@ import { TicketModel } from '../../../../../src/db/models/ticket'
 
 const allowedSwimmingPool = 'c70954c7-970d-4f1a-acf4-12b91acabe01'
 
-const endpoint = (
-	swimmingPoolId = allowedSwimmingPool,
-	ticketId = process.env.ticketId
-) => `/api/admin/tickets/swimmingPools/${swimmingPoolId}/checkin/${ticketId}`
+const endpoint = (swimmingPoolId = allowedSwimmingPool, ticketId = process.env.ticketId) =>
+	`/api/admin/tickets/swimmingPools/${swimmingPoolId}/checkin/${ticketId}`
 const disallowedSwimmingPool = 'c70954c7-970d-4f1a-acf4-12b91acabe55'
 
 const schema = Joi.object().keys()
@@ -23,9 +21,7 @@ describe(`[POST] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Expect status 401 | Invalid or missing auth token', async () => {
-		const response = await request
-			.post(endpoint())
-			.set('Content-Type', 'application/json')
+		const response = await request.post(endpoint()).set('Content-Type', 'application/json')
 		expect(response.status).toBe(401)
 	})
 
@@ -38,9 +34,7 @@ describe(`[POST] ${endpoint})`, () => {
 	})
 
 	it('Check-in create new entry and decrement', async () => {
-		const prevTicket = (await TicketModel.findByPk(
-			process.env.ticketId
-		)) as TicketModel
+		const prevTicket = (await TicketModel.findByPk(process.env.ticketId)) as TicketModel
 
 		jest.useFakeTimers('modern')
 		jest.setSystemTime(new Date('2021-05-03 14:35'))
@@ -64,9 +58,7 @@ describe(`[POST] ${endpoint})`, () => {
 		expect(ticket.entries[0].type).toBe(ENTRY_TYPE.CHECKIN)
 		expect(ticket.entries[0].flag).toBe(ENTRY_FLAG.MANUAL)
 		expect(ticket.entries[0].employeeId).toBe(process.env.operatorId)
-		expect(ticket.entries[0].swimmingPoolId).toBe(
-			process.env.ticketAllowedSwimmingPoolId
-		)
+		expect(ticket.entries[0].swimmingPoolId).toBe(process.env.ticketAllowedSwimmingPoolId)
 
 		expect(ticket.remainingEntries).toBe(prevTicket.remainingEntries - 1)
 
@@ -74,9 +66,7 @@ describe(`[POST] ${endpoint})`, () => {
 	})
 
 	it('Check-in does NOT decrement remaining entries', async () => {
-		const prevTicket = (await TicketModel.findByPk(
-			process.env.ticketId
-		)) as TicketModel
+		const prevTicket = (await TicketModel.findByPk(process.env.ticketId)) as TicketModel
 
 		jest.useFakeTimers('modern')
 		jest.setSystemTime(new Date('2021-05-03 14:35'))
@@ -87,9 +77,7 @@ describe(`[POST] ${endpoint})`, () => {
 		expect(response.status).toBe(200)
 		expect(response.body.status).toBe(CHECK_STATUS.OK)
 
-		const ticket = (await TicketModel.findByPk(
-			process.env.ticketId
-		)) as TicketModel
+		const ticket = (await TicketModel.findByPk(process.env.ticketId)) as TicketModel
 
 		expect(ticket.remainingEntries).toBe(prevTicket.remainingEntries)
 

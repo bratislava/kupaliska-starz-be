@@ -46,9 +46,7 @@ export const checkPaymentKeys = () => {
 	return true
 }
 
-const createRequestSignatureString = (
-	paymentObject: IGPWebpayHttpRequest
-): string => {
+const createRequestSignatureString = (paymentObject: IGPWebpayHttpRequest): string => {
 	// DO NOT CHANGE ORDER OF PARAMS
 	let data: string
 	data = `${paymentObject.MERCHANTNUMBER}|${paymentObject.OPERATION}|${paymentObject.ORDERNUMBER}|${paymentObject.AMOUNT}`
@@ -60,9 +58,7 @@ const createRequestSignatureString = (
 	return data
 }
 
-const createRequestSignatureStringSimplified = (
-	paramsToSign: (number | string)[]
-): string => {
+const createRequestSignatureStringSimplified = (paramsToSign: (number | string)[]): string => {
 	let data: string = ''
 	paramsToSign.forEach((param, index) => {
 		if (index !== 0) {
@@ -95,9 +91,7 @@ const createResponseSignatureString = (
 	data += responseObject.ACCODE ? `|${responseObject.ACCODE}` : ''
 	data += responseObject.PANPATTERN ? `|${responseObject.PANPATTERN}` : ''
 	data += responseObject.DAYTOCAPTURE ? `|${responseObject.DAYTOCAPTURE}` : ''
-	data += responseObject.TOKENREGSTATUS
-		? `|${responseObject.TOKENREGSTATUS}`
-		: ''
+	data += responseObject.TOKENREGSTATUS ? `|${responseObject.TOKENREGSTATUS}` : ''
 	data += responseObject.ACRC ? `|${responseObject.ACRC}` : ''
 	data += responseObject.RRN ? `|${responseObject.RRN}` : ''
 	data += responseObject.PAR ? `|${responseObject.PAR}` : ''
@@ -110,11 +104,7 @@ const signData = async (paymentObject: IGPWebpayHttpRequest) => {
 	const dataToSign = createRequestSignatureString(paymentObject)
 	// const publicKey = await fs.promises.readFile(webpayConfig.publicKeyPath)
 	const privateKey = await fs.promises.readFile(webpayConfig.privateKeyPath)
-	return createSignature(
-		dataToSign,
-		privateKey,
-		webpayConfig.privateKeyPassword
-	)
+	return createSignature(dataToSign, privateKey, webpayConfig.privateKeyPassword)
 	// self-verify signature
 	// if (verifySignature(dataToSign, signature, publicKey) === false) {
 	// 	throw new Error('Problem with verifying signature, check payment keys.')
@@ -124,27 +114,16 @@ const signData = async (paymentObject: IGPWebpayHttpRequest) => {
 export const signDataSimplified = async (arrayToSign: (number | string)[]) => {
 	const dataToSign = createRequestSignatureStringSimplified(arrayToSign)
 	const privateKey = await fs.promises.readFile(webpayConfig.privateKeyPath)
-	return createSignature(
-		dataToSign,
-		privateKey,
-		webpayConfig.privateKeyPassword
-	)
+	return createSignature(dataToSign, privateKey, webpayConfig.privateKeyPassword)
 }
 
 const verifyData = async (paymentResponse: IGPWebpayHttpResponse) => {
 	const data = createResponseSignatureString(paymentResponse)
-	const dataWithMerchantNumber = createResponseSignatureString(
-		paymentResponse,
-		true
-	)
+	const dataWithMerchantNumber = createResponseSignatureString(paymentResponse, true)
 	const publicKey = await fs.promises.readFile(webpayConfig.gpPublicKeyPath)
 	return (
 		verifySignature(data, paymentResponse.DIGEST, publicKey) &&
-		verifySignature(
-			dataWithMerchantNumber,
-			paymentResponse.DIGEST1,
-			publicKey
-		)
+		verifySignature(dataWithMerchantNumber, paymentResponse.DIGEST1, publicKey)
 	)
 }
 
@@ -159,8 +138,7 @@ export const verifyDataGetPaymentStatusWebserviceResponse = async (
 
 const verifyPayment = (paymentResponse: IGPWebpayHttpResponse) =>
 	// AK PRCODE && SRCODE === 0 => PLATBA PREBEHLA V PORIADKU
-	parseInt(paymentResponse.PRCODE, 10) === 0 &&
-	parseInt(paymentResponse.SRCODE, 10) === 0
+	parseInt(paymentResponse.PRCODE, 10) === 0 && parseInt(paymentResponse.SRCODE, 10) === 0
 
 export const createPayment = async (
 	order: OrderModel,
@@ -213,9 +191,7 @@ export const registerPaymentResult = async (
 	})
 }
 
-export const getPaymentStatusWebServiceRequest = async (
-	orderNumber: number
-): Promise<any> => {
+export const getPaymentStatusWebServiceRequest = async (orderNumber: number): Promise<any> => {
 	const provider = webpayConfig.provider
 	const merchantNumber = webpayConfig.merchantNumber
 

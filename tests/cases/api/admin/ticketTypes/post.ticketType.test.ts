@@ -24,9 +24,7 @@ describe(`[POST] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Expect status 401 | Invalid or missing auth token', async () => {
-		const response = await request
-			.post(endpoint)
-			.set('Content-Type', 'application/json')
+		const response = await request.post(endpoint).set('Content-Type', 'application/json')
 		expect(response.status).toBe(401)
 	})
 
@@ -42,10 +40,7 @@ describe(`[POST] ${endpoint})`, () => {
 		const response = await request
 			.post(endpoint)
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolOperator}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolOperator}`)
 		expect(response.status).toBe(403)
 	})
 
@@ -53,10 +48,7 @@ describe(`[POST] ${endpoint})`, () => {
 		const response = await request
 			.post(endpoint)
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolEmployee}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolEmployee}`)
 		expect(response.status).toBe(403)
 	})
 
@@ -173,29 +165,19 @@ describe(`[POST] ${endpoint})`, () => {
 		expect(response.status).toBe(400)
 		expect(schema.validate(response.body).error).toBeUndefined()
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.childrenMaxNumber' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.childrenMaxNumber' })])
 		)
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.childrenPriceWithVat' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.childrenPriceWithVat' })])
 		)
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.childrenVatPercentage' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.childrenVatPercentage' })])
 		)
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.childrenAgeFrom' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.childrenAgeFrom' })])
 		)
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.childrenAgeTo' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.childrenAgeTo' })])
 		)
 		expect(response.body.messages).toEqual(
 			expect.arrayContaining([
@@ -205,9 +187,7 @@ describe(`[POST] ${endpoint})`, () => {
 			])
 		)
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.childrenPhotoRequired' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.childrenPhotoRequired' })])
 		)
 	})
 
@@ -298,9 +278,7 @@ describe(`[POST] ${endpoint})`, () => {
 		expect(response.status).toBe(400)
 		expect(schema.validate(response.body).error).toBeUndefined()
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.ticketDuration' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.ticketDuration' })])
 		)
 	})
 
@@ -329,14 +307,10 @@ describe(`[POST] ${endpoint})`, () => {
 		expect(response.status).toBe(400)
 		expect(schema.validate(response.body).error).toBeUndefined()
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.entranceFrom' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.entranceFrom' })])
 		)
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.entranceTo' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.entranceTo' })])
 		)
 	})
 
@@ -368,9 +342,7 @@ describe(`[POST] ${endpoint})`, () => {
 		expect(response.status).toBe(400)
 		expect(schema.validate(response.body).error).toBeUndefined()
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.hasTicketDuration' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.hasTicketDuration' })])
 		)
 	})
 

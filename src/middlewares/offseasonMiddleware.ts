@@ -13,7 +13,6 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 	if (!general) {
 		throw new ErrorBuilder(404, req.t('error:generalNotFound'))
 	}
-	if (general.isOffSeason)
-		return next(new ErrorBuilder(400, req.t('error:offseason')))
+	if (general.isOffSeason) return next(new ErrorBuilder(400, req.t('error:offseason')))
 	next()
 }

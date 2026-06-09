@@ -11,17 +11,11 @@ export async function up(queryInterface: QueryInterface) {
 		const table: any = await queryInterface.describeTable('ticketTypes')
 
 		if (table.displayProperties) {
-			await queryInterface.removeColumn(
-				'ticketTypes',
-				'displayProperties'
-			)
+			await queryInterface.removeColumn('ticketTypes', 'displayProperties')
 		}
 
 		if (table.childrenDisplayProperties) {
-			await queryInterface.removeColumn(
-				'ticketTypes',
-				'childrenDisplayProperties'
-			)
+			await queryInterface.removeColumn('ticketTypes', 'childrenDisplayProperties')
 		}
 
 		return Promise.resolve()

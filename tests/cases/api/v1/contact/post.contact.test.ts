@@ -52,14 +52,10 @@ describe(`[POST] ${endpoint})`, () => {
 
 		expect(response.status).toBe(400)
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.agreement' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.agreement' })])
 		)
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.token' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.token' })])
 		)
 	})
 })

@@ -10,10 +10,7 @@ import faker from 'faker'
 import jwt from 'jsonwebtoken'
 import * as helpers from '../../../../../src/utils/helpers'
 import { CityAccountUser } from '../../../../../src/utils/cityAccountDto'
-import {
-	AccountType,
-	ORDER_PAYMENT_METHOD_STATE,
-} from '../../../../../src/utils/enums'
+import { AccountType, ORDER_PAYMENT_METHOD_STATE } from '../../../../../src/utils/enums'
 import MockDate from 'mockdate'
 import {
 	workflow,
@@ -49,8 +46,7 @@ import { up as seedDiscountCodeTicketTypes } from '../../../../../src/db/seeders
 const { SwimmingLoggedUser, Order } = models
 
 const endpointOrder = '/api/v1/orders'
-const endpointGetUnauthenticatedPrice =
-	'/api/v1/orders/getPrice/unauthenticated'
+const endpointGetUnauthenticatedPrice = '/api/v1/orders/getPrice/unauthenticated'
 
 const cognitoSub = '00000000-0000-0000-0000-00000000c001'
 
@@ -63,32 +59,21 @@ const defaultCityAccount = (): CityAccountUser =>
 		given_name: 'Test',
 		family_name: 'Buyer',
 		'custom:account_type': AccountType.FO,
-	} as CityAccountUser)
+	}) as CityAccountUser
 
-const reqT = (key: string | string[]) =>
-	(Array.isArray(key) ? key[0] : key) as string
+const reqT = (key: string | string[]) => (Array.isArray(key) ? key[0] : key) as string
 
-async function callWorkflow(
-	body: PostOrderBody,
-	headers: Record<string, string>
-) {
+async function callWorkflow(body: PostOrderBody, headers: Record<string, string>) {
 	const res = { json: jest.fn() }
 	const next = jest.fn()
 	await workflow({ body, headers, t: reqT as any } as any, res as any, next)
 	return { res, next }
 }
 
-async function callDryRun(
-	body: PostOrderDryRunBody,
-	headers: Record<string, string>
-) {
+async function callDryRun(body: PostOrderDryRunBody, headers: Record<string, string>) {
 	const res = { json: jest.fn() }
 	const next = jest.fn()
-	await workflowDryRun(
-		{ body, headers, t: reqT as any } as any,
-		res as any,
-		next
-	)
+	await workflowDryRun({ body, headers, t: reqT as any } as any, res as any, next)
 	return { res, next }
 }
 
@@ -107,18 +92,16 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 	let getCityAccountDataSpy: jest.SpyInstance
 
 	beforeAll(() => {
-		getCityAccountDataSpy = jest
-			.spyOn(helpers, 'getCityAccountData')
-			.mockImplementation(
-				async () =>
-					({
-						sub: '00000000-0000-0000-0000-00000000c001',
-						email: 'buyer@example.com',
-						given_name: 'Test',
-						family_name: 'Buyer',
-						'custom:account_type': AccountType.FO,
-					} as CityAccountUser)
-			)
+		getCityAccountDataSpy = jest.spyOn(helpers, 'getCityAccountData').mockImplementation(
+			async () =>
+				({
+					sub: '00000000-0000-0000-0000-00000000c001',
+					email: 'buyer@example.com',
+					given_name: 'Test',
+					family_name: 'Buyer',
+					'custom:account_type': AccountType.FO,
+				}) as CityAccountUser
+		)
 		MockDate.set(process.env.globalTime as string)
 	})
 
@@ -243,9 +226,7 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 
 			expect(response.status).toBe(400)
 			expect(response.body.error).toBe('Invalid data')
-			expect(response.body.details[0].message).toBe(
-				i18next.t('error:ticket.agreementMissing')
-			)
+			expect(response.body.details[0].message).toBe(i18next.t('error:ticket.agreementMissing'))
 		})
 
 		it('creates order and returns payment payload (200)', async () => {
@@ -268,10 +249,7 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 			expect(response.status).toBe(200)
 			expect(response.type).toBe('application/json')
 			const order = await OrderModel.findByPk(response.body.data.id, {
-				include: [
-					{ association: 'tickets' },
-					{ association: 'paymentOrder' },
-				],
+				include: [{ association: 'tickets' }, { association: 'paymentOrder' }],
 			})
 			expect(order).toBeTruthy()
 			expect(order!.tickets.length).toBe(1)
@@ -334,10 +312,7 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					})
 				expect(response.status).toBe(200)
 				const order = await OrderModel.findByPk(response.body.data.id, {
-					include: [
-						{ association: 'tickets' },
-						{ association: 'paymentOrder' },
-					],
+					include: [{ association: 'tickets' }, { association: 'paymentOrder' }],
 				})
 				expect(order?.state).toStrictEqual(ORDER_STATE.CREATED)
 				expect(order?.priceWithVat).toStrictEqual(15996)
@@ -352,9 +327,7 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 
 	describe('post.order.ts throws (ErrorBuilder & validate)', () => {
 		beforeEach(() => {
-			getCityAccountDataSpy.mockImplementation(async () =>
-				defaultCityAccount()
-			)
+			getCityAccountDataSpy.mockImplementation(async () => defaultCityAccount())
 		})
 
 		describe('basicChecks', () => {
@@ -383,9 +356,9 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					{ authorization: 'Bearer t' }
 				)
 				expectErrorNext(next, 400)
-				expect(
-					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-				).toBe(i18next.t('error:ticket.minimumIsOneAdult'))
+				expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
+					i18next.t('error:ticket.minimumIsOneAdult')
+				)
 			})
 
 			it('throws maxtTicketsPerOrder when ticket count exceeds limit', async () => {
@@ -393,9 +366,7 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					{
 						tickets: Array.from(
 							{
-								length:
-									Number(appConfig.maxTicketPurchaseLimit) +
-									1,
+								length: Number(appConfig.maxTicketPurchaseLimit) + 1,
 							},
 							() => ({
 								ticketTypeId: ticketTypeEntriesId,
@@ -409,9 +380,7 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					{ authorization: 'Bearer t' }
 				)
 				expectErrorNext(next, 400)
-				expect(
-					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-				).toBe(
+				expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
 					i18next.t('error:ticket.maxtTicketsPerOrder', {
 						maxTicketsPerOrder: appConfig.maxTicketPurchaseLimit,
 					})
@@ -434,9 +403,9 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					{ authorization: 'Bearer t' }
 				)
 				expectErrorNext(next, 404)
-				expect(
-					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-				).toBe(i18next.t('error:ticketTypeNotFound'))
+				expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
+					i18next.t('error:ticketTypeNotFound')
+				)
 			})
 
 			it('throws discountOnlyForOneUser when multiple adults share a partial dry-run discount', async () => {
@@ -464,9 +433,9 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					{ authorization: 'Bearer t' }
 				)
 				expectErrorNext(next, 400)
-				expect(
-					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-				).toBe(i18next.t('error:ticket.discountOnlyForOneUser'))
+				expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
+					i18next.t('error:ticket.discountOnlyForOneUser')
+				)
 			})
 
 			it('throws notLoggedUserForTicket for nameRequired ticket without authorization header', async () => {
@@ -485,9 +454,9 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					{}
 				)
 				expectErrorNext(next, 401)
-				expect(
-					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-				).toBe(i18next.t('error:ticket.notLoggedUserForTicket'))
+				expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
+					i18next.t('error:ticket.notLoggedUserForTicket')
+				)
 			})
 
 			it('throws ticketHasExpired for expired ticket type', async () => {
@@ -506,9 +475,9 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					{ authorization: 'Bearer t' }
 				)
 				expectErrorNext(next, 400, 'ticketHasExpired')
-				expect(
-					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-				).toBe(i18next.t('error:ticket.ticketHasExpired'))
+				expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
+					i18next.t('error:ticket.ticketHasExpired')
+				)
 			})
 
 			it('throws userNotAllowedTicketType for non-FO account on nameRequired ticket', async () => {
@@ -541,9 +510,9 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					)
 
 					expectErrorNext(next, 400)
-					expect(
-						(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-					).toBe(i18next.t('error:ticket.userNotAllowedTicketType'))
+					expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
+						i18next.t('error:ticket.userNotAllowedTicketType')
+					)
 				} finally {
 					await logged.destroy({ force: true })
 				}
@@ -577,9 +546,9 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					{ authorization: 'Bearer t' }
 				)
 				expectErrorNext(next, 400, 'numberOfChildrenExceeded')
-				expect(
-					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-				).toBe(i18next.t('error:ticket.numberOfChildrenExceeded'))
+				expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
+					i18next.t('error:ticket.numberOfChildrenExceeded')
+				)
 			})
 		})
 
@@ -600,9 +569,9 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					{}
 				)
 				expectErrorNext(next, 400)
-				expect(
-					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-				).toBe(i18next.t('error:ticket.emailIsEmpty'))
+				expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
+					i18next.t('error:ticket.emailIsEmpty')
+				)
 			})
 
 			it('throws emailIsEmpty when city account email is empty and body email is missing', async () => {
@@ -626,9 +595,9 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					{ authorization: 'Bearer t' }
 				)
 				expectErrorNext(next, 400)
-				expect(
-					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-				).toBe(i18next.t('error:ticket.emailIsEmpty'))
+				expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
+					i18next.t('error:ticket.emailIsEmpty')
+				)
 			})
 
 			//  error:ticket.userNotFound is unreachable code, because cityAccountData is always present when we have swimmingLoggedUser
@@ -650,9 +619,9 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					{ authorization: 'Bearer t' }
 				)
 				expectErrorNext(next, 401)
-				expect(
-					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-				).toBe(i18next.t('error:ticket.swimmingLoggedUserNotFound'))
+				expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
+					i18next.t('error:ticket.swimmingLoggedUserNotFound')
+				)
 			})
 
 			it('throws emailNotFoundOnUser when personId is null but city account has empty email', async () => {
@@ -685,9 +654,9 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					)
 
 					expectErrorNext(next, 500)
-					expect(
-						(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-					).toBe(i18next.t('error:ticket.emailNotFoundOnUser'))
+					expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
+						i18next.t('error:ticket.emailNotFoundOnUser')
+					)
 				} finally {
 					await logged.destroy({ force: true })
 				}
@@ -719,9 +688,9 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					)
 
 					expectErrorNext(next, 404)
-					expect(
-						(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-					).toBe(i18next.t('error:associatedSwimmerNotExists'))
+					expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
+						i18next.t('error:associatedSwimmerNotExists')
+					)
 				} finally {
 					await logged.destroy({ force: true })
 				}
@@ -756,9 +725,7 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				})
 				expect(order?.priceWithVat).toStrictEqual(3199)
 				expect(order?.discount).toStrictEqual(800)
-				const discountCodeInstance = await DiscountCodeModel.findByPk(
-					discountCodeId
-				)
+				const discountCodeInstance = await DiscountCodeModel.findByPk(discountCodeId)
 				expect(discountCodeInstance?.usedAt).not.toBeNull()
 				expect(order?.discountCodes[0].id).toBe(discountCodeId)
 			})
@@ -792,12 +759,8 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				})
 				expect(order?.priceWithVat).toStrictEqual(4599)
 				expect(order?.discount).toStrictEqual(1400)
-				const discountCodeInstance2 = await DiscountCodeModel.findByPk(
-					discountCodeId2
-				)
-				const discountCodeInstance3 = await DiscountCodeModel.findByPk(
-					discountCodeId3
-				)
+				const discountCodeInstance2 = await DiscountCodeModel.findByPk(discountCodeId2)
+				const discountCodeInstance3 = await DiscountCodeModel.findByPk(discountCodeId3)
 				expect(discountCodeInstance2?.usedAt).not.toBeNull()
 				expect(discountCodeInstance3?.usedAt).not.toBeNull()
 				expect(order?.discountCodes[0].id).toBe(discountCodeId2)
@@ -820,9 +783,9 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					{ authorization: 'Bearer t' }
 				)
 				expectErrorNext(next, 404)
-				expect(
-					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-				).toBe(i18next.t('error:discountCodeNotValid'))
+				expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
+					i18next.t('error:discountCodeNotValid')
+				)
 			})
 			it('throws discountCodeNotValid when discount code is already used', async () => {
 				const { next } = await callWorkflow(
@@ -841,9 +804,9 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					{ authorization: 'Bearer t' }
 				)
 				expectErrorNext(next, 404)
-				expect(
-					(next.mock.calls[0][0] as ErrorBuilder).items[0].message
-				).toBe(i18next.t('error:discountCodeNotValid'))
+				expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
+					i18next.t('error:discountCodeNotValid')
+				)
 			})
 		})
 	})

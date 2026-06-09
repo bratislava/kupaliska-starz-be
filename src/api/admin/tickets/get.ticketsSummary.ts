@@ -21,33 +21,19 @@ export const schema = Joi.object().keys({
 
 const { TicketType } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { query, params }: any = req
 
-		const {
-			ticketTypes,
-			zip,
-			age,
-			createdAt,
-			numberOfVisits,
-			...otherFilters
-		} = query.filters || {}
+		const { ticketTypes, zip, age, createdAt, numberOfVisits, ...otherFilters } =
+			query.filters || {}
 
 		let havingSQL = ''
 		let havingVariables: any = {}
 
 		if (numberOfVisits) {
-			havingSQL += numberOfVisits.from
-				? ` AND COUNT(visits) >= $numberOfVisitsFrom `
-				: ''
-			havingSQL += numberOfVisits.to
-				? `AND COUNT(visits) <= $numberOfVisitsTo `
-				: ''
+			havingSQL += numberOfVisits.from ? ` AND COUNT(visits) >= $numberOfVisitsFrom ` : ''
+			havingSQL += numberOfVisits.to ? `AND COUNT(visits) <= $numberOfVisitsTo ` : ''
 			havingVariables.numberOfVisitsFrom = numberOfVisits.from
 			havingVariables.numberOfVisitsTo = numberOfVisits.to
 		}
@@ -55,14 +41,8 @@ export const workflow = async (
 		const [visitsFilterVariables, visitsFilterSql] = getFilters({
 			day: createdAt,
 		})
-		const [ticketsFilterVariables, ticketsFilterSQL] = getFilters(
-			otherFilters,
-			'tickets'
-		)
-		const [profilesFilterVariables, profilesFilterSQL] = getFilters(
-			{ zip },
-			'profiles'
-		)
+		const [ticketsFilterVariables, ticketsFilterSQL] = getFilters(otherFilters, 'tickets')
+		const [profilesFilterVariables, profilesFilterSQL] = getFilters({ zip }, 'profiles')
 		const [ticketTypesFilterVariables, ticketTypesFilterSQL] = getFilters(
 			{ id: ticketTypes },
 			'ticketTypes'
@@ -73,9 +53,7 @@ export const workflow = async (
 		if (age) {
 			ageFilterSql += age.from ? `"profiles"."age" >= $ageFrom` : ''
 			const addAnd = age.from ? 'AND' : ''
-			ageFilterSql += age.to
-				? ` ${addAnd} "profiles"."age" <= $ageTo`
-				: ''
+			ageFilterSql += age.to ? ` ${addAnd} "profiles"."age" <= $ageTo` : ''
 			ageFilterSql = age.showUnspecified
 				? `(${ageFilterSql} OR "profiles"."age" IS NULL)`
 				: ageFilterSql
@@ -148,16 +126,11 @@ export const workflow = async (
 		return res.json({
 			summary: concat(
 				map(allTicketTypes, (ticketType) => {
-					const ticketSale = filter(
-						ticketsSales,
-						(sale) => sale.ticketTypeId === ticketType.id
-					)
+					const ticketSale = filter(ticketsSales, (sale) => sale.ticketTypeId === ticketType.id)
 					return {
 						name: ticketType.name,
 						amount:
-							ticketSale.length > 0 && ticketSale[0].amount
-								? Number(ticketSale[0].amount)
-								: 0.0,
+							ticketSale.length > 0 && ticketSale[0].amount ? Number(ticketSale[0].amount) : 0.0,
 						sold:
 							ticketSale.length > 0 && ticketSale[0].soldTickets
 								? Number(ticketSale[0].soldTickets)
@@ -170,18 +143,14 @@ export const workflow = async (
 						amount: reduce(
 							ticketsSales,
 							(sum, sale) => {
-								return sale.amount
-									? Number(sale.amount) + sum
-									: sum
+								return sale.amount ? Number(sale.amount) + sum : sum
 							},
 							0
 						),
 						sold: reduce(
 							ticketsSales,
 							(sum, sale) => {
-								return sale.soldTickets
-									? Number(sale.soldTickets) + sum
-									: sum
+								return sale.soldTickets ? Number(sale.soldTickets) + sum : sum
 							},
 							0
 						),

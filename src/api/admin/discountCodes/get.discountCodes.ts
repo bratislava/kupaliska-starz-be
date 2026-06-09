@@ -14,32 +14,17 @@ export const schema = Joi.object().keys({
 		export: Joi.boolean().default(false),
 		page: Joi.number().integer().min(1).default(1).empty(['', null]),
 		order: Joi.string()
-			.valid(
-				'code',
-				'validFrom',
-				'validTo',
-				'amount',
-				'createdAt',
-				'usedAt'
-			)
+			.valid('code', 'validFrom', 'validTo', 'amount', 'createdAt', 'usedAt')
 			.empty(['', null])
 			.default('createdAt'),
-		direction: Joi.string()
-			.lowercase()
-			.valid('asc', 'desc')
-			.empty(['', null])
-			.default('desc'),
+		direction: Joi.string().lowercase().valid('asc', 'desc').empty(['', null]).default('desc'),
 	}),
 	params: Joi.object(),
 })
 
 const { DiscountCode } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { query }: any = req
 		const { limit, page } = query
@@ -54,15 +39,7 @@ export const workflow = async (
 		}
 
 		const discountCodes = await DiscountCode.findAll({
-			attributes: [
-				'id',
-				'code',
-				'amount',
-				'validFrom',
-				'validTo',
-				'createdAt',
-				'usedAt',
-			],
+			attributes: ['id', 'code', 'amount', 'validFrom', 'validTo', 'createdAt', 'usedAt'],
 			where,
 			limit: query.export ? undefined : limit,
 			offset: query.export ? undefined : offset,
@@ -96,11 +73,7 @@ export const workflow = async (
 		})
 
 		if (query.export) {
-			return downloadDiscountCodesAsCsv(
-				res,
-				'discount-codes.csv',
-				discountCodes
-			)
+			return downloadDiscountCodesAsCsv(res, 'discount-codes.csv', discountCodes)
 		}
 
 		const count = await DiscountCode.count({
@@ -108,9 +81,7 @@ export const workflow = async (
 		})
 
 		return res.json({
-			discountCodes: map(discountCodes, (code) =>
-				formatDiscountCode(code)
-			),
+			discountCodes: map(discountCodes, (code) => formatDiscountCode(code)),
 			pagination: {
 				page: query.page,
 				limit: query.limit,

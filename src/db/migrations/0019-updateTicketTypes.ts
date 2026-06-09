@@ -10,15 +10,11 @@ export async function up(queryInterface: QueryInterface) {
 
 		const table: any = await queryInterface.describeTable('ticketTypes')
 		if (!table.hasEntranceConstraints) {
-			await queryInterface.addColumn(
-				'ticketTypes',
-				'hasEntranceConstraints',
-				{
-					type: DataTypes.BOOLEAN,
-					allowNull: false,
-					defaultValue: false,
-				}
-			)
+			await queryInterface.addColumn('ticketTypes', 'hasEntranceConstraints', {
+				type: DataTypes.BOOLEAN,
+				allowNull: false,
+				defaultValue: false,
+			})
 		}
 
 		if (!table.hasTicketDuration) {
@@ -45,10 +41,7 @@ export async function up(queryInterface: QueryInterface) {
 export async function down(queryInterface: QueryInterface) {
 	const table: any = await queryInterface.describeTable('ticketTypes')
 	if (table.hasEntranceConstraints) {
-		await queryInterface.removeColumn(
-			'ticketTypes',
-			'hasEntranceConstraints'
-		)
+		await queryInterface.removeColumn('ticketTypes', 'hasEntranceConstraints')
 	}
 
 	if (table.hasTicketDuration) {

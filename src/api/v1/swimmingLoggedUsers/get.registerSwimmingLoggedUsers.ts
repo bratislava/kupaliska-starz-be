@@ -8,11 +8,7 @@ import { logger } from '../../../utils/logger'
 
 export const schema = Joi.object()
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { SwimmingLoggedUser } = models
 
@@ -29,12 +25,8 @@ export const workflow = async (
 				await SwimmingLoggedUser.create({
 					externalCognitoId: sub,
 				})
-				logger.info(
-					`SwimmingLoggedUser with externalCognitoId: ${sub} created`
-				)
-				return res.json(
-					`SwimmingLoggedUser with externalCognitoId: ${sub} created`
-				)
+				logger.info(`SwimmingLoggedUser with externalCognitoId: ${sub} created`)
+				return res.json(`SwimmingLoggedUser with externalCognitoId: ${sub} created`)
 			} else {
 				return res.json(req.t('error:register.userExists'))
 			}

@@ -50,13 +50,9 @@ export async function down(queryInterface: QueryInterface) {
 			await transaction.rollback()
 			return
 		}
-		await queryInterface.removeIndex(
-			'discountCodes',
-			'discountCodes_orderId_idx',
-			{
-				transaction,
-			}
-		)
+		await queryInterface.removeIndex('discountCodes', 'discountCodes_orderId_idx', {
+			transaction,
+		})
 
 		await queryInterface.removeColumn('discountCodes', 'orderId', {
 			transaction,

@@ -21,26 +21,18 @@ export const schema = Joi.object()
 
 const { AssociatedSwimmer } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	let transaction: Transaction
 	try {
 		const { body, params }: any = req
 
 		const swimmingLoggedUser = await getDataAboutCurrentUser(req)
 
-		const associatedSwimmer = await AssociatedSwimmer.findByPk(
-			params.associatedSwimmerId,
-			{ include: { association: 'image' } }
-		)
+		const associatedSwimmer = await AssociatedSwimmer.findByPk(params.associatedSwimmerId, {
+			include: { association: 'image' },
+		})
 		if (!associatedSwimmer) {
-			throw new ErrorBuilder(
-				404,
-				req.t('error:associatedSwimmerNotFound')
-			)
+			throw new ErrorBuilder(404, req.t('error:associatedSwimmerNotFound'))
 		}
 		const age = calculateAge(body.dateOfBirth)
 
@@ -67,9 +59,7 @@ export const workflow = async (
 					AssociatedSwimmerModel.name,
 					associatedSwimmerUploadFolder,
 					transaction,
-					associatedSwimmer.image
-						? associatedSwimmer.image.id
-						: undefined
+					associatedSwimmer.image ? associatedSwimmer.image.id : undefined
 				)
 			}
 			await transaction.commit()
@@ -80,9 +70,7 @@ export const workflow = async (
 
 			let associatedSwimmersWithImageBase64 = {
 				...formatAssociatedSwimmer(associatedSwimmer),
-				image: associatedSwimmer.image
-					? await readAsBase64(associatedSwimmer.image)
-					: null,
+				image: associatedSwimmer.image ? await readAsBase64(associatedSwimmer.image) : null,
 			}
 
 			return res.json({
@@ -93,9 +81,7 @@ export const workflow = async (
 				messages: [
 					{
 						type: MESSAGE_TYPE.SUCCESS,
-						message: req.t(
-							'success:loggedSwimmer.associatedSwimmer.updated'
-						),
+						message: req.t('success:loggedSwimmer.associatedSwimmer.updated'),
 					},
 				],
 			})

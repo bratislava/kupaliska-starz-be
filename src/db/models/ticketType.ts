@@ -149,9 +149,7 @@ export default (sequelize: Sequelize) => {
 				allowNull: true,
 				get() {
 					const rawValue = this.getDataValue('ticketDuration')
-					return rawValue
-						? rawValue.substring(0, rawValue.length - 3)
-						: null
+					return rawValue ? rawValue.substring(0, rawValue.length - 3) : null
 				},
 			},
 			entriesNumber: {
@@ -168,9 +166,7 @@ export default (sequelize: Sequelize) => {
 				allowNull: true,
 				get() {
 					const rawValue = this.getDataValue('entranceFrom')
-					return rawValue
-						? rawValue.substring(0, rawValue.length - 3)
-						: null
+					return rawValue ? rawValue.substring(0, rawValue.length - 3) : null
 				},
 			},
 			entranceTo: {
@@ -178,9 +174,7 @@ export default (sequelize: Sequelize) => {
 				allowNull: true,
 				get() {
 					const rawValue = this.getDataValue('entranceTo')
-					return rawValue
-						? rawValue.substring(0, rawValue.length - 3)
-						: null
+					return rawValue ? rawValue.substring(0, rawValue.length - 3) : null
 				},
 			},
 			createdAt: {
@@ -201,10 +195,7 @@ export default (sequelize: Sequelize) => {
 			modelName: 'ticketType',
 			getterMethods: {
 				isDisposable() {
-					return (
-						this.type === TICKET_TYPE.ENTRIES &&
-						this.entriesNumber === 1
-					)
+					return this.type === TICKET_TYPE.ENTRIES && this.entriesNumber === 1
 				},
 				isSeasonal() {
 					return this.type === TICKET_TYPE.SEASONAL

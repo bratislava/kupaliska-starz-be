@@ -1,11 +1,7 @@
 import { Sequelize, DataTypes, literal, UUIDV4 } from 'sequelize'
 
 import { DatabaseModel } from '../../types/models'
-import {
-	getHours,
-	getMinutes,
-	getLocalTimezoneTime,
-} from '../../utils/timeUtils'
+import { getHours, getMinutes, getLocalTimezoneTime } from '../../utils/timeUtils'
 import { EntryModel } from './entry'
 import { OrderModel } from './order'
 import { ProfileModel } from './profile'
@@ -70,10 +66,9 @@ export class TicketModel extends DatabaseModel {
 			const timeNow = getLocalTimezoneTime()
 			return Boolean(
 				this.ticketType.entranceFrom &&
-					timeNow.localeCompare(this.ticketType.entranceFrom) !==
-						-1 &&
-					this.ticketType.entranceTo &&
-					timeNow.localeCompare(this.ticketType.entranceTo) !== 1
+				timeNow.localeCompare(this.ticketType.entranceFrom) !== -1 &&
+				this.ticketType.entranceTo &&
+				timeNow.localeCompare(this.ticketType.entranceTo) !== 1
 			)
 		}
 		return true
@@ -82,13 +77,8 @@ export class TicketModel extends DatabaseModel {
 		if (this.ticketType.hasTicketDuration && firstEntry) {
 			const entryTime = new Date(firstEntry.timestamp)
 
-			entryTime.setHours(
-				entryTime.getHours() + getHours(this.ticketType.ticketDuration)
-			)
-			entryTime.setMinutes(
-				entryTime.getMinutes() +
-					getMinutes(this.ticketType.ticketDuration)
-			)
+			entryTime.setHours(entryTime.getHours() + getHours(this.ticketType.ticketDuration))
+			entryTime.setMinutes(entryTime.getMinutes() + getMinutes(this.ticketType.ticketDuration))
 
 			const now = new Date()
 			return now <= entryTime
@@ -102,10 +92,7 @@ export class TicketModel extends DatabaseModel {
 		return Boolean(!lastEntry || lastEntry.isCheckOut())
 	}
 	withAdult() {
-		return (
-			this.isChildren &&
-			this.profile.age <= this.ticketType.childrenAgeToWithAdult
-		)
+		return this.isChildren && this.profile.age <= this.ticketType.childrenAgeToWithAdult
 	}
 	getCategory() {
 		if (this.isChildren) {

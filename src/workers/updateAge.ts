@@ -18,9 +18,7 @@ process.on('message', async () => {
 		})
 
 		for (const swimmingLoggedUser of swimmingLoggedUsers) {
-			const age = calculateAge(
-				swimmingLoggedUser.dateOfBirth.toISOString()
-			)
+			const age = calculateAge(swimmingLoggedUser.dateOfBirth.toISOString())
 			await swimmingLoggedUser.update({ age })
 		}
 
@@ -34,18 +32,14 @@ process.on('message', async () => {
 		})
 
 		for (const associatedSwimmer of associatedSwimmers) {
-			const age = calculateAge(
-				associatedSwimmer.dateOfBirth.toISOString()
-			)
+			const age = calculateAge(associatedSwimmer.dateOfBirth.toISOString())
 			await associatedSwimmer.update({ age })
 		}
 
 		return process.send({ type: 'success' })
 	} catch (err) {
 		logger.info(JSON.stringify(err))
-		logger.info(
-			`ERROR - Compute users age failed - ERROR: ${JSON.stringify(err)}`
-		)
+		logger.info(`ERROR - Compute users age failed - ERROR: ${JSON.stringify(err)}`)
 		return process.send({ type: 'error', err })
 	}
 })

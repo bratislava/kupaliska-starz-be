@@ -17,11 +17,7 @@ export const schema = Joi.object().keys({
 
 const { Order } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { params } = req
 
@@ -30,10 +26,7 @@ export const workflow = async (
 				association: 'tickets',
 				order: [['isChildren', 'asc']],
 				separate: true,
-				include: [
-					{ association: 'profile' },
-					{ association: 'ticketType' },
-				],
+				include: [{ association: 'profile' }, { association: 'ticketType' }],
 			},
 		})
 

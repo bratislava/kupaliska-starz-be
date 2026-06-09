@@ -30,18 +30,13 @@ export const schema = Joi.object().keys({
 	params: Joi.object().keys(),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { query }: any = req
 
-		const [swimmingPoolsFilterVariables, swimmingPoolsFilterSql] =
-			getFilters({
-				swimmingPoolId: { type: 'in', value: query.swimmingPools },
-			})
+		const [swimmingPoolsFilterVariables, swimmingPoolsFilterSql] = getFilters({
+			swimmingPoolId: { type: 'in', value: query.swimmingPools },
+		})
 
 		const fromSqlQuery = `
 			SELECT *

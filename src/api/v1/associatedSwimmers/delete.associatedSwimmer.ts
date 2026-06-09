@@ -17,26 +17,17 @@ export const schema = Joi.object().keys({
 	}),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { params } = req
 
 		let swimmingLoggedUser = await getDataAboutCurrentUser(req)
 
-		const associatedSwimmer = await AssociatedSwimmer.findByPk(
-			params.associatedSwimmerId
-		)
+		const associatedSwimmer = await AssociatedSwimmer.findByPk(params.associatedSwimmerId)
 
 		if (!associatedSwimmer) {
 			// TODO error translation
-			throw new ErrorBuilder(
-				404,
-				req.t('error:associatedSwimmerNotFound')
-			)
+			throw new ErrorBuilder(404, req.t('error:associatedSwimmerNotFound'))
 		}
 		if (associatedSwimmer.swimmingLoggedUserId === swimmingLoggedUser.id) {
 			await associatedSwimmer.destroy()

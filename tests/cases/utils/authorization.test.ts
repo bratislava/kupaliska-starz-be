@@ -26,10 +26,7 @@ describe('Authorization utils', () => {
 			}
 		)
 
-		const jwtPayload = await verifyJwt(
-			jwt,
-			passwordConfig.jwt.user.audience
-		)
+		const jwtPayload = await verifyJwt(jwt, passwordConfig.jwt.user.audience)
 
 		expect(jwtPayload).toBeTruthy()
 		expect((jwtPayload as any).uid).toBe(id)
@@ -47,10 +44,7 @@ describe('Authorization utils', () => {
 		jest.useFakeTimers('modern')
 		jest.setSystemTime(new Date().getTime() + 130000)
 
-		const jwtPayload = await verifyJwt(
-			jwt,
-			passwordConfig.jwt.user.audience
-		)
+		const jwtPayload = await verifyJwt(jwt, passwordConfig.jwt.user.audience)
 		expect(jwtPayload).toBeFalsy()
 
 		jest.useRealTimers()

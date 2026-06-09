@@ -23,9 +23,7 @@ describe(`[PUT] RESET PASSWORD - ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Expect status 401 | Invalid or missing token', async () => {
-		const response = await request
-			.put(endpoint())
-			.set('Content-Type', 'application/json')
+		const response = await request.put(endpoint()).set('Content-Type', 'application/json')
 		expect(response.status).toBe(401)
 	})
 
@@ -56,9 +54,7 @@ describe(`[PUT] RESET PASSWORD - ${endpoint})`, () => {
 		expect(response.type).toBe('application/json')
 		expect(schema.validate(response.body).error).toBeUndefined()
 
-		const user = await UserModel.findByPk(
-			process.env.jwtResetPasswordUserId
-		)
+		const user = await UserModel.findByPk(process.env.jwtResetPasswordUserId)
 		expect(await comparePassword('secretNew2', user.hash)).toBeTruthy()
 	})
 

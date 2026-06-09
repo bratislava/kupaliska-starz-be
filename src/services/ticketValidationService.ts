@@ -1,16 +1,10 @@
 import i18next from 'i18next'
 import { find, last } from 'lodash'
 import { TicketModel } from '../db/models/ticket'
-import {
-	TICKET_CHECKIN_ERROR_CODE,
-	TICKET_CHECKOUT_ERROR_CODE,
-} from '../utils/enums'
+import { TICKET_CHECKIN_ERROR_CODE, TICKET_CHECKOUT_ERROR_CODE } from '../utils/enums'
 import TicketErrorBuilder from '../utils/TicketErrorBuilder'
 
-export const validateCheckin = (
-	ticket: TicketModel,
-	swimmingPoolId: string
-) => {
+export const validateCheckin = (ticket: TicketModel, swimmingPoolId: string) => {
 	const checkinTicketErrorBuilder = new TicketErrorBuilder()
 	const lastEntry = last(ticket.entries)
 	const firstCheckInEntry = find(ticket.entries, (entry) => entry.isCheckIn())
@@ -68,10 +62,7 @@ export const validateCheckin = (
 	return checkinTicketErrorBuilder
 }
 
-export const validateCheckout = (
-	ticket: TicketModel,
-	swimmingPoolId: string
-) => {
+export const validateCheckout = (ticket: TicketModel, swimmingPoolId: string) => {
 	const checkoutTicketErrorBuilder = new TicketErrorBuilder()
 	const lastEntry = last(ticket.entries)
 	const firstCheckInEntry = find(ticket.entries, (entry) => entry.isCheckIn())

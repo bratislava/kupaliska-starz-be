@@ -20,11 +20,7 @@ export const schema = Joi.object().keys({
 
 const { Order } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	let transaction: Transaction
 	try {
 		const { body, params } = req

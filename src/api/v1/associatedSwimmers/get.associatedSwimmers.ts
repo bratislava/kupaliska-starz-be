@@ -31,11 +31,7 @@ export const schema = Joi.object()
 
 const { AssociatedSwimmer } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const swimmingLoggedUser = await getDataAboutCurrentUser(req)
 		const associatedSwimmers = await AssociatedSwimmer.findAll({
@@ -76,9 +72,7 @@ export const workflow = async (
 			map(associatedSwimmers, async (associatedSwimmer) => {
 				return {
 					...formatAssociatedSwimmer(associatedSwimmer),
-					image: associatedSwimmer.image
-						? await readAsBase64(associatedSwimmer.image)
-						: null,
+					image: associatedSwimmer.image ? await readAsBase64(associatedSwimmer.image) : null,
 				}
 			})
 		)

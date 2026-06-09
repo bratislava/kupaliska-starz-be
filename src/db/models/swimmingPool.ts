@@ -121,12 +121,8 @@ export default (sequelize: Sequelize) => {
 				beforeUpdate: async (swimmingPool, options) => {
 					const previousOrdering = swimmingPool.previous('ordering')
 
-					if (
-						swimmingPool.ordering !== 0 &&
-						previousOrdering !== swimmingPool.ordering
-					) {
-						const swimmingPoolsCount =
-							await SwimmingPoolModel.count()
+					if (swimmingPool.ordering !== 0 && previousOrdering !== swimmingPool.ordering) {
+						const swimmingPoolsCount = await SwimmingPoolModel.count()
 						validate(
 							true,
 							swimmingPool.ordering,
@@ -165,9 +161,7 @@ export default (sequelize: Sequelize) => {
 
 						await SwimmingPoolModel.update(
 							{
-								ordering: Sequelize.literal(
-									`ordering ${direction}`
-								),
+								ordering: Sequelize.literal(`ordering ${direction}`),
 							},
 							{
 								where: {

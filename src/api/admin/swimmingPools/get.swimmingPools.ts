@@ -25,22 +25,14 @@ export const schema = Joi.object().keys({
 			)
 			.empty(['', null])
 			.default('createdAt'),
-		direction: Joi.string()
-			.lowercase()
-			.valid('asc', 'desc')
-			.empty(['', null])
-			.default('desc'),
+		direction: Joi.string().lowercase().valid('asc', 'desc').empty(['', null]).default('desc'),
 	}),
 	params: Joi.object(),
 })
 
 const { SwimmingPool } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { query }: any = req
 		const user = req.user as UserModel
@@ -90,9 +82,7 @@ export const workflow = async (
 		})
 
 		return res.json({
-			swimmingPools: map(swimmingPools, (pool) =>
-				formatSwimmingPool(pool, USER_ROLE.OPERATOR)
-			),
+			swimmingPools: map(swimmingPools, (pool) => formatSwimmingPool(pool, USER_ROLE.OPERATOR)),
 			pagination: {
 				page: query.page,
 				limit: query.limit,

@@ -13,10 +13,8 @@ const disallowedSwimmingPool = 'c70954c7-970d-4f1a-acf4-12b91acabe55'
 const ticketIdAllowed = process.env.ticketId
 const ticketIdDisallowed = 'c70954c7-970d-4f1a-acf4-12b91acabe5a'
 
-const endpoint = (
-	swimmingPoolId = allowedSwimmingPool,
-	ticketId = ticketIdAllowed
-) => `/api/admin/tickets/swimmingPools/${swimmingPoolId}/scan/${ticketId}`
+const endpoint = (swimmingPoolId = allowedSwimmingPool, ticketId = ticketIdAllowed) =>
+	`/api/admin/tickets/swimmingPools/${swimmingPoolId}/scan/${ticketId}`
 
 const schema = Joi.object().keys()
 
@@ -24,9 +22,7 @@ describe(`[GET] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Expect status 401 | Invalid or missing auth token', async () => {
-		const response = await request
-			.get(endpoint())
-			.set('Content-Type', 'application/json')
+		const response = await request.get(endpoint()).set('Content-Type', 'application/json')
 		expect(response.status).toBe(401)
 	})
 
@@ -67,9 +63,7 @@ describe(`[GET] ${endpoint})`, () => {
 			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
 		expect(response.status).toBe(200)
 
-		expect(response.body.lastEntry.timestamp).toBe(
-			new Date('2021-05-03 15:19:35').toISOString()
-		)
+		expect(response.body.lastEntry.timestamp).toBe(new Date('2021-05-03 15:19:35').toISOString())
 		expect(response.body.lastEntry.type).toBe(ENTRY_TYPE.CHECKIN)
 		expect(response.body.lastEntry.swimmingPoolName).toBe('Delfin')
 
@@ -182,12 +176,7 @@ describe(`[GET] ${endpoint})`, () => {
 		jest.useFakeTimers('modern')
 		jest.setSystemTime(new Date('2021-05-03 14:35'))
 		const response = await request
-			.get(
-				endpoint(
-					process.env.ticket3AllowedSwimmingPoolId,
-					process.env.ticket3Id
-				)
-			)
+			.get(endpoint(process.env.ticket3AllowedSwimmingPoolId, process.env.ticket3Id))
 			.set('Content-Type', 'application/json')
 			.set('Authorization', `Bearer ${process.env.jwtOperator}`)
 		expect(response.status).toBe(200)

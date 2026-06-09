@@ -8,11 +8,7 @@ import * as PostLogout from './post.logout'
 const router: Router = Router()
 
 export default () => {
-	router.post(
-		'/login',
-		schemaMiddleware(PostLogin.schema),
-		PostLogin.workflow
-	)
+	router.post('/login', schemaMiddleware(PostLogin.schema), PostLogin.workflow)
 
 	router.post(
 		'/logout',
