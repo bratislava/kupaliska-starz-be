@@ -43,7 +43,7 @@ spec:
                       - secretRef:
                             name: minio
                       - secretRef:
-                            name: db
+                            name: database-secret
                       - secretRef:
                             name: apple-wallet
                       - secretRef:
