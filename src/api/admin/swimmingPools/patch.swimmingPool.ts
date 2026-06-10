@@ -4,11 +4,7 @@ import { NextFunction, Request, Response } from 'express'
 import DB, { models } from '../../../db/models'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
-import {
-	maxFileSize,
-	swimmingPoolUploadFolder,
-	validExtensions,
-} from './post.swimmingPool'
+import { maxFileSize, swimmingPoolUploadFolder, validExtensions } from './post.swimmingPool'
 import { Transaction } from 'sequelize'
 import uploadFileFromBase64, { removeFile } from '../../../utils/uploader'
 import { validBase64 } from '../../../utils/validation'
@@ -37,9 +33,7 @@ export const operatorPatchSchema = Joi.object().keys({
 	body: Joi.object().keys({
 		name: Joi.string().max(500),
 		image: Joi.object().keys({
-			base64: Joi.string()
-				.custom(validBase64(maxFileSize, validExtensions))
-				.required(),
+			base64: Joi.string().custom(validBase64(maxFileSize, validExtensions)).required(),
 			altText: Joi.string().max(500),
 		}),
 		description: Joi.string().max(1000),
@@ -56,20 +50,15 @@ export const operatorPatchSchema = Joi.object().keys({
 
 const { SwimmingPool, File } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	let transaction: Transaction
 	try {
 		const { body, params } = req
 		const user = req.user as UserModel
 
-		const swimmingPool = await SwimmingPool.findByPk(
-			params.swimmingPoolId,
-			{ include: { association: 'image' } }
-		)
+		const swimmingPool = await SwimmingPool.findByPk(params.swimmingPoolId, {
+			include: { association: 'image' },
+		})
 
 		if (!swimmingPool) {
 			throw new ErrorBuilder(404, req.t('error:swimmingPoolNotFound'))
@@ -81,13 +70,7 @@ export const workflow = async (
 		await swimmingPool.update(data, { transaction })
 
 		if (image) {
-			await changeImage(
-				swimmingPool,
-				req,
-				image,
-				swimmingPool.id,
-				transaction
-			)
+			await changeImage(swimmingPool, req, image, swimmingPool.id, transaction)
 		}
 
 		await transaction.commit()
@@ -123,11 +106,7 @@ const changeImage = async (
 	transaction: any
 ) => {
 	// Upload new image, upload model and then remove old
-	const file = await uploadFileFromBase64(
-		req,
-		image.base64,
-		swimmingPoolUploadFolder
-	)
+	const file = await uploadFileFromBase64(req, image.base64, swimmingPoolUploadFolder)
 
 	let oldFilename
 	if (swimmingPool.image) {

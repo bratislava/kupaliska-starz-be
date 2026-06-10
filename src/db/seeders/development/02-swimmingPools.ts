@@ -2,8 +2,7 @@ import { QueryInterface } from 'sequelize'
 import { v4 as uuidv4 } from 'uuid'
 
 export async function up(queryInterface: QueryInterface) {
-	const facilities =
-		'["restaurant", "changing_rooms", "shower", "playground"]'
+	const facilities = '["restaurant", "changing_rooms", "shower", "playground"]'
 	return queryInterface.bulkInsert('swimmingPools', [
 		{
 			id: uuidv4(),

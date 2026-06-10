@@ -16,20 +16,12 @@ export const schema = Joi.object().keys({
 
 const { TicketType } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { query }: any = req
-		const { swimmingPools, ticketTypes, email, ...otherFilters } =
-			query.filters || {}
+		const { swimmingPools, ticketTypes, email, ...otherFilters } = query.filters || {}
 
-		const [ordersFilterVariables, ordersFilterSQL] = getFilters(
-			otherFilters || {},
-			'orders'
-		)
+		const [ordersFilterVariables, ordersFilterSQL] = getFilters(otherFilters || {}, 'orders')
 		const [profilesFilterVariables, profilesFilterSQL] = getFilters(
 			email ? { email } : {},
 			'profiles'
@@ -38,11 +30,10 @@ export const workflow = async (
 			ticketTypes ? { id: ticketTypes } : {},
 			'ticketTypes'
 		)
-		const [swimmingPoolsFilterVariables, swimmingPoolsFilterSQL] =
-			getFilters(
-				swimmingPools ? { swimmingPoolId: swimmingPools } : {},
-				'swimmingPoolTicketType'
-			)
+		const [swimmingPoolsFilterVariables, swimmingPoolsFilterSQL] = getFilters(
+			swimmingPools ? { swimmingPoolId: swimmingPools } : {},
+			'swimmingPoolTicketType'
+		)
 
 		const ticketTypesSales = await sequelize.query<{
 			ticketTypeId: string
@@ -81,8 +72,7 @@ export const workflow = async (
 			summary: concat(
 				map(ticketTypesSales, (ticketTypeSale) => {
 					const ticketType = allTicketTypes.find(
-						(ticketType) =>
-							ticketType.id === ticketTypeSale.ticketTypeId
+						(ticketType) => ticketType.id === ticketTypeSale.ticketTypeId
 					)
 					return {
 						name: ticketType?.name || '',
@@ -95,9 +85,7 @@ export const workflow = async (
 						amount: reduce(
 							ticketTypesSales,
 							(sum, sale) => {
-								return sale.amount
-									? Number(sale.amount) + sum
-									: sum
+								return sale.amount ? Number(sale.amount) + sum : sum
 							},
 							0
 						),

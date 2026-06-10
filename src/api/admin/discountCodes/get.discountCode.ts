@@ -17,24 +17,12 @@ export const schema = Joi.object().keys({
 	}),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { params } = req
 
 		const discountCode = await DiscountCode.unscoped().findOne({
-			attributes: [
-				'id',
-				'code',
-				'amount',
-				'validFrom',
-				'validTo',
-				'createdAt',
-				'usedAt',
-			],
+			attributes: ['id', 'code', 'amount', 'validFrom', 'validTo', 'createdAt', 'usedAt'],
 			where: {
 				id: { [Op.eq]: params.discountCodeId },
 			},

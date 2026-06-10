@@ -31,11 +31,7 @@ export const schema = Joi.object()
 
 const { SwimmingLoggedUser } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const sub = await getCognitoIdOfLoggedInUser(req)
 		if (sub) {
@@ -71,9 +67,7 @@ export const workflow = async (
 
 			let swimmingLoggedUserWithImageBase64 = {
 				...formatSwimmingLoggedUser(swimmingLoggedUser),
-				image: swimmingLoggedUser.image
-					? await readAsBase64(swimmingLoggedUser.image)
-					: null,
+				image: swimmingLoggedUser.image ? await readAsBase64(swimmingLoggedUser.image) : null,
 			}
 
 			return res.json({

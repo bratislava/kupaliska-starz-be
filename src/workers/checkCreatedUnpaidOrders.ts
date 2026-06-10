@@ -35,22 +35,11 @@ const gpWebserviceSchema = Joi.object({
 							.min(1)
 							.required()
 							.items({
-								'ns3:messageId': Joi.array()
-									.required()
-									.items(Joi.string()),
-								'ns3:state': Joi.array()
-									.required()
-									.items(Joi.string()),
-								'ns3:status': Joi.array()
-									.min(1)
-									.required()
-									.items(Joi.string()),
-								'ns3:subStatus': Joi.array()
-									.required()
-									.items(Joi.string()),
-								'ns3:signature': Joi.array()
-									.required()
-									.items(Joi.string()),
+								'ns3:messageId': Joi.array().required().items(Joi.string()),
+								'ns3:state': Joi.array().required().items(Joi.string()),
+								'ns3:status': Joi.array().min(1).required().items(Joi.string()),
+								'ns3:subStatus': Joi.array().required().items(Joi.string()),
+								'ns3:signature': Joi.array().required().items(Joi.string()),
 							}),
 					}),
 			}),
@@ -98,12 +87,8 @@ process.on('message', async () => {
 		for (const order of orders) {
 			try {
 				const orderNumber = order.orderNumber
-				logger.info(
-					`Found CREATED order - id: ${orderNumber} checking against GP`
-				)
-				const responseFromGP = await getPaymentStatusWebServiceRequest(
-					orderNumber
-				)
+				logger.info(`Found CREATED order - id: ${orderNumber} checking against GP`)
+				const responseFromGP = await getPaymentStatusWebServiceRequest(orderNumber)
 				const data = await responseFromGP.text()
 				logger.info(`Data from GP received ${data}`)
 				const parser = new xml2js.Parser()
@@ -111,17 +96,14 @@ process.on('message', async () => {
 				try {
 					parsedBody = await parser.parseStringPromise(data)
 
-					const { error: validateSchemaError, value } =
-						gpWebserviceSchema.validate(parsedBody)
+					const { error: validateSchemaError, value } = gpWebserviceSchema.validate(parsedBody)
 					if (validateSchemaError) {
-						logger.info(
-							`Error validating GP response: ${validateSchemaError}`
-						)
+						logger.info(`Error validating GP response: ${validateSchemaError}`)
 					} else {
 						const realData =
-							value['soapenv:Envelope']['soapenv:Body'][0][
-								'ns4:getPaymentStatusResponse'
-							][0]['ns4:paymentStatusResponse'][0]
+							value['soapenv:Envelope']['soapenv:Body'][0]['ns4:getPaymentStatusResponse'][0][
+								'ns4:paymentStatusResponse'
+							][0]
 						const messageId = realData['ns3:messageId'][0]
 						const status = realData['ns3:status'][0]
 						const state = realData['ns3:state'][0]
@@ -144,28 +126,18 @@ process.on('message', async () => {
 					}
 				} catch (error) {
 					logger.info(error)
-					logger.info(
-						`Error parsing GP response: ${JSON.stringify(error)}`
-					)
+					logger.info(`Error parsing GP response: ${JSON.stringify(error)}`)
 				}
 			} catch (err) {
 				logger.info(err)
-				logger.info(
-					`ERROR - Check created unpaid orders - ERROR: ${JSON.stringify(
-						err
-					)}`
-				)
+				logger.info(`ERROR - Check created unpaid orders - ERROR: ${JSON.stringify(err)}`)
 			}
 		}
 
 		return process.send({ type: 'success' })
 	} catch (err) {
 		logger.info(JSON.stringify(err))
-		logger.info(
-			`ERROR - Check created unpaid orders - ERROR: ${JSON.stringify(
-				err
-			)}`
-		)
+		logger.info(`ERROR - Check created unpaid orders - ERROR: ${JSON.stringify(err)}`)
 		return process.send({ type: 'error', err })
 	}
 })

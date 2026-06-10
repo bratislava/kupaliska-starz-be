@@ -20,9 +20,7 @@ describe(`[POST] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Expect status 401 | Invalid or missing auth token', async () => {
-		const response = await request
-			.post(endpoint)
-			.set('Content-Type', 'application/json')
+		const response = await request.post(endpoint).set('Content-Type', 'application/json')
 		expect(response.status).toBe(401)
 	})
 
@@ -38,10 +36,7 @@ describe(`[POST] ${endpoint})`, () => {
 		const response = await request
 			.post(endpoint)
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolOperator}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolOperator}`)
 		expect(response.status).toBe(403)
 	})
 
@@ -49,10 +44,7 @@ describe(`[POST] ${endpoint})`, () => {
 		const response = await request
 			.post(endpoint)
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolEmployee}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolEmployee}`)
 		expect(response.status).toBe(403)
 	})
 
@@ -67,9 +59,7 @@ describe(`[POST] ${endpoint})`, () => {
 				expandedDescription: 'Dlhsí Popis kupaliska delfín.',
 				waterTemp: -5,
 				maxCapacity: 1000,
-				openingHours: [
-					{ startFrom: '2021-01-01', startTo: '2022-01-01' },
-				],
+				openingHours: [{ startFrom: '2021-01-01', startTo: '2022-01-01' }],
 				facilities: ['changing-room', 'food', 'playground'],
 				locationUrl: 'https://goo.gl/maps/YST1w1Q7Vt7EpBDh9',
 				image: {

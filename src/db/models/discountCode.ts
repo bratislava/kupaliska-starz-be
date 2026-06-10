@@ -78,19 +78,16 @@ export default (sequelize: Sequelize) => {
 		}
 	)
 
-	DiscountCodeModel.addScope(
-		'valid',
-		(now = new Date(new Date().setHours(0, 0, 0, 0))) => ({
-			where: {
-				validFrom: {
-					[Op.lte]: now,
-				},
-				validTo: {
-					[Op.gte]: now,
-				},
+	DiscountCodeModel.addScope('valid', (now = new Date(new Date().setHours(0, 0, 0, 0))) => ({
+		where: {
+			validFrom: {
+				[Op.lte]: now,
 			},
-		})
-	)
+			validTo: {
+				[Op.gte]: now,
+			},
+		},
+	}))
 
 	DiscountCodeModel.associate = (models) => {
 		DiscountCodeModel.belongsToMany(models.TicketType, {

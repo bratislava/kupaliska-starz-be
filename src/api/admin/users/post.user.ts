@@ -13,11 +13,7 @@ import { isEmpty, map } from 'lodash'
 import { UserModel } from '../../../db/models/user'
 import { sendEmail } from '../../../services/mailerService'
 import config from 'config'
-import {
-	IAppConfig,
-	IMailgunserviceConfig,
-	IPassportConfig,
-} from '../../../types/interfaces'
+import { IAppConfig, IMailgunserviceConfig, IPassportConfig } from '../../../types/interfaces'
 
 export const userAddSchema = {
 	name: Joi.string().max(255).required(),
@@ -34,10 +30,7 @@ export const userAddSchema = {
 				.required()
 		)
 		.when('role', {
-			is: Joi.valid(
-				USER_ROLE.SWIMMING_POOL_EMPLOYEE,
-				USER_ROLE.SWIMMING_POOL_OPERATOR
-			),
+			is: Joi.valid(USER_ROLE.SWIMMING_POOL_EMPLOYEE, USER_ROLE.SWIMMING_POOL_OPERATOR),
 			then: Joi.required(),
 			otherwise: Joi.forbidden(),
 		}),
@@ -56,11 +49,7 @@ const setPasswordTemplate = mailgunConfig.templates.setPassword
 
 const { User, SwimmingPool, SwimmingPoolUser } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	let transaction: Transaction
 	try {
 		const { body } = req
@@ -78,10 +67,7 @@ export const workflow = async (
 		})
 		if (userExists) {
 			if (userExists.email === body.email) {
-				throw new ErrorBuilder(
-					409,
-					req.t('error:userEmailAlreadyExists')
-				)
+				throw new ErrorBuilder(409, req.t('error:userEmailAlreadyExists'))
 			} else {
 				throw new ErrorBuilder(409, req.t('error:userAlreadyExists'))
 			}
@@ -96,10 +82,7 @@ export const workflow = async (
 				},
 			})
 			if (swimmingPools.length !== body.swimmingPools.length) {
-				throw new ErrorBuilder(
-					400,
-					req.t('error:incorrectSwimmingPools')
-				)
+				throw new ErrorBuilder(400, req.t('error:incorrectSwimmingPools'))
 			}
 		}
 
@@ -134,14 +117,9 @@ export const workflow = async (
 		)
 
 		// send email to reset pass
-		await sendEmail(
-			body.email,
-			req.t('email:setPasswordSubject'),
-			setPasswordTemplate,
-			{
-				resetLink: `${appConfig.feResetPasswordUrl}?token=${accessToken}`,
-			}
-		)
+		await sendEmail(body.email, req.t('email:setPasswordSubject'), setPasswordTemplate, {
+			resetLink: `${appConfig.feResetPasswordUrl}?token=${accessToken}`,
+		})
 
 		await transaction.commit()
 		transaction = null

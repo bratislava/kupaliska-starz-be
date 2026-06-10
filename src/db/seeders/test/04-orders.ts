@@ -53,10 +53,7 @@ export async function up(queryInterface: QueryInterface) {
 				{ association: 'paymentOrder' },
 				{
 					association: 'tickets',
-					include: [
-						{ association: 'profile' },
-						{ association: 'ticketType' },
-					],
+					include: [{ association: 'profile' }, { association: 'ticketType' }],
 				},
 			],
 		}

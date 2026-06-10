@@ -42,10 +42,7 @@ describe(`[PATCH] ${endpoint})`, () => {
 		await FileModel.bulkCreate([createFile(swimmingPoolId)])
 
 		await writeFile(
-			path.join(
-				appConfig.filesPath,
-				'public/swimming-pools/filename-test.png'
-			),
+			path.join(appConfig.filesPath, 'public/swimming-pools/filename-test.png'),
 			'image'
 		)
 
@@ -56,9 +53,7 @@ describe(`[PATCH] ${endpoint})`, () => {
 	})
 
 	it('Expect status 401 | Invalid or missing auth token', async () => {
-		const response = await request
-			.patch(endpoint())
-			.set('Content-Type', 'application/json')
+		const response = await request.patch(endpoint()).set('Content-Type', 'application/json')
 		expect(response.status).toBe(401)
 	})
 
@@ -74,10 +69,7 @@ describe(`[PATCH] ${endpoint})`, () => {
 		const response = await request
 			.patch(endpoint())
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolEmployee}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolEmployee}`)
 		expect(response.status).toBe(403)
 	})
 
@@ -92,9 +84,7 @@ describe(`[PATCH] ${endpoint})`, () => {
 				expandedDescription: 'Novy dlhsi popis',
 				waterTemp: 10,
 				maxCapacity: 500,
-				openingHours: [
-					{ startFrom: '2021-01-01', startTo: '2022-01-01' },
-				],
+				openingHours: [{ startFrom: '2021-01-01', startTo: '2022-01-01' }],
 				facilities: ['voleyball'],
 				locationUrl: 'https://goo.gl/maps/YST1w1Q7Vt7EpAAA10',
 				image: {
@@ -109,9 +99,7 @@ describe(`[PATCH] ${endpoint})`, () => {
 		expect(schema.validate(response.body).error).toBeUndefined()
 		expect(response.body.data.swimmingPool.name).toBe('Delfín')
 		expect(response.body.data.swimmingPool.description).toBe('Novy popis')
-		expect(response.body.data.swimmingPool.expandedDescription).toBe(
-			'Novy dlhsi popis'
-		)
+		expect(response.body.data.swimmingPool.expandedDescription).toBe('Novy dlhsi popis')
 		expect(response.body.data.swimmingPool.waterTemp).toBe(10)
 		expect(response.body.data.swimmingPool.maxCapacity).toBe(500)
 		expect(response.body.data.swimmingPool.locationUrl).toBe(
@@ -120,12 +108,8 @@ describe(`[PATCH] ${endpoint})`, () => {
 		expect(response.body.data.swimmingPool.openingHours).toStrictEqual([
 			{ startFrom: '2021-01-01', startTo: '2022-01-01' },
 		])
-		expect(response.body.data.swimmingPool.facilities).toStrictEqual([
-			'voleyball',
-		])
-		expect(response.body.data.swimmingPool.image.altText).toBe(
-			'Fotka kupaliska delfin'
-		)
+		expect(response.body.data.swimmingPool.facilities).toStrictEqual(['voleyball'])
+		expect(response.body.data.swimmingPool.image.altText).toBe('Fotka kupaliska delfin')
 		expect(response.body.data.swimmingPool.ordering).toBe(1)
 	})
 
@@ -133,16 +117,11 @@ describe(`[PATCH] ${endpoint})`, () => {
 		const response = await request
 			.patch(endpoint(swimmingPoolId))
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolOperator}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolOperator}`)
 			.send({
 				waterTemp: 0,
 				maxCapacity: 100,
-				openingHours: [
-					{ startFrom: '2021-01-01', startTo: '2022-01-01' },
-				],
+				openingHours: [{ startFrom: '2021-01-01', startTo: '2022-01-01' }],
 			})
 
 		expect(response.status).toBe(200)
@@ -157,17 +136,12 @@ describe(`[PATCH] ${endpoint})`, () => {
 		const response = await request
 			.patch(endpoint(swimmingPoolId))
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolOperator}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolOperator}`)
 			.send({
 				name: 'Delfín',
 				description: 'Novy popis',
 				expandedDescription: 'Novy dlhsi popis',
-				openingHours: [
-					{ startFrom: '2021-01-01', startTo: '2022-01-01' },
-				],
+				openingHours: [{ startFrom: '2021-01-01', startTo: '2022-01-01' }],
 				facilities: ['voleyball'],
 				locationUrl: 'https://goo.gl/maps/YST1w1Q7Vt7EpAAA10',
 				waterTemp: 0,
@@ -182,39 +156,25 @@ describe(`[PATCH] ${endpoint})`, () => {
 		expect(response.status).toBe(400)
 
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.name' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.name' })])
 		)
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.description' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.description' })])
 		)
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.expandedDescription' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.expandedDescription' })])
 		)
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.facilities' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.facilities' })])
 		)
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.locationUrl' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.locationUrl' })])
 		)
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.image' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.image' })])
 		)
 		expect(response.body.messages).toEqual(
-			expect.arrayContaining([
-				expect.objectContaining({ path: 'body.ordering' }),
-			])
+			expect.arrayContaining([expect.objectContaining({ path: 'body.ordering' })])
 		)
 	})
 
@@ -222,16 +182,11 @@ describe(`[PATCH] ${endpoint})`, () => {
 		const response = await request
 			.patch(endpoint(swimmingPool2Id))
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolOperator}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolOperator}`)
 			.send({
 				waterTemp: 0,
 				maxCapacity: 100,
-				openingHours: [
-					{ startFrom: '2021-01-01', startTo: '2022-01-01' },
-				],
+				openingHours: [{ startFrom: '2021-01-01', startTo: '2022-01-01' }],
 			})
 
 		expect(response.status).toBe(403)

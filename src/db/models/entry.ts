@@ -69,16 +69,13 @@ export default (sequelize: Sequelize) => {
 		}
 	)
 
-	EntryModel.addScope(
-		'timestamp',
-		(from = new Date(new Date().setHours(0, 0, 0, 0))) => ({
-			where: {
-				timestamp: {
-					[Op.gt]: from,
-				},
+	EntryModel.addScope('timestamp', (from = new Date(new Date().setHours(0, 0, 0, 0))) => ({
+		where: {
+			timestamp: {
+				[Op.gt]: from,
 			},
-		})
-	)
+		},
+	}))
 
 	EntryModel.associate = (models) => {
 		EntryModel.belongsTo(models.SwimmingPool, {

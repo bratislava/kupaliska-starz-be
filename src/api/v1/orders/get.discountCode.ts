@@ -11,11 +11,7 @@ export const schema = Joi.object().keys({
 	}),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { params } = req
 
@@ -29,9 +25,7 @@ export const workflow = async (
 			discountCode: {
 				code: discountCode.code,
 				amount: discountCode.amount,
-				ticketTypeIds: discountCode.ticketTypes.map(
-					(ticketType) => ticketType.id
-				),
+				ticketTypeIds: discountCode.ticketTypes.map((ticketType) => ticketType.id),
 			},
 		})
 	} catch (err) {

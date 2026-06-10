@@ -32,11 +32,7 @@ export const schema = Joi.object().keys({
 
 const { DiscountCode, TicketType } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	let transaction: Transaction
 	try {
 		const { body } = req
@@ -52,11 +48,7 @@ export const workflow = async (
 				},
 			})
 			if (ticketTypes.length !== body.ticketTypes.length) {
-				throw new ErrorBuilder(
-					400,
-					req.t('error:incorrectTicketTypes'),
-					'incorrectTicketTypes'
-				)
+				throw new ErrorBuilder(400, req.t('error:incorrectTicketTypes'), 'incorrectTicketTypes')
 			}
 		}
 

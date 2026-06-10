@@ -36,9 +36,7 @@ export const schema = Joi.object().keys({
 	body: Joi.object().keys({
 		firstname: Joi.string().required(),
 		lastname: Joi.string().required(),
-		dateOfBirth: Joi.date()
-			.max(dayjs().subtract(3, 'years').startOf('day').toDate())
-			.required(),
+		dateOfBirth: Joi.date().max(dayjs().subtract(3, 'years').startOf('day').toDate()).required(),
 		zip: Joi.string().allow(null, ''),
 		image: Joi.string().required(),
 	}),
@@ -48,11 +46,7 @@ export const schema = Joi.object().keys({
 
 const { AssociatedSwimmer } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	let transaction: Transaction
 	try {
 		const { body }: any = req
@@ -91,9 +85,7 @@ export const workflow = async (
 			messages: [
 				{
 					type: MESSAGE_TYPE.SUCCESS,
-					message: req.t(
-						'success:loggedSwimmer.associatedSwimmer.created'
-					),
+					message: req.t('success:loggedSwimmer.associatedSwimmer.created'),
 				},
 			],
 		})

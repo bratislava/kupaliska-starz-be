@@ -13,13 +13,9 @@ export async function up(queryInterface: QueryInterface) {
 			return
 		}
 
-		await queryInterface.renameTable(
-			'generalInformations',
-			'generalSettings',
-			{
-				transaction,
-			}
-		)
+		await queryInterface.renameTable('generalInformations', 'generalSettings', {
+			transaction,
+		})
 
 		await transaction.commit()
 	} catch (err) {
@@ -40,13 +36,9 @@ export async function down(queryInterface: QueryInterface) {
 			return
 		}
 
-		await queryInterface.renameTable(
-			'generalSettings',
-			'generalInformations',
-			{
-				transaction,
-			}
-		)
+		await queryInterface.renameTable('generalSettings', 'generalInformations', {
+			transaction,
+		})
 
 		await transaction.commit()
 	} catch (err) {

@@ -68,46 +68,28 @@ export const schema = Joi.object().keys({
 		limit: Joi.number().integer().min(1).default(20).empty(['', null]),
 		page: Joi.number().integer().min(1).default(1).empty(['', null]),
 		order: Joi.string()
-			.valid(
-				'orderNumber',
-				'priceWithVat',
-				'state',
-				'discount',
-				'createdAt',
-				'updatedAt'
-			)
+			.valid('orderNumber', 'priceWithVat', 'state', 'discount', 'createdAt', 'updatedAt')
 			.empty(['', null])
 			.default('createdAt'),
-		direction: Joi.string()
-			.lowercase()
-			.valid('asc', 'desc')
-			.empty(['', null])
-			.default('desc'),
+		direction: Joi.string().lowercase().valid('asc', 'desc').empty(['', null]).default('desc'),
 	}),
 	params: Joi.object(),
 })
 
 const { Order } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { query }: any = req
 		const { limit, page } = query
 		const offset = limit * page - limit
 
-		const { swimmingPools, ticketTypes, email, ...otherFilters } =
-			query.filters || {}
+		const { swimmingPools, ticketTypes, email, ...otherFilters } = query.filters || {}
 		const orderFilters = getSequelizeFilters(otherFilters || {}, 'order')
 		const swimmingPoolFilter = getSequelizeFilters(
 			swimmingPools ? { swimmingPoolId: swimmingPools } : {}
 		)
-		const ticketTypeFilter = getSequelizeFilters(
-			ticketTypes ? { ticketTypeId: ticketTypes } : {}
-		)
+		const ticketTypeFilter = getSequelizeFilters(ticketTypes ? { ticketTypeId: ticketTypes } : {})
 		const profileFilter = getSequelizeFilters(email ? { email } : {})
 
 		const result = await Order.findAndCountAll({

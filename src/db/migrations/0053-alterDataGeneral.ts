@@ -75,13 +75,9 @@ export async function down(queryInterface: QueryInterface) {
 		}
 
 		if ('showAlert' in table) {
-			await queryInterface.removeColumn(
-				'generalInformations',
-				'showAlert',
-				{
-					transaction,
-				}
-			)
+			await queryInterface.removeColumn('generalInformations', 'showAlert', {
+				transaction,
+			})
 		}
 
 		await transaction.commit()

@@ -104,16 +104,10 @@ export const USER_ROLES = Object.values(USER_ROLE)
 export const PAYMENT_OPERATIONS = Object.values(PAYMENT_OPERATION)
 export const TICKET_TYPES = Object.values(TICKET_TYPE)
 export const ORDER_STATES = Object.values(ORDER_STATE)
-export const ORDER_PAYMENT_METHOD_STATES = Object.values(
-	ORDER_PAYMENT_METHOD_STATE
-)
+export const ORDER_PAYMENT_METHOD_STATES = Object.values(ORDER_PAYMENT_METHOD_STATE)
 export const ENTRY_TYPES = Object.values(ENTRY_TYPE)
-export const TICKET_CHECKIN_ERROR_CODES = Object.values(
-	TICKET_CHECKIN_ERROR_CODE
-)
-export const TICKET_CHECKOUT_ERROR_CODES = Object.values(
-	TICKET_CHECKOUT_ERROR_CODE
-)
+export const TICKET_CHECKIN_ERROR_CODES = Object.values(TICKET_CHECKIN_ERROR_CODE)
+export const TICKET_CHECKOUT_ERROR_CODES = Object.values(TICKET_CHECKOUT_ERROR_CODE)
 export const CHECK_STATUSS = Object.values(CHECK_STATUS)
 
 export const textColorsMap = {

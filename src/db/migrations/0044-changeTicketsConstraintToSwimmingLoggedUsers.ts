@@ -22,11 +22,7 @@ export async function up(queryInterface: QueryInterface) {
 		}
 
 		if (table.loggedUserId && !table.externalAzureId) {
-			await queryInterface.renameColumn(
-				'tickets',
-				'loggedUserId',
-				'externalAzureId'
-			)
+			await queryInterface.renameColumn('tickets', 'loggedUserId', 'externalAzureId')
 		}
 
 		return Promise.resolve()
@@ -39,11 +35,7 @@ export async function down(queryInterface: QueryInterface) {
 	const table: any = await queryInterface.describeTable('tickets')
 
 	if (!table.loggedUserId && table.externalAzureId) {
-		await queryInterface.renameColumn(
-			'tickets',
-			'externalAzureId',
-			'loggedUserId'
-		)
+		await queryInterface.renameColumn('tickets', 'externalAzureId', 'loggedUserId')
 	}
 
 	if (table.swimmingLoggedUserId) {

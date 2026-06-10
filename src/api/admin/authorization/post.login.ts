@@ -20,11 +20,7 @@ export const schema = Joi.object().keys({
 	params: Joi.object(),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	let transaction: Transaction
 	try {
 		const { body } = req
@@ -43,19 +39,13 @@ export const workflow = async (
 		})
 
 		if (!user) {
-			throw new ErrorBuilder(
-				401,
-				req.t('error:incorrectUsernameOrPassword')
-			)
+			throw new ErrorBuilder(401, req.t('error:incorrectUsernameOrPassword'))
 		}
 
 		const passwordVerified = await comparePassword(body.password, user.hash)
 
 		if (!passwordVerified) {
-			throw new ErrorBuilder(
-				401,
-				req.t('error:incorrectUsernameOrPassword')
-			)
+			throw new ErrorBuilder(401, req.t('error:incorrectUsernameOrPassword'))
 		}
 
 		transaction = await DB.transaction()
@@ -80,10 +70,7 @@ export const workflow = async (
 			}
 		)
 
-		if (
-			user.role === USER_ROLE.SUPER_ADMIN ||
-			user.role === USER_ROLE.OPERATOR
-		) {
+		if (user.role === USER_ROLE.SUPER_ADMIN || user.role === USER_ROLE.OPERATOR) {
 			user.swimmingPools = await SwimmingPool.findAll({
 				attributes: ['id', 'name'],
 			})

@@ -30,9 +30,7 @@ describe(`[POST] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Expect status 401 | Invalid or missing auth token', async () => {
-		const response = await request
-			.post(endpoint)
-			.set('Content-Type', 'application/json')
+		const response = await request.post(endpoint).set('Content-Type', 'application/json')
 		expect(response.status).toBe(401)
 	})
 
@@ -48,10 +46,7 @@ describe(`[POST] ${endpoint})`, () => {
 		const response = await request
 			.post(endpoint)
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolOperator}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolOperator}`)
 		expect(response.status).toBe(403)
 	})
 
@@ -59,10 +54,7 @@ describe(`[POST] ${endpoint})`, () => {
 		const response = await request
 			.post(endpoint)
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolEmployee}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolEmployee}`)
 		expect(response.status).toBe(403)
 	})
 
@@ -98,10 +90,9 @@ describe(`[POST] ${endpoint})`, () => {
 		expect(response.body.data.discountCodes[4].code).toBeTruthy()
 		expect(response.body.data.discountCodes[4].code.length > 7).toBeTruthy()
 
-		const discountCode = await DiscountCodeModel.findByPk(
-			response.body.data.discountCodes[4].id,
-			{ include: { association: 'ticketTypes' } }
-		)
+		const discountCode = await DiscountCodeModel.findByPk(response.body.data.discountCodes[4].id, {
+			include: { association: 'ticketTypes' },
+		})
 
 		expect(discountCode.ticketTypes).toHaveLength(1)
 		expect(discountCode.ticketTypes[0].id).toBe(ticketTypeId)

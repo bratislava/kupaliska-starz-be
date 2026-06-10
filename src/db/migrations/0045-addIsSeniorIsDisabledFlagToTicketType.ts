@@ -12,15 +12,11 @@ export async function up(queryInterface: QueryInterface) {
 		const table: any = await queryInterface.describeTable('ticketTypes')
 
 		if (!table.isSeniorIsDisabled) {
-			await queryInterface.addColumn(
-				'ticketTypes',
-				'isSeniorIsDisabled',
-				{
-					type: DataTypes.BOOLEAN,
-					defaultValue: false,
-					allowNull: false,
-				}
-			)
+			await queryInterface.addColumn('ticketTypes', 'isSeniorIsDisabled', {
+				type: DataTypes.BOOLEAN,
+				defaultValue: false,
+				allowNull: false,
+			})
 		}
 
 		return Promise.resolve()

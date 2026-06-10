@@ -9,10 +9,7 @@ import { ORDER_STATE, TICKET_CATEGORY } from './enums'
 import { TicketModel } from '../db/models/ticket'
 import sequelize, { models } from '../db/models'
 import { OrderModel } from '../db/models/order'
-export const checkTableExists = async (
-	queryInterface: QueryInterface,
-	table: string
-) => {
+export const checkTableExists = async (queryInterface: QueryInterface, table: string) => {
 	const tables = await queryInterface.showAllTables()
 	return tables.find((item: string) => item === table)
 }
@@ -50,10 +47,7 @@ export const getCityAccountData = async (accessToken: string) => {
 // https://stackoverflow.com/a/39077686
 export const hexToRgbString = (hex: string) => {
 	const pairs = hex
-		.replace(
-			/^#?([a-f\d])([a-f\d])([a-f\d])$/i,
-			(m, r, g, b) => '#' + r + r + g + g + b + b
-		)
+		.replace(/^#?([a-f\d])([a-f\d])([a-f\d])$/i, (m, r, g, b) => '#' + r + r + g + g + b + b)
 		.substring(1)
 		.match(/.{2}/g)
 	if (!pairs) {
@@ -69,8 +63,8 @@ export const getWalletPassTicketName = (ticket: TicketModel) =>
 	ticket.isChildren
 		? i18next.t('translation:walletPass.childrenSeasonTicket')
 		: ticket.getCategory() === TICKET_CATEGORY.SENIOR_OR_DISABLED
-		? i18next.t('translation:walletPass.seniorOrDisabledTicket')
-		: ticket.ticketType.name
+			? i18next.t('translation:walletPass.seniorOrDisabledTicket')
+			: ticket.ticketType.name
 
 export const getWalletPassTicketDescription = (ticket: TicketModel) =>
 	ticket.isChildren
@@ -78,9 +72,9 @@ export const getWalletPassTicketDescription = (ticket: TicketModel) =>
 			? i18next.t('translation:walletPass.childrenWithAdultText')
 			: i18next.t('translation:walletPass.childrenWithoutAdultText')
 		: ticket.getCategory() === TICKET_CATEGORY.SENIOR_OR_DISABLED
-		? i18next.t('translation:walletPass.seniorOrDisabledText')
-		: // no description text for adult ticket
-		  ''
+			? i18next.t('translation:walletPass.seniorOrDisabledText')
+			: // no description text for adult ticket
+				''
 export function isDefined<T>(value: T | undefined | null): value is T {
 	return value !== undefined && value !== null
 }
@@ -88,14 +82,9 @@ export function isDefined<T>(value: T | undefined | null): value is T {
 /**
  * Get price after discount.
  */
-export const getDiscount = (
-	ticketPriceWithVat: number,
-	discountPercent: number
-) => {
+export const getDiscount = (ticketPriceWithVat: number, discountPercent: number) => {
 	const inverseDiscountInPercent = 100 - (discountPercent ?? 0)
-	const priceWithDiscount = Math.round(
-		(ticketPriceWithVat * inverseDiscountInPercent) / 100
-	)
+	const priceWithDiscount = Math.round((ticketPriceWithVat * inverseDiscountInPercent) / 100)
 
 	return {
 		newTicketsPrice: priceWithDiscount,
@@ -122,9 +111,7 @@ export const payOrderWithNextOrderNumber = async (order: OrderModel) => {
 			transaction: t,
 		})
 
-		const nextOrderNumber = latestOrder
-			? latestOrder.orderNumberInYear + 1
-			: 1
+		const nextOrderNumber = latestOrder ? latestOrder.orderNumberInYear + 1 : 1
 
 		await order.update(
 			{
@@ -151,8 +138,7 @@ export const getAdultsAndChildrenCountForTicketType = (
 	const numberOfChildrenForTicketType = ticketsWithTicketType.filter(
 		(ticketWithTicketType) => ticketWithTicketType.isChildTicket
 	).length
-	const numberOfAdultsForTicketType =
-		ticketsWithTicketType.length - numberOfChildrenForTicketType
+	const numberOfAdultsForTicketType = ticketsWithTicketType.length - numberOfChildrenForTicketType
 
 	return { numberOfAdultsForTicketType, numberOfChildrenForTicketType }
 }

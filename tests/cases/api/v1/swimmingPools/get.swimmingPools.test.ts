@@ -26,9 +26,7 @@ describe(`[GET] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Response should return code 200', async () => {
-		const response = await request
-			.get(endpoint)
-			.set('Content-Type', 'application/json')
+		const response = await request.get(endpoint).set('Content-Type', 'application/json')
 		expect(response.status).toBe(200)
 		expect(response.type).toBe('application/json')
 		expect(schema.validate(response.body).error).toBeUndefined()

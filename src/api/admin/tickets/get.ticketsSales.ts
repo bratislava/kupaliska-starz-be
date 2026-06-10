@@ -56,18 +56,13 @@ interface TicketTypeRecord {
 	swimmingPools: SwimmingPoolRecord[]
 }
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { query }: any = req
 
-		const [swimmingPoolsFilterVariables, swimmingPoolsFilterSql] =
-			getFilters({
-				swimmingPoolId: { type: 'in', value: query.swimmingPools },
-			})
+		const [swimmingPoolsFilterVariables, swimmingPoolsFilterSql] = getFilters({
+			swimmingPoolId: { type: 'in', value: query.swimmingPools },
+		})
 
 		const [dayFilterVariables, dayFilterSQL] = getFilters({
 			day: query.day,
@@ -187,12 +182,7 @@ export const workflow = async (
 		const responseData = reduce(
 			result,
 			(arr, data) => {
-				const {
-					numberOfUses,
-					remainingEntries,
-					swimmingPoolId,
-					...others
-				} = data
+				const { numberOfUses, remainingEntries, swimmingPoolId, ...others } = data
 				const ticketType = find(arr, {
 					priceWithVat: data.priceWithVat,
 					ticketTypeName: data.ticketTypeName,
@@ -233,23 +223,15 @@ export const workflow = async (
 			[]
 		)
 
-		const filteredResponseData = responseData.filter(
-			(item) => item.numberOfUses > 0
-		)
+		const filteredResponseData = responseData.filter((item) => item.numberOfUses > 0)
 
 		return res.json({
 			data: map(filteredResponseData, (ticketType: TicketTypeRecord) => {
 				const { priceWithVat, entryPrice, ...other } = ticketType
 				// TODO no longer needed to Math.round(() * 100) / 100, the price is now in cents so problem which this is solving is now solved
-				const finalPrice =
-					Math.round(
-						Number(entryPrice) * ticketType.numberOfUses * 100
-					) / 100
+				const finalPrice = Math.round(Number(entryPrice) * ticketType.numberOfUses * 100) / 100
 				// TODO no longer needed to Math.round(() * 100) / 100, the price is now in cents so problem which this is solving is now solved
-				const commission =
-					Math.round(
-						finalPrice * appConfig.commissionCoefficient * 100
-					) / 100
+				const commission = Math.round(finalPrice * appConfig.commissionCoefficient * 100) / 100
 				return {
 					finalPrice,
 					commission,

@@ -2,18 +2,13 @@ import { QueryInterface, DataTypes } from 'sequelize'
 import { checkTableExists } from '../../utils/helpers'
 export async function up(queryInterface: QueryInterface) {
 	try {
-		const exists = await checkTableExists(
-			queryInterface,
-			'associatedSwimmers'
-		)
+		const exists = await checkTableExists(queryInterface, 'associatedSwimmers')
 
 		if (!exists) {
 			return Promise.resolve()
 		}
 
-		const table: any = await queryInterface.describeTable(
-			'associatedSwimmers'
-		)
+		const table: any = await queryInterface.describeTable('associatedSwimmers')
 
 		if (table.firstname) {
 			await queryInterface.removeColumn('associatedSwimmers', 'firstname')

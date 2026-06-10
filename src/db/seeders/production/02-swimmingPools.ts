@@ -25,8 +25,7 @@ export async function up(queryInterface: QueryInterface) {
 			waterTemp: 22,
 			maxCapacity: 1000,
 			openingHours: openingHours,
-			facilities:
-				'["shower", "changing-room", "playground", "food", "parking"]',
+			facilities: '["shower", "changing-room", "playground", "food", "parking"]',
 			locationUrl: 'https://goo.gl/maps/jM1ykc3Ww8c2ErZz8',
 		},
 		{
@@ -38,8 +37,7 @@ export async function up(queryInterface: QueryInterface) {
 			waterTemp: 22,
 			maxCapacity: 1000,
 			openingHours: openingHours,
-			facilities:
-				'["shower", "changing-room", "playground", "food", "volleyball", "parking"]',
+			facilities: '["shower", "changing-room", "playground", "food", "volleyball", "parking"]',
 			locationUrl: 'https://goo.gl/maps/Y2NX3qjQKU92L6nZ6',
 		},
 		{
@@ -85,8 +83,7 @@ export async function up(queryInterface: QueryInterface) {
 			waterTemp: 22,
 			maxCapacity: 1000,
 			openingHours: openingHours,
-			facilities:
-				'["shower", "changing-room", "playground", "food", "volleyball"]',
+			facilities: '["shower", "changing-room", "playground", "food", "volleyball"]',
 			locationUrl: 'https://goo.gl/maps/gvuMM4mYWvtGiRfN8',
 		},
 	])
