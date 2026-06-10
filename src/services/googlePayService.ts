@@ -16,6 +16,8 @@ const classId = `${issuerId}.sk.bratislava.kupaliska.v2`
 let credentialsBuffer
 let credentials: { client_email: any; private_key: jwt.Secret }
 try {
+	// TODO for now i don't see any reason to have this in file and not as env variable
+	// move this to env variable, to remove fs dependency
 	credentialsBuffer = fs.readFileSync('resources/google-pay/credentials.json')
 	credentials = JSON.parse(credentialsBuffer.toString())
 } catch (err) {
