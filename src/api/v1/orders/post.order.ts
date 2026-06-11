@@ -569,11 +569,12 @@ const mapPropertiesToTickets = async (
 			const ticketType = ticketTypes.find(
 				(ticketType) => ticketType.id === ticket.ticketTypeId
 			)
-			if (!ticketType)
+			if (!ticketType) {
 				throw new ErrorBuilder(
 					404,
 					i18next.t('error:ticketTypeNotFound')
 				)
+			}
 
 			// earlier we sorted discount codes by amount in descending order
 			// so code below will pick the highest discount code for given ticket type
@@ -625,6 +626,7 @@ const mapPropertiesToTickets = async (
 	)
 	return ticketsWithTicketType
 }
+
 const getMappedTickets = async (
 	tickets: PostOrderTicket[],
 	cityAccountData: Partial<CityAccountUser> | null,
