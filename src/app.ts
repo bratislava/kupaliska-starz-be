@@ -144,6 +144,9 @@ app.use(passport.initialize())
 // i18n module
 app.use(i18nextMiddleware.handle(i18next))
 
+// health check endpoint for kubernetes probes
+app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }))
+
 app.use('/api/v1', routerV1())
 app.use('/api/admin', routerAdmin())
 
