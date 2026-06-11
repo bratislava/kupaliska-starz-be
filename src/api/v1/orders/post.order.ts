@@ -506,11 +506,20 @@ const basicChecks = async (
 			)
 		}
 
-		// discout code can be applied only to one ticket, during order creation it is assigned to all compatible tickets by type
-		// (only exception: when there is exactly one adult seasonal ticket then the same discount
-		// can be applied to it and all children seasonal tickets, because they are the same ticket type)
+		const ticketType =
+			ticketsWithSameTicketType.length > 0
+				? ticketsWithSameTicketType[0].ticketType
+				: null
+		if (!ticketType) {
+			throw new ErrorBuilder(404, i18next.t('error:ticketTypeNotFound'))
+		}
+
+		// discount code can be applied to all tickets of all supported ticket types,
+		// (exception for seasonal tickets: discount can be applied only to one adult seasonal ticket but the same discount
+		// can be applied to all children seasonal tickets of the same ticket type)
 		const discountPercent = ticketsWithSameTicketType[0].discountPercent
 		if (
+			ticketType.isSeasonal &&
 			numberOfAdultsForTicketType > 1 &&
 			discountPercent !== undefined &&
 			discountPercent !== 0
@@ -521,13 +530,6 @@ const basicChecks = async (
 			)
 		}
 
-		const ticketType =
-			ticketsWithSameTicketType.length > 0
-				? ticketsWithSameTicketType[0].ticketType
-				: null
-		if (!ticketType) {
-			throw new ErrorBuilder(404, i18next.t('error:ticketTypeNotFound'))
-		}
 		// children allowed rules
 		if (ticketType.childrenAllowed) {
 			validate(
@@ -632,7 +634,7 @@ const getMappedTickets = async (
 	const swimmingLoggedUser = cityAccountData?.sub
 		? await SwimmingLoggedUser.findOne({
 				where: { externalCognitoId: cityAccountData?.sub },
-		  })
+			})
 		: null
 
 	const discountCodesModels = discountCodes
@@ -651,7 +653,7 @@ const getMappedTickets = async (
 				include: {
 					association: 'ticketTypes',
 				},
-		  })
+			})
 		: []
 	// purposefully letting pass when all discount code applicable ticketTypeIds does not match any of requested ticket types
 
