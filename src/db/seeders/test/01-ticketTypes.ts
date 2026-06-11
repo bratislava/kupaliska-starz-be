@@ -7,7 +7,7 @@ export const ticketTypeSeasonalWithChildren2 = 'c70954c7-970d-4f1a-acf4-12b91aca
 export const ticketTypeExpired = 'c70954c7-970d-4f1a-acf4-12b91acabe05'
 export const ticketTypeSeasonNameRequired = 'c70954c7-970d-4f1a-acf4-12b91acabe02'
 export const ticketTypePhotoRequiredId = 'c70954c7-970d-4f1a-acf4-12b91acabe07'
-export const ticket3Id = 'c70954c7-970d-4f1a-acf4-12b91acabe03'
+export const ticketTypeSeasonal = 'c70954c7-970d-4f1a-acf4-12b91acabe03'
 export const ticketTypeEntriesId = 'c70954c7-970d-4f1a-acf4-12b91acabe06'
 
 export async function up(queryInterface: QueryInterface) {
@@ -30,7 +30,7 @@ export async function up(queryInterface: QueryInterface) {
 		},
 		// SEASONAL, DONT REQUIRE NAME, CHILDREN ARE FORBIDDEN
 		{
-			id: ticket3Id,
+			id: ticketTypeSeasonal,
 			name: 'Sezónny tiket',
 			description: faker.lorem.paragraph(15),
 			priceWithVat: 2000,

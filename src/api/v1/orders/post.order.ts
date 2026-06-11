@@ -438,19 +438,25 @@ const basicChecks = async (
 			throw new ErrorBuilder(400, i18next.t('error:ticket.minimumIsOneAdult'))
 		}
 
-		// discout code can be applied only to one ticket, during order creation it is assigned to all compatible tickets by type
-		// (only exception: when there is exactly one adult seasonal ticket then the same discount
-		// can be applied to it and all children seasonal tickets, because they are the same ticket type)
-		const discountPercent = ticketsWithSameTicketType[0].discountPercent
-		if (numberOfAdultsForTicketType > 1 && discountPercent !== undefined && discountPercent !== 0) {
-			throw new ErrorBuilder(400, i18next.t('error:ticket.discountOnlyForOneUser'))
-		}
-
 		const ticketType =
 			ticketsWithSameTicketType.length > 0 ? ticketsWithSameTicketType[0].ticketType : null
 		if (!ticketType) {
 			throw new ErrorBuilder(404, i18next.t('error:ticketTypeNotFound'))
 		}
+
+		// discount code can be applied to all tickets of all supported ticket types,
+		// (exception for seasonal tickets: discount can be applied only to one adult seasonal ticket but the same discount
+		// can be applied to all children seasonal tickets of the same ticket type)
+		const discountPercent = ticketsWithSameTicketType[0].discountPercent
+		if (
+			ticketType.isSeasonal &&
+			numberOfAdultsForTicketType > 1 &&
+			discountPercent !== undefined &&
+			discountPercent !== 0
+		) {
+			throw new ErrorBuilder(400, i18next.t('error:ticket.discountOnlyForOneUser'))
+		}
+
 		// children allowed rules
 		if (ticketType.childrenAllowed) {
 			validate(
@@ -486,7 +492,9 @@ const mapPropertiesToTickets = async (
 	const ticketsWithTicketType = await Promise.all(
 		tickets.map(async (ticket) => {
 			const ticketType = ticketTypes.find((ticketType) => ticketType.id === ticket.ticketTypeId)
-			if (!ticketType) throw new ErrorBuilder(404, i18next.t('error:ticketTypeNotFound'))
+			if (!ticketType) {
+				throw new ErrorBuilder(404, i18next.t('error:ticketTypeNotFound'))
+			}
 
 			// earlier we sorted discount codes by amount in descending order
 			// so code below will pick the highest discount code for given ticket type
@@ -527,6 +535,7 @@ const mapPropertiesToTickets = async (
 	)
 	return ticketsWithTicketType
 }
+
 const getMappedTickets = async (
 	tickets: PostOrderTicket[],
 	cityAccountData: Partial<CityAccountUser> | null,

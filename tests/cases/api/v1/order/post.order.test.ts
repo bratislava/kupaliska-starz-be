@@ -27,6 +27,7 @@ import { IAppConfig } from '../../../../../src/types/interfaces'
 import {
 	ticketTypeEntriesId,
 	ticketTypeExpired,
+	ticketTypeSeasonal,
 	ticketTypeSeasonalWithChildren,
 	ticketTypeSeasonNameRequired,
 } from '../../../../../src/db/seeders/test/01-ticketTypes'
@@ -408,24 +409,24 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				)
 			})
 
-			it('throws discountOnlyForOneUser when multiple adults share a partial dry-run discount', async () => {
+			it('throws discountOnlyForOneUser when multiple adults share a discount for seasonal ticketType', async () => {
 				const { next } = await callDryRun(
 					{
 						tickets: [
 							{
-								ticketTypeId: ticketTypeEntriesId,
+								ticketTypeId: ticketTypeSeasonal,
 								age: 30,
 								zip: '81101',
 							},
 							{
-								ticketTypeId: ticketTypeEntriesId,
+								ticketTypeId: ticketTypeSeasonal,
 								age: 31,
 								zip: '81101',
 							},
 						],
 						discountsPercent: [
 							{
-								ticketTypeId: ticketTypeEntriesId,
+								ticketTypeId: ticketTypeSeasonal,
 								discountPercent: 15,
 							},
 						],
@@ -725,6 +726,42 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				})
 				expect(order?.priceWithVat).toStrictEqual(3199)
 				expect(order?.discount).toStrictEqual(800)
+				const discountCodeInstance = await DiscountCodeModel.findByPk(discountCodeId)
+				expect(discountCodeInstance?.usedAt).not.toBeNull()
+				expect(order?.discountCodes[0].id).toBe(discountCodeId)
+			})
+
+			// This is what Šuto from Starz is using, maybe it should be discussed if there is a better way to handle this
+			it('should pass when multiple adults share discount where ticketType.isSeasonal is false', async () => {
+				const response = await request
+					.post(endpointOrder)
+					.set(authHeader)
+					.set('Content-Type', 'application/json')
+					.send({
+						tickets: [
+							{
+								ticketTypeId: ticketTypeEntriesId,
+								age: 18,
+								zip: '03251',
+							},
+							{
+								ticketTypeId: ticketTypeEntriesId,
+								age: 18,
+								zip: '03251',
+							},
+						],
+						discountCodes: [discountCode],
+						agreement: true,
+						paymentMethod: ORDER_PAYMENT_METHOD_STATE.CARD,
+						token: 'recaptcha123',
+					})
+
+				expect(response.status).toBe(200)
+				const order = await OrderModel.findByPk(response.body.data.id, {
+					include: [{ association: 'discountCodes' }],
+				})
+				expect(order?.priceWithVat).toStrictEqual(6398)
+				expect(order?.discount).toStrictEqual(1600)
 				const discountCodeInstance = await DiscountCodeModel.findByPk(discountCodeId)
 				expect(discountCodeInstance?.usedAt).not.toBeNull()
 				expect(order?.discountCodes[0].id).toBe(discountCodeId)
