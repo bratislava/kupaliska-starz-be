@@ -5,6 +5,7 @@ import { up as tickets } from './03-tickets'
 import { up as orders } from './04-orders'
 import { up as discountCodes } from './05-discountCodes'
 import { up as discountCodeTicketType } from './06-discountCodeTicketType'
+import { up as generalSettings } from './07-generalSettings'
 export const up = () => Promise.resolve()
 export const down = () => Promise.resolve()
 
@@ -16,4 +17,5 @@ export const seedsUp = [
 	orders,
 	discountCodes,
 	discountCodeTicketType,
+	generalSettings,
 ]
