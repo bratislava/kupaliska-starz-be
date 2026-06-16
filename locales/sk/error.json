@@ -1,4 +1,5 @@
 {
+	"missingRecaptchaToken": "Chýba recaptcha token",
 	"offseason": "Sezóna kúpalísk skončila / ešte nezačala",
 	"discountCodeNotFound": "Zľavový kupón sa nenašiel",
 	"discountCodeNotValid": "Zľavový kupón nie je platný",
