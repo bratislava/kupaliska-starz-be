@@ -1,8 +1,11 @@
-import { Sequelize, DataTypes, literal, UUIDV4 } from 'sequelize'
+import { Sequelize, DataTypes, literal, UUIDV4, Op } from 'sequelize'
+import i18next from 'i18next'
 
 import { DatabaseModel } from '../../types/models'
 import { TICKET_TYPE } from '../../utils/enums'
 import { SwimmingPoolModel } from './swimmingPool'
+import { z } from 'zod'
+import { validateZod } from '../../utils/validation'
 
 export class TicketTypeModel extends DatabaseModel {
 	id: string
@@ -31,6 +34,7 @@ export class TicketTypeModel extends DatabaseModel {
 	entranceTo: string
 	hasTicketDuration: boolean
 	ticketDuration: string
+	ordering: number
 	// entrances ticket
 	entriesNumber: number
 	// meta
@@ -154,6 +158,11 @@ export default (sequelize: Sequelize) => {
 						: null
 				},
 			},
+			ordering: {
+				type: DataTypes.SMALLINT,
+				allowNull: false,
+				defaultValue: 0,
+			},
 			entriesNumber: {
 				type: DataTypes.SMALLINT,
 				allowNull: true,
@@ -213,7 +222,118 @@ export default (sequelize: Sequelize) => {
 					return this.type === TICKET_TYPE.ENTRIES
 				},
 			},
-			hooks: {},
+			hooks: {
+				beforeCreate: async (ticketType, options) => {
+					const ticketTypesCount = await TicketTypeModel.count()
+					if (ticketType.ordering === 0) {
+						ticketType.ordering = ticketTypesCount + 1
+					} else {
+						validateZod(
+							true,
+							ticketType.ordering,
+							z.number().max(ticketTypesCount + 1),
+							i18next.t('error:exceededOrderingNumber'),
+							'exceededOrderingNumber'
+						)
+
+						await TicketTypeModel.update(
+							{
+								ordering: Sequelize.literal('ordering +1'),
+							},
+							{
+								where: {
+									ordering: {
+										[Op.gte]: ticketType.ordering,
+									},
+								},
+								transaction: options.transaction,
+								hooks: false,
+							}
+						)
+					}
+				},
+				beforeUpdate: async (ticketType, options) => {
+					const previousOrdering = ticketType.previous('ordering')
+
+					if (
+						ticketType.ordering !== 0 &&
+						previousOrdering !== ticketType.ordering
+					) {
+						const ticketTypesCount = await TicketTypeModel.count()
+						validateZod(
+							true,
+							ticketType.ordering,
+							z.number().max(ticketTypesCount),
+							i18next.t('error:exceededOrderingNumber'),
+							'exceededOrderingNumber'
+						)
+
+						let ordering: any = {}
+						let direction: string
+						if (ticketType.ordering < previousOrdering) {
+							ordering = {
+								[Op.and]: [
+									{
+										[Op.gte]: ticketType.ordering,
+									},
+									{
+										[Op.lte]: previousOrdering,
+									},
+								],
+							}
+							direction = '+1'
+						} else {
+							ordering = {
+								[Op.and]: [
+									{
+										[Op.lte]: ticketType.ordering,
+									},
+									{
+										[Op.gt]: previousOrdering,
+									},
+								],
+							}
+							direction = '-1'
+						}
+
+						await TicketTypeModel.update(
+							{
+								ordering: Sequelize.literal(
+									`ordering ${direction}`
+								),
+							},
+							{
+								where: {
+									id: {
+										[Op.not]: ticketType.id,
+									},
+									ordering,
+								},
+								transaction: options.transaction,
+								hooks: false,
+							}
+						)
+					} else {
+						ticketType.ordering = previousOrdering
+					}
+				},
+				beforeDestroy: async (ticketType, options) => {
+					await TicketTypeModel.update(
+						{
+							ordering: Sequelize.literal('ordering -1'),
+						},
+						{
+							where: {
+								ordering: {
+									[Op.gt]: ticketType.ordering,
+								},
+							},
+							transaction: options.transaction,
+							hooks: false,
+						}
+					)
+				},
+			},
 		}
 	)
 

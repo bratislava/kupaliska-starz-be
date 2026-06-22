@@ -112,6 +112,7 @@ export const ticketTypeAddSchema = {
 			then: Joi.required(),
 			otherwise: Joi.forbidden(),
 		}),
+	ordering: Joi.number().integer().min(1).default(0),
 }
 
 export const schema = Joi.object().keys({

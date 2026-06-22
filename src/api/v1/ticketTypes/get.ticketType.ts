@@ -53,6 +53,7 @@ export const workflow = async (
 				'validFrom',
 				'validTo',
 				'isSeniorIsDisabled',
+				'ordering',
 			],
 			where: {
 				id: { [Op.eq]: params.ticketTypeId },

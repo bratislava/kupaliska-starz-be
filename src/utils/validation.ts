@@ -3,6 +3,7 @@ import ErrorBuilder from './ErrorBuilder'
 import validator from 'validator'
 import mime from 'mime-types'
 import sanitizeHtml from 'sanitize-html'
+import { ZodType } from 'zod'
 
 const options = {
 	abortEarly: false,
@@ -23,6 +24,24 @@ export const validate = (
 		const result = schema.validate(obj, options)
 		if (result.error) {
 			throw new ErrorBuilder(400, message || result.error.details, key)
+		}
+	}
+}
+export const validateZod = (
+	condition: boolean,
+	obj: any,
+	schema: ZodType,
+	message?: string,
+	key?: string
+) => {
+	if (!schema) {
+		throw new Error('Validation schema is not provided')
+	}
+
+	if (condition) {
+		const result = schema.safeParse(obj)
+		if (!result.success) {
+			throw new ErrorBuilder(400, message || result.error.message, key)
 		}
 	}
 }

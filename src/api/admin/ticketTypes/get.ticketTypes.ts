@@ -18,10 +18,11 @@ export const schema = Joi.object().keys({
 				'priceWithVat',
 				'vatPercentage',
 				'type',
-				'createdAt'
+				'createdAt',
+				'ordering'
 			)
 			.empty(['', null])
-			.default('name'),
+			.default('ordering'),
 		direction: Joi.string()
 			.lowercase()
 			.valid('asc', 'desc')
@@ -76,6 +77,7 @@ export const workflow = async (
 				'nameRequired',
 				'createdAt',
 				'deletedAt',
+				'ordering',
 			],
 			include: { association: 'swimmingPools' },
 			where,

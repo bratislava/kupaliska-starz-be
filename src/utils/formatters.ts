@@ -101,7 +101,7 @@ export const formatUser = (user: UserModel) => {
 			? map(user.swimmingPools, (pool) => ({
 					id: pool.id,
 					name: pool.name,
-			  }))
+				}))
 			: undefined,
 		createdAt: user.createdAt,
 		updatedAt: user.updatedAt,
@@ -136,6 +136,7 @@ export const formatTicketType = (ticketType: TicketTypeModel) => {
 		entranceTo: ticketType.entranceTo,
 		hasTicketDuration: ticketType.hasTicketDuration,
 		ticketDuration: ticketType.ticketDuration,
+		ordering: ticketType.ordering,
 		validFrom: ticketType.validFrom,
 		validTo: ticketType.validTo,
 		isSeniorIsDisabled: ticketType.isSeniorIsDisabled,
@@ -143,7 +144,7 @@ export const formatTicketType = (ticketType: TicketTypeModel) => {
 			? map(ticketType.swimmingPools, (pool) => ({
 					id: pool.id,
 					name: pool.name,
-			  }))
+				}))
 			: undefined,
 		createdAt: ticketType.createdAt,
 		deletedAt: ticketType.deletedAt,
@@ -164,7 +165,7 @@ export const formatDiscountCode = (discountCode: DiscountCodeModel) => {
 			? map(discountCode.ticketTypes, (ticketType) => ({
 					id: ticketType.id,
 					name: ticketType.name,
-			  }))
+				}))
 			: undefined,
 		customerEmail:
 			discountCode.order && discountCode.order.tickets[0]
@@ -206,7 +207,7 @@ export const formatOrder = (order: OrderModel) => {
 					(number, ticket) =>
 						ticket.isChildren ? number + 1 : number,
 					0
-			  )
+				)
 			: undefined,
 		email: order.tickets ? order.tickets[0].profile.email : undefined,
 		userName: adultTickets ? userName : undefined,

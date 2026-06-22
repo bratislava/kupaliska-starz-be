@@ -25,6 +25,7 @@ export const ticketTypePutSchema = {
 				.required()
 		)
 		.required(),
+	ordering: Joi.number().integer().min(1).default(0),
 }
 
 export const schema = Joi.object().keys({
