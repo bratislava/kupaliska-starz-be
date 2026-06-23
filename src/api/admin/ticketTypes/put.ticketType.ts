@@ -5,7 +5,7 @@ import DB, { models } from '../../../db/models'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { map } from 'lodash'
-import { Op, Transaction } from 'sequelize'
+import { Op } from 'sequelize'
 
 export const ticketTypePutSchema = {
 	name: Joi.string().max(255).required(),
@@ -45,7 +45,8 @@ export const workflow = async (
 ) => {
 	const { TicketType, SwimmingPool, SwimmingPoolTicketType } = models
 
-	let transaction: Transaction
+	const transaction = await DB.transaction()
+
 	try {
 		const { body, params } = req
 
@@ -67,8 +68,6 @@ export const workflow = async (
 			throw new ErrorBuilder(400, req.t('error:incorrectSwimmingPools'))
 		}
 
-		transaction = await DB.transaction()
-
 		await ticketType.update(body, { transaction })
 
 		await SwimmingPoolTicketType.destroy({
@@ -88,7 +87,6 @@ export const workflow = async (
 		)
 
 		await transaction.commit()
-		transaction = null
 
 		await ticketType.reload({ include: { association: 'swimmingPools' } })
 

@@ -1,7 +1,7 @@
 import Joi from 'joi'
 
 import { NextFunction, Request, Response } from 'express'
-import { Op, Transaction } from 'sequelize'
+import { Op } from 'sequelize'
 import { TICKET_TYPE, MESSAGE_TYPE, TICKET_TYPES } from '../../../utils/enums'
 import DB, { models } from '../../../db/models'
 import { isEmpty, map } from 'lodash'
@@ -128,7 +128,8 @@ export const workflow = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	let transaction: Transaction
+	const transaction = await DB.transaction()
+
 	try {
 		const { body } = req
 
@@ -149,8 +150,6 @@ export const workflow = async (
 			}
 		}
 
-		transaction = await DB.transaction()
-
 		const ticketType = await TicketType.create(
 			{
 				...body,
@@ -170,7 +169,6 @@ export const workflow = async (
 
 		await transaction.commit()
 		await ticketType.reload({ include: { association: 'swimmingPools' } })
-		transaction = null
 
 		return res.json({
 			data: {
