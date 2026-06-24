@@ -93,16 +93,18 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 	let getCityAccountDataSpy: jest.SpyInstance
 
 	beforeAll(() => {
-		getCityAccountDataSpy = jest.spyOn(helpers, 'getCityAccountData').mockImplementation(
-			async () =>
-				({
-					sub: '00000000-0000-0000-0000-00000000c001',
-					email: 'buyer@example.com',
-					given_name: 'Test',
-					family_name: 'Buyer',
-					'custom:account_type': AccountType.FO,
-				}) as CityAccountUser
-		)
+		getCityAccountDataSpy = jest
+			.spyOn(helpers, 'getCityAccountData')
+			.mockImplementation(
+				async () =>
+					({
+						sub: '00000000-0000-0000-0000-00000000c001',
+						email: 'buyer@example.com',
+						given_name: 'Test',
+						family_name: 'Buyer',
+						'custom:account_type': AccountType.FO,
+					}) as CityAccountUser
+			)
 		MockDate.set(process.env.globalTime as string)
 	})
 
@@ -726,7 +728,8 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				})
 				expect(order?.priceWithVat).toStrictEqual(3199)
 				expect(order?.discount).toStrictEqual(800)
-				const discountCodeInstance = await DiscountCodeModel.findByPk(discountCodeId)
+				const discountCodeInstance =
+					await DiscountCodeModel.findByPk(discountCodeId)
 				expect(discountCodeInstance?.usedAt).not.toBeNull()
 				expect(order?.discountCodes[0].id).toBe(discountCodeId)
 			})
@@ -762,7 +765,8 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				})
 				expect(order?.priceWithVat).toStrictEqual(6398)
 				expect(order?.discount).toStrictEqual(1600)
-				const discountCodeInstance = await DiscountCodeModel.findByPk(discountCodeId)
+				const discountCodeInstance =
+					await DiscountCodeModel.findByPk(discountCodeId)
 				expect(discountCodeInstance?.usedAt).not.toBeNull()
 				expect(order?.discountCodes[0].id).toBe(discountCodeId)
 			})
@@ -796,8 +800,10 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				})
 				expect(order?.priceWithVat).toStrictEqual(4599)
 				expect(order?.discount).toStrictEqual(1400)
-				const discountCodeInstance2 = await DiscountCodeModel.findByPk(discountCodeId2)
-				const discountCodeInstance3 = await DiscountCodeModel.findByPk(discountCodeId3)
+				const discountCodeInstance2 =
+					await DiscountCodeModel.findByPk(discountCodeId2)
+				const discountCodeInstance3 =
+					await DiscountCodeModel.findByPk(discountCodeId3)
 				expect(discountCodeInstance2?.usedAt).not.toBeNull()
 				expect(discountCodeInstance3?.usedAt).not.toBeNull()
 				expect(order?.discountCodes[0].id).toBe(discountCodeId2)
