@@ -117,6 +117,7 @@ export = {
 	},
 	minio: {
 		endPoint: process.env.MINIO_ENDPOINT || 's3.bratislava.sk',
+		bucket: process.env.MINIO_BUCKET,
 		port: process.env.MINIO_PORT || 443,
 		accessKey: process.env.MINIO_ACCESS_KEY,
 		secretKey: process.env.MINIO_SECRET_KEY,
