@@ -34,11 +34,7 @@ const NUMBER_OF_ZIP_CODES = 5 // if value of unique zip codes is less than this 
 
 const { Ticket } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { query }: any = req
 		const { params } = req
@@ -53,9 +49,7 @@ export const workflow = async (
 					required: true,
 					where: {
 						[Op.and]: [
-							Sequelize.literal(
-								`cast(timestamp as DATE) = '${query.day}'`
-							),
+							Sequelize.literal(`cast(timestamp as DATE) = '${query.day}'`),
 							{
 								swimmingPoolId: {
 									[Op.eq]: params.swimmingPoolId,
@@ -83,9 +77,7 @@ export const workflow = async (
 			initializeAgeBuckets(buckets, query.ageInterval, query.ageMinimum)
 		}
 
-		const uniqueZips = [
-			...new Set(map(tickets, (ticket) => ticket.profile.zip)),
-		]
+		const uniqueZips = [...new Set(map(tickets, (ticket) => ticket.profile.zip))]
 
 		for (const ticket of tickets) {
 			ticket.entries.sort((a, b) => (a.timestamp > b.timestamp ? 1 : -1))
@@ -96,14 +88,8 @@ export const workflow = async (
 				if (startEntry.type === ENTRY_TYPE.CHECKIN) {
 					// when entry has CHECK-IN and CHECK-OUT - then record visit
 					if (entry.type === ENTRY_TYPE.CHECKOUT) {
-						const lowerBound = getBucketIndex(
-							startEntry.timestamp,
-							query.intervalInMinutes
-						)
-						const upperBound = getBucketIndex(
-							entry.timestamp,
-							query.intervalInMinutes
-						)
+						const lowerBound = getBucketIndex(startEntry.timestamp, query.intervalInMinutes)
+						const upperBound = getBucketIndex(entry.timestamp, query.intervalInMinutes)
 						fillBucketsWithVisits(
 							buckets,
 							tempBuckets,
@@ -138,11 +124,7 @@ export const workflow = async (
  * @param ageMinimum Start age.
  *
  */
-const initializeAgeBuckets = (
-	buckets: any[],
-	ageInterval: number,
-	ageMinimum: number
-) => {
+const initializeAgeBuckets = (buckets: any[], ageInterval: number, ageMinimum: number) => {
 	for (const interval of buckets) {
 		for (const age of getAllAges(ageInterval, ageMinimum)) {
 			interval[age === null ? i18next.t('none') : age] = 0
@@ -188,12 +170,8 @@ const fillBucketsWithVisits = (
 ) => {
 	range(lowerBound, upperBound + 1).forEach((bucket) => {
 		if (intervalDividedBy === 'zip') {
-			const zip = ticket.profile.zip
-				? ticket.profile.zip.split(' ').join('')
-				: i18next.t('none')
-			tempBuckets[bucket][zip] = tempBuckets[bucket][zip]
-				? tempBuckets[bucket][zip] + 1
-				: 1
+			const zip = ticket.profile.zip ? ticket.profile.zip.split(' ').join('') : i18next.t('none')
+			tempBuckets[bucket][zip] = tempBuckets[bucket][zip] ? tempBuckets[bucket][zip] + 1 : 1
 			if (
 				numberOfZipCodes < NUMBER_OF_ZIP_CODES ||
 				tempBuckets[bucket][zip] >= appConfig.minZipCodeFrequency
@@ -204,18 +182,14 @@ const fillBucketsWithVisits = (
 		} else if (intervalDividedBy === 'age') {
 			let ageBucket
 			if (ticket.profile.age) {
-				const bucketIndex = Math.floor(
-					(ticket.profile.age + ageMinimum) / ageInterval
-				)
+				const bucketIndex = Math.floor((ticket.profile.age + ageMinimum) / ageInterval)
 				const min = bucketIndex * ageInterval + ageMinimum
 				const max = (bucketIndex + 1) * ageInterval - 1 + ageMinimum
 				ageBucket = `${min}-${max}`
 			}
 			ageBucket = ticket.profile.age ? ageBucket : i18next.t('none')
 			if (ageBucket in buckets[bucket]) {
-				buckets[bucket][ageBucket] = buckets[bucket][ageBucket]
-					? buckets[bucket][ageBucket] + 1
-					: 1
+				buckets[bucket][ageBucket] = buckets[bucket][ageBucket] ? buckets[bucket][ageBucket] + 1 : 1
 			}
 		} else {
 			buckets[bucket]++

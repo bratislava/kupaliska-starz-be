@@ -65,9 +65,7 @@ export const sendRawEmail = async (
 	} catch (err) {
 		logger.error(err)
 		logger.error(
-			`${424} - EMAIL ERROR - ${err.message} - ${req.originalUrl} - ${
-				req.method
-			} - ${req.ip}`
+			`${424} - EMAIL ERROR - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`
 		)
 		throw new ErrorBuilder(424, i18next.t('error:emailFailed'))
 	}

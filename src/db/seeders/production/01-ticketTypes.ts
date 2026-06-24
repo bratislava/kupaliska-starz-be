@@ -33,8 +33,7 @@ export async function up(queryInterface: QueryInterface) {
 		{
 			id: uuidv4(),
 			name: 'Jednorazový lístok',
-			description:
-				'Platí na ktoromkoľvek z našich kúpalísk v Bratislave počas celej sezóny.',
+			description: 'Platí na ktoromkoľvek z našich kúpalísk v Bratislave počas celej sezóny.',
 			priceWithVat: 399,
 			vatPercentage: 23,
 			type: TICKET_TYPE.ENTRIES,

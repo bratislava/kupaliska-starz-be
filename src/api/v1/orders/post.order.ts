@@ -1,7 +1,4 @@
-import type {
-	ParamsDictionary,
-	Request as CoreRequest,
-} from 'express-serve-static-core'
+import type { ParamsDictionary, Request as CoreRequest } from 'express-serve-static-core'
 import { Response, NextFunction } from 'express'
 import Joi from 'joi'
 import { z } from 'zod'
@@ -38,15 +35,8 @@ import { DiscountCodeModel } from '../../../db/models/discountCode'
 import { SwimmingLoggedUserModel } from '../../../db/models/swimmingLoggedUser'
 import { groupBy } from 'lodash'
 
-const {
-	SwimmingLoggedUser,
-	AssociatedSwimmer,
-	Order,
-	Ticket,
-	TicketType,
-	DiscountCode,
-	File,
-} = models
+const { SwimmingLoggedUser, AssociatedSwimmer, Order, Ticket, TicketType, DiscountCode, File } =
+	models
 
 interface User {
 	associatedSwimmerId: string | null
@@ -78,9 +68,7 @@ export const postOrderCommonBodySchema = z.object({
 
 export const postOrderDryRunBodySchema = postOrderCommonBodySchema.extend({
 	discountsPercent: z
-		.array(
-			z.object({ ticketTypeId: z.uuid(), discountPercent: z.number() })
-		)
+		.array(z.object({ ticketTypeId: z.uuid(), discountPercent: z.number() }))
 		.optional(),
 })
 
@@ -113,16 +101,8 @@ export type PostOrderRequest = z.infer<typeof postOrderSchema>
 export type PostOrderDryRunRequest = z.infer<typeof postOrderDryRunSchema>
 
 /** Body-typed request; use `CoreRequest` because `Request` from `express` is not generic. */
-export type RequestPostOrderDryRun = CoreRequest<
-	ParamsDictionary,
-	unknown,
-	PostOrderDryRunBody
->
-export type RequestPostOrder = CoreRequest<
-	ParamsDictionary,
-	unknown,
-	PostOrderBody
->
+export type RequestPostOrderDryRun = CoreRequest<ParamsDictionary, unknown, PostOrderDryRunBody>
+export type RequestPostOrder = CoreRequest<ParamsDictionary, unknown, PostOrderBody>
 
 type TicketWithAdditionalProperties = PostOrderTicket & {
 	ticketType: TicketTypeModel
@@ -170,11 +150,7 @@ export const workflowDryRun = async (
 	}
 }
 
-export const workflow = async (
-	req: RequestPostOrder,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: RequestPostOrder, res: Response, next: NextFunction) => {
 	try {
 		const { body } = req
 
@@ -197,9 +173,7 @@ export const workflow = async (
 			throw new ErrorBuilder(400, i18next.t('error:ticket.emailIsEmpty'))
 		}
 		const order = await createAndProcessOrder(email, mappedTickets, pricing)
-		if (
-			mappedTickets.every((ticket) => ticket.discountCode?.amount === 100)
-		) {
+		if (mappedTickets.every((ticket) => ticket.discountCode?.amount === 100)) {
 			// refactor this - extract to separate function that can be used both here and in get.post.paymentResponse.ts
 			await payOrderWithNextOrderNumber(order)
 			const orderAccessToken = await createJwt(
@@ -252,17 +226,14 @@ export const workflow = async (
 
 // TODO use same computation here and in pdfGenerator.ts
 // Compute price
-const getOrderPrice = async (
-	ticketsWithAdditionalProperties: TicketWithAdditionalProperties[]
-) => {
+const getOrderPrice = async (ticketsWithAdditionalProperties: TicketWithAdditionalProperties[]) => {
 	// TODO change naming
 	let orderPriceWithVat = 0
 	let discountAcc = 0
 
 	//price computation
 	for (const ticketWithAdditionalProperties of ticketsWithAdditionalProperties) {
-		const { isChildTicket, ticketType, discountPercent } =
-			ticketWithAdditionalProperties
+		const { isChildTicket, ticketType, discountPercent } = ticketWithAdditionalProperties
 		const ticketPrice = getTicketPrice(isChildTicket, ticketType)
 
 		let totals = { newTicketsPrice: ticketPrice, discount: discountAcc }
@@ -278,13 +249,8 @@ const getOrderPrice = async (
 	}
 }
 
-const getTicketPrice = (
-	isChildTicket: boolean,
-	ticketType: TicketTypeModel
-) => {
-	return isChildTicket
-		? ticketType.childrenPriceWithVat
-		: ticketType.priceWithVat
+const getTicketPrice = (isChildTicket: boolean, ticketType: TicketTypeModel) => {
+	return isChildTicket ? ticketType.childrenPriceWithVat : ticketType.priceWithVat
 }
 
 // TODO: this should be refactored
@@ -307,26 +273,18 @@ const getUser = async (
 	}
 
 	if (!swimmingLoggedUser)
-		throw new ErrorBuilder(
-			401,
-			i18next.t('error:ticket.swimmingLoggedUserNotFound')
-		)
+		throw new ErrorBuilder(401, i18next.t('error:ticket.swimmingLoggedUserNotFound'))
 	if (!cityAccountData)
 		// for the time being this is unreachable code, because cityAccountData is always present when we have swimmingLoggedUser
 		// therefore no testing for this case
 		throw new ErrorBuilder(401, i18next.t('error:ticket.userNotFound'))
 	if (!cityAccountData.email)
-		throw new ErrorBuilder(
-			500,
-			i18next.t('error:ticket.emailNotFoundOnUser')
-		)
+		throw new ErrorBuilder(500, i18next.t('error:ticket.emailNotFoundOnUser'))
 	if (ticket.personId === null) {
 		return {
 			associatedSwimmerId: null,
 			loggedUserId: swimmingLoggedUser.id,
-			name: [cityAccountData.given_name, cityAccountData.family_name]
-				.filter(isDefined)
-				.join(' '),
+			name: [cityAccountData.given_name, cityAccountData.family_name].filter(isDefined).join(' '),
 			age: swimmingLoggedUser.age,
 			zip: swimmingLoggedUser.zip,
 			cityAccountType: cityAccountData['custom:account_type'],
@@ -335,10 +293,7 @@ const getUser = async (
 	// should we check if associatedSwimmer is linked to the swimmingLoggedUser?
 	const associatedSwimmer = await AssociatedSwimmer.findByPk(ticket.personId)
 	if (!associatedSwimmer) {
-		throw new ErrorBuilder(
-			404,
-			i18next.t('error:associatedSwimmerNotExists')
-		)
+		throw new ErrorBuilder(404, i18next.t('error:associatedSwimmerNotExists'))
 	}
 
 	return {
@@ -350,10 +305,7 @@ const getUser = async (
 	}
 }
 
-const getIsChildTicketForTicketType = (
-	user: User,
-	ticketType: TicketTypeModel
-) => {
+const getIsChildTicketForTicketType = (user: User, ticketType: TicketTypeModel) => {
 	let isChildTicket = false
 	if (
 		ticketType.childrenAllowed &&
@@ -462,48 +414,28 @@ const basicChecks = async (
 		)
 	}
 
-	if (
-		ticketsWithTicketType.some(
-			({ ticketType }) => ticketType.nameRequired && !userLogged
-		)
-	) {
-		throw new ErrorBuilder(
-			401,
-			i18next.t('error:ticket.notLoggedUserForTicket')
-		)
+	if (ticketsWithTicketType.some(({ ticketType }) => ticketType.nameRequired && !userLogged)) {
+		throw new ErrorBuilder(401, i18next.t('error:ticket.notLoggedUserForTicket'))
 	}
 
 	if (
 		ticketsWithTicketType.some(
 			({ ticketType, user }) =>
-				ticketType.nameRequired &&
-				user.cityAccountType &&
-				user.cityAccountType !== AccountType.FO
+				ticketType.nameRequired && user.cityAccountType && user.cityAccountType !== AccountType.FO
 		)
 	) {
-		throw new ErrorBuilder(
-			400,
-			i18next.t('error:ticket.userNotAllowedTicketType')
-		)
+		throw new ErrorBuilder(400, i18next.t('error:ticket.userNotAllowedTicketType'))
 	}
 
 	// TODO do this better
-	const ticketsGroupedByTicketTypes = groupBy(
-		ticketsWithTicketType,
-		'ticketType.id'
-	)
-	for (const ticketsWithSameTicketType of Object.values(
-		ticketsGroupedByTicketTypes
-	)) {
+	const ticketsGroupedByTicketTypes = groupBy(ticketsWithTicketType, 'ticketType.id')
+	for (const ticketsWithSameTicketType of Object.values(ticketsGroupedByTicketTypes)) {
 		const { numberOfAdultsForTicketType, numberOfChildrenForTicketType } =
 			getAdultsAndChildrenCountForTicketType(ticketsWithSameTicketType)
 
 		// flag isChildTicket is only used for seasonal child tickets which are not allowed to be bought alone (without adult seasonal ticket)
 		if (numberOfAdultsForTicketType < 1) {
-			throw new ErrorBuilder(
-				400,
-				i18next.t('error:ticket.minimumIsOneAdult')
-			)
+			throw new ErrorBuilder(400, i18next.t('error:ticket.minimumIsOneAdult'))
 		}
 
 		const ticketType =
@@ -524,10 +456,7 @@ const basicChecks = async (
 			discountPercent !== undefined &&
 			discountPercent !== 0
 		) {
-			throw new ErrorBuilder(
-				400,
-				i18next.t('error:ticket.discountOnlyForOneUser')
-			)
+			throw new ErrorBuilder(400, i18next.t('error:ticket.discountOnlyForOneUser'))
 		}
 
 		// children allowed rules
@@ -552,9 +481,7 @@ const mapPropertiesToTickets = async (
 		discountPercent: number
 	}[]
 ) => {
-	const ticketTypeIds = Array.from(
-		new Set(tickets.map((ticket) => ticket.ticketTypeId))
-	)
+	const ticketTypeIds = Array.from(new Set(tickets.map((ticket) => ticket.ticketTypeId)))
 
 	const ticketTypes = await TicketType.findAll({
 		where: {
@@ -578,16 +505,12 @@ const mapPropertiesToTickets = async (
 
 			// earlier we sorted discount codes by amount in descending order
 			// so code below will pick the highest discount code for given ticket type
-			const currentDiscountCodeModel = sortedDiscountCodesModels.find(
-				(discountCode) =>
-					discountCode.ticketTypes.some(
-						(ticketType) => ticketType.id === ticket.ticketTypeId
-					)
+			const currentDiscountCodeModel = sortedDiscountCodesModels.find((discountCode) =>
+				discountCode.ticketTypes.some((ticketType) => ticketType.id === ticket.ticketTypeId)
 			)
 
 			const currentDiscountPercent = discountsPercentObj?.find(
-				(discountPercentObj) =>
-					discountPercentObj.ticketTypeId === ticket.ticketTypeId
+				(discountPercentObj) => discountPercentObj.ticketTypeId === ticket.ticketTypeId
 			)?.discountPercent
 
 			let discountPercent = 0
@@ -601,15 +524,8 @@ const mapPropertiesToTickets = async (
 				...ticket,
 				ticketType: ticketType,
 			}
-			const user = await getUser(
-				ticketWithTicketType,
-				swimmingLoggedUser,
-				cityAccountData
-			)
-			const isChildTicket = getIsChildTicketForTicketType(
-				user,
-				ticketType
-			)
+			const user = await getUser(ticketWithTicketType, swimmingLoggedUser, cityAccountData)
+			const isChildTicket = getIsChildTicketForTicketType(user, ticketType)
 
 			const priceWithVat = await getTicketPrice(isChildTicket, ticketType)
 
@@ -643,9 +559,7 @@ const getMappedTickets = async (
 		? await DiscountCode.findAll({
 				where: {
 					code: {
-						[Op.in]: discountCodes.map((discountCode) =>
-							discountCode.toUpperCase()
-						),
+						[Op.in]: discountCodes.map((discountCode) => discountCode.toUpperCase()),
 					},
 					usedAt: {
 						[Op.is]: null, // not used yet
@@ -660,11 +574,7 @@ const getMappedTickets = async (
 	// purposefully letting pass when all discount code applicable ticketTypeIds does not match any of requested ticket types
 
 	// TODO this should live in basic checks?
-	if (
-		discountCodesModels &&
-		discountCodes &&
-		discountCodesModels.length !== discountCodes.length
-	) {
+	if (discountCodesModels && discountCodes && discountCodesModels.length !== discountCodes.length) {
 		throw new ErrorBuilder(404, i18next.t('error:discountCodeNotValid'))
 	}
 
@@ -700,8 +610,7 @@ const createOrderWithUniqueNumber = async () => {
 			})
 		} catch (err) {
 			const isOrderNumberCollision =
-				err instanceof UniqueConstraintError &&
-				'orderNumber' in err.fields
+				err instanceof UniqueConstraintError && 'orderNumber' in err.fields
 			if (!isOrderNumberCollision) {
 				throw err
 			}

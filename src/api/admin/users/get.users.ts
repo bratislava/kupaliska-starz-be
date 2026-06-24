@@ -12,32 +12,17 @@ export const schema = Joi.object().keys({
 		limit: Joi.number().integer().min(1).default(20).empty(['', null]),
 		page: Joi.number().integer().min(1).default(1).empty(['', null]),
 		order: Joi.string()
-			.valid(
-				'name',
-				'email',
-				'role',
-				'createdAt',
-				'updatedAt',
-				'deletedAt'
-			)
+			.valid('name', 'email', 'role', 'createdAt', 'updatedAt', 'deletedAt')
 			.empty(['', null])
 			.default('createdAt'),
-		direction: Joi.string()
-			.lowercase()
-			.valid('asc', 'desc')
-			.empty(['', null])
-			.default('desc'),
+		direction: Joi.string().lowercase().valid('asc', 'desc').empty(['', null]).default('desc'),
 	}),
 	params: Joi.object(),
 })
 
 const { User } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { query }: any = req
 		const { limit, page } = query

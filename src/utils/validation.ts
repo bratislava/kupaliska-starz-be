@@ -28,8 +28,7 @@ export const validate = (
 }
 
 export const validBase64 =
-	(maxFileSize: number, validExtensions: string[]) =>
-	(value: any, helpers: any) => {
+	(maxFileSize: number, validExtensions: string[]) => (value: any, helpers: any) => {
 		// validate data uri
 		if (validator.isDataURI(value) === false) {
 			return helpers.error('base64.invalid')

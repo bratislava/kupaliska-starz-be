@@ -1,8 +1,4 @@
-import {
-	CHECK_STATUS,
-	TICKET_CHECKIN_ERROR_CODE,
-	TICKET_CHECKOUT_ERROR_CODE,
-} from './enums'
+import { CHECK_STATUS, TICKET_CHECKIN_ERROR_CODE, TICKET_CHECKOUT_ERROR_CODE } from './enums'
 
 interface ITicketErrorBuilderItem {
 	text: string

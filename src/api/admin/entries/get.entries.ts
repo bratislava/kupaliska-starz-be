@@ -23,11 +23,7 @@ interface GetEntry {
 	to: number | null
 }
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { params } = req
 

@@ -10,10 +10,7 @@ interface IErrorBuilderItem {
 	path?: string
 }
 
-const prepareErrorItems = (
-	name: string | Joi.ValidationErrorItem[],
-	key?: string
-) => {
+const prepareErrorItems = (name: string | Joi.ValidationErrorItem[], key?: string) => {
 	if (typeof name === 'string') {
 		return [
 			{
@@ -36,11 +33,7 @@ export default class ErrorBuilder extends Error {
 	isJoi: boolean
 	items: IErrorBuilderItem[]
 
-	constructor(
-		status: number,
-		name: string | Joi.ValidationErrorItem[],
-		key?: string
-	) {
+	constructor(status: number, name: string | Joi.ValidationErrorItem[], key?: string) {
 		// fix when base64 value is too long
 		if (typeof name !== 'string') {
 			name.forEach((record) => {

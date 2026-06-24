@@ -15,18 +15,10 @@ jest.mock('minio', () => {
 				super(...args)
 				this.fPutObject = jest
 					.fn()
-					.mockImplementation(
-						(
-							_bucket,
-							_objectName,
-							_filePath,
-							_metaData,
-							callback
-						) => {
-							// Simulate successful upload and call the callback
-							callback(null)
-						}
-					)
+					.mockImplementation((_bucket, _objectName, _filePath, _metaData, callback) => {
+						// Simulate successful upload and call the callback
+						callback(null)
+					})
 			}
 		},
 	}
@@ -52,8 +44,7 @@ beforeAll(async () => {
 
 	// Sequence running of seeds (some seeds depend on others)
 	await seedsUp.reduce(
-		(promise, seed): Promise<any> =>
-			promise.then(() => seed(sequelize.getQueryInterface())),
+		(promise, seed): Promise<any> => promise.then(() => seed(sequelize.getQueryInterface())),
 		Promise.resolve()
 	)
 })

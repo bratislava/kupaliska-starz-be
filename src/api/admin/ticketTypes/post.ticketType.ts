@@ -36,22 +36,16 @@ export const ticketTypeAddSchema = {
 		then: Joi.required(),
 		otherwise: Joi.forbidden(),
 	}),
-	childrenPriceWithVat: Joi.number()
-		.integer()
-		.min(0)
-		.when('childrenAllowed', {
-			is: true,
-			then: Joi.required(),
-			otherwise: Joi.forbidden(),
-		}),
-	childrenVatPercentage: Joi.number()
-		.min(0)
-		.precision(2)
-		.when('childrenAllowed', {
-			is: true,
-			then: Joi.required(),
-			otherwise: Joi.forbidden(),
-		}),
+	childrenPriceWithVat: Joi.number().integer().min(0).when('childrenAllowed', {
+		is: true,
+		then: Joi.required(),
+		otherwise: Joi.forbidden(),
+	}),
+	childrenVatPercentage: Joi.number().min(0).precision(2).when('childrenAllowed', {
+		is: true,
+		then: Joi.required(),
+		otherwise: Joi.forbidden(),
+	}),
 
 	childrenAgeFrom: Joi.number().min(0).max(150).when('childrenAllowed', {
 		is: true,
@@ -63,14 +57,11 @@ export const ticketTypeAddSchema = {
 		then: Joi.required(),
 		otherwise: Joi.forbidden(),
 	}),
-	childrenAgeToWithAdult: Joi.number()
-		.min(0)
-		.max(150)
-		.when('childrenAllowed', {
-			is: true,
-			then: Joi.required(),
-			otherwise: Joi.forbidden(),
-		}),
+	childrenAgeToWithAdult: Joi.number().min(0).max(150).when('childrenAllowed', {
+		is: true,
+		then: Joi.required(),
+		otherwise: Joi.forbidden(),
+	}),
 	childrenPhotoRequired: Joi.boolean().when('childrenAllowed', {
 		is: true,
 		then: Joi.required(),
@@ -105,13 +96,11 @@ export const ticketTypeAddSchema = {
 		then: Joi.required(),
 		otherwise: Joi.forbidden(),
 	}),
-	entranceTo: JoiExtended.time()
-		.minTime(Joi.ref('entranceFrom'))
-		.when('hasEntranceConstraints', {
-			is: true,
-			then: Joi.required(),
-			otherwise: Joi.forbidden(),
-		}),
+	entranceTo: JoiExtended.time().minTime(Joi.ref('entranceFrom')).when('hasEntranceConstraints', {
+		is: true,
+		then: Joi.required(),
+		otherwise: Joi.forbidden(),
+	}),
 }
 
 export const schema = Joi.object().keys({
@@ -122,11 +111,7 @@ export const schema = Joi.object().keys({
 
 const { TicketType, SwimmingPoolTicketType, SwimmingPool } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	let transaction: Transaction
 	try {
 		const { body } = req
@@ -140,11 +125,7 @@ export const workflow = async (
 				},
 			})
 			if (swimmingPools.length !== body.swimmingPools.length) {
-				throw new ErrorBuilder(
-					400,
-					req.t('error:incorrectSwimmingPools'),
-					'incorrectSwimmingPools'
-				)
+				throw new ErrorBuilder(400, req.t('error:incorrectSwimmingPools'), 'incorrectSwimmingPools')
 			}
 		}
 

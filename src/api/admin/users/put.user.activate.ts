@@ -15,11 +15,7 @@ export const schema = Joi.object().keys({
 	}),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	const { User } = models
 
 	try {

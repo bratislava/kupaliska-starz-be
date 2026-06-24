@@ -8,12 +8,7 @@ import { MESSAGE_TYPE } from '../utils/enums'
 import logger from '../utils/logger'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default (
-	err: ErrorBuilder,
-	req: Request,
-	res: Response,
-	_next: NextFunction
-) => {
+export default (err: ErrorBuilder, req: Request, res: Response, _next: NextFunction) => {
 	if (req.app.get('env') === 'development') {
 		logger.error(err)
 	}
@@ -29,11 +24,7 @@ export default (
 			messages = [err.message]
 		}
 	} else {
-		logger.error(
-			`${500} - ${err.message} - ${req.originalUrl} - ${req.method} - ${
-				req.ip
-			}`
-		)
+		logger.error(`${500} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`)
 		logger.error(`stack: ${JSON.stringify(util.inspect(err.stack))} \n`)
 
 		messages = [

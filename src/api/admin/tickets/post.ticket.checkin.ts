@@ -24,11 +24,7 @@ export const schema = Joi.object().keys({
 	}),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	let transaction: any = null
 
 	try {
@@ -48,16 +44,11 @@ export const workflow = async (
 				{
 					association: 'ticketType',
 					paranoid: false,
-					include: [
-						{ association: 'swimmingPools', attributes: ['id'] },
-					],
+					include: [{ association: 'swimmingPools', attributes: ['id'] }],
 				},
 				{
 					association: 'entries',
-					model: EntryModel.scope([
-						{ method: ['timestamp'] },
-						'manual',
-					]),
+					model: EntryModel.scope([{ method: ['timestamp'] }, 'manual']),
 					separate: true,
 					order: [['timestamp', 'asc']],
 					attributes: ['id', 'timestamp', 'type'],
@@ -69,17 +60,12 @@ export const workflow = async (
 			throw new ErrorBuilder(404, req.t('error:ticketNotFound'))
 		}
 
-		const checkinTicketErrorBuilder = validateCheckin(
-			ticket,
-			params.swimmingPoolId
-		)
+		const checkinTicketErrorBuilder = validateCheckin(ticket, params.swimmingPoolId)
 
 		if (checkinTicketErrorBuilder.getStatus() === CHECK_STATUS.OK) {
 			transaction = await sequelize.transaction()
 
-			const firstCheckInEntry = find(ticket.entries, (entry) =>
-				entry.isCheckIn()
-			)
+			const firstCheckInEntry = find(ticket.entries, (entry) => entry.isCheckIn())
 
 			// IF FIRST CHECK-IN TODAY
 			if (ticket.ticketType.isEntries && !firstCheckInEntry) {

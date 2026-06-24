@@ -29,24 +29,12 @@ export const schema = Joi.object()
 
 const { SwimmingLoggedUser } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		// TODO admin should get all if authenticated user get only myself
 
 		const swimmingLoggedUsers = await SwimmingLoggedUser.findAll({
-			attributes: [
-				'id',
-				'externalAzureId',
-				'age',
-				'zip',
-				'createdAt',
-				'updatedAt',
-				'deletedAt',
-			],
+			attributes: ['id', 'externalAzureId', 'age', 'zip', 'createdAt', 'updatedAt', 'deletedAt'],
 			include: [
 				{
 					association: 'image',
@@ -67,9 +55,7 @@ export const workflow = async (
 			map(swimmingLoggedUsers, async (swimmingLoggedUser) => {
 				return {
 					...formatSwimmingLoggedUser(swimmingLoggedUser),
-					image: swimmingLoggedUser.image
-						? await readAsBase64(swimmingLoggedUser.image)
-						: null,
+					image: swimmingLoggedUser.image ? await readAsBase64(swimmingLoggedUser.image) : null,
 				}
 			})
 		)

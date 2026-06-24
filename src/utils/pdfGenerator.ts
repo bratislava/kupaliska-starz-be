@@ -5,11 +5,7 @@ import i18next from 'i18next'
 import { Base64Encode } from 'base64-stream'
 import { getChildrenTicketName } from './translationsHelpers'
 import { groupBy, round } from 'lodash'
-import {
-	getAdultsAndChildrenCountForTicketType,
-	getDiscount,
-	printDecimal2,
-} from './helpers'
+import { getAdultsAndChildrenCountForTicketType, getDiscount, printDecimal2 } from './helpers'
 import { TicketWithDiscountPercent } from './emailSender'
 
 export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
@@ -30,8 +26,7 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 			numberOfAdults++
 		}
 	}
-	const numberOfChildrenWithoutAdult =
-		numberOfChildren - numberOfChildrenWithAdult
+	const numberOfChildrenWithoutAdult = numberOfChildren - numberOfChildrenWithAdult
 
 	// is this still desired the way it was when we have multiple ticketTypes, asked service designer and answer is it doesn't matter
 	ticketsForPdf = sortTickets(ticketsForPdf)
@@ -72,13 +67,13 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 			startPadding +
 			numberOfAdults * (rowPadding + qrCodeHeight) +
 			(ticketsForPdf.length === numberOfAdults ? endPadding : -20)
-		doc.rect(0, 0, 352.5, adultsBackgroundHeight).fillAndStroke(
-			textColorsMap[
-				isSeniorOrDisabledTicket
-					? TICKET_CATEGORY.SENIOR_OR_DISABLED
-					: TICKET_CATEGORY.ADULT
-			].background
-		)
+		doc
+			.rect(0, 0, 352.5, adultsBackgroundHeight)
+			.fillAndStroke(
+				textColorsMap[
+					isSeniorOrDisabledTicket ? TICKET_CATEGORY.SENIOR_OR_DISABLED : TICKET_CATEGORY.ADULT
+				].background
+			)
 
 		endPadding += 20
 	}
@@ -88,37 +83,28 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 		childrenWithAdultBackgroundHeight =
 			(numberOfAdults === 0 ? startPadding : 0) +
 			numberOfChildrenWithAdult * (rowPaddingChildren + qrCodeHeight) +
-			(ticketsForPdf.length === numberOfAdults + numberOfChildrenWithAdult
-				? endPadding
-				: 0)
+			(ticketsForPdf.length === numberOfAdults + numberOfChildrenWithAdult ? endPadding : 0)
 
-		doc.rect(
-			0,
-			adultsBackgroundHeight,
-			352.5,
-			childrenWithAdultBackgroundHeight
-		).fillAndStroke(
-			textColorsMap[TICKET_CATEGORY.CHILDREN_WITH_ADULT].background
-		)
+		doc
+			.rect(0, adultsBackgroundHeight, 352.5, childrenWithAdultBackgroundHeight)
+			.fillAndStroke(textColorsMap[TICKET_CATEGORY.CHILDREN_WITH_ADULT].background)
 	}
 
 	let childrenWithoutAdultBackgroundHeight = 0
 	if (numberOfChildrenWithoutAdult > 0) {
 		childrenWithoutAdultBackgroundHeight =
-			(numberOfAdults === 0 && numberOfChildrenWithAdult === 0
-				? startPadding
-				: 0) +
+			(numberOfAdults === 0 && numberOfChildrenWithAdult === 0 ? startPadding : 0) +
 			numberOfChildrenWithoutAdult * (rowPaddingChildren + qrCodeHeight) +
 			endPadding
 
-		doc.rect(
-			0,
-			adultsBackgroundHeight + childrenWithAdultBackgroundHeight,
-			352.5,
-			childrenWithoutAdultBackgroundHeight
-		).fillAndStroke(
-			textColorsMap[TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT].background
-		)
+		doc
+			.rect(
+				0,
+				adultsBackgroundHeight + childrenWithAdultBackgroundHeight,
+				352.5,
+				childrenWithoutAdultBackgroundHeight
+			)
+			.fillAndStroke(textColorsMap[TICKET_CATEGORY.CHILDREN_WITHOUT_ADULT].background)
 	}
 
 	doc.fill(getTicketTextColor(ticketsForPdf[0])).stroke()
@@ -138,23 +124,26 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 		const name = ticket.isChildren
 			? getChildrenTicketName()
 			: isSeniorOrDisabledTicket
-			? i18next.t('translation:seniorOrDisabledTicket')
-			: ticket.ticketType.name
+				? i18next.t('translation:seniorOrDisabledTicket')
+				: ticket.ticketType.name
 
-		doc.fontSize(18)
+		doc
+			.fontSize(18)
 			.font('resources/fonts/WorkSans-Bold.ttf')
 			.text(name, doc.x, startPadding + qrCodeHeight + 22.5, {
 				align: 'center',
 			})
 			.moveDown(0.5)
 
-		doc.fontSize(12)
+		doc
+			.fontSize(12)
 			.font('resources/fonts/WorkSans-Medium.ttf')
 			.text(ticket.profile.name, { align: 'center' })
 
 		if (ticket.isChildren) {
 			doc.moveDown(0.12)
-			doc.fontSize(12)
+			doc
+				.fontSize(12)
 				.font('resources/fonts/WorkSans-Medium.ttf')
 				.text(
 					`${i18next.t('year', {
@@ -164,7 +153,8 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 				)
 
 			doc.moveDown(1)
-			doc.fontSize(12)
+			doc
+				.fontSize(12)
 				.font('resources/fonts/WorkSans-Medium.ttf')
 				.text(
 					ticket.withAdult()
@@ -173,7 +163,8 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 					{ align: 'center' }
 				)
 			doc.moveDown(0.12)
-			doc.fontSize(12)
+			doc
+				.fontSize(12)
 				.font('resources/fonts/WorkSans-Medium.ttf')
 				.text(
 					ticket.withAdult()
@@ -184,7 +175,8 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 			startPadding += qrCodeHeight + rowPaddingChildren
 		} else if (isSeniorOrDisabledTicket) {
 			doc.moveDown(0.12)
-			doc.fontSize(12)
+			doc
+				.fontSize(12)
 				.font('resources/fonts/WorkSans-Medium.ttf')
 				.text(
 					`${i18next.t('year', {
@@ -194,7 +186,8 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 				)
 
 			doc.moveDown(1)
-			doc.fontSize(12)
+			doc
+				.fontSize(12)
 				.font('resources/fonts/WorkSans-Medium.ttf')
 				.text(i18next.t('translation:seniorOrDisabledText'), {
 					align: 'center',
@@ -259,9 +252,7 @@ const getTicketRowData = (
 ) => {
 	const vatBasePercentage = 100 + vatPercentage
 	const sumPriceVat = quantity * priceWithVat
-	const sumVatAmount = Math.round(
-		(sumPriceVat * vatPercentage) / vatBasePercentage
-	)
+	const sumVatAmount = Math.round((sumPriceVat * vatPercentage) / vatBasePercentage)
 	// order of operations is important here, multiply by 100, then divide by vatBasePercentage
 	const ticketPrice = Math.round((priceWithVat * 100) / vatBasePercentage)
 	const sumPriceWithoutVat = Math.round(sumPriceVat - sumVatAmount)
@@ -346,10 +337,7 @@ export const generatePdfVatDocument = async (
 
 	let leftPadding = 50
 
-	doc.fontSize(fontSizeMedium).text(
-		i18next.t('translation:pdfVatWhereSite'),
-		leftPadding
-	) // k nákupu na kupaliska.bratislava.sk
+	doc.fontSize(fontSizeMedium).text(i18next.t('translation:pdfVatWhereSite'), leftPadding) // k nákupu na kupaliska.bratislava.sk
 
 	doc.moveDown()
 
@@ -364,18 +352,9 @@ export const generatePdfVatDocument = async (
 
 	doc.font('resources/fonts/WorkSans-Medium.ttf')
 
-	doc.fontSize(fontSizeMedium).text(
-		i18next.t('translation:pdfVatAddress'),
-		leftPadding
-	) // Junácka 4
-	doc.fontSize(fontSizeMedium).text(
-		i18next.t('translation:pdfVatCity'),
-		leftPadding
-	) // 831 04 Bratislava 3
-	doc.fontSize(fontSizeMedium).text(
-		i18next.t('translation:pdfVatCountry'),
-		leftPadding
-	) // Slovenská republika
+	doc.fontSize(fontSizeMedium).text(i18next.t('translation:pdfVatAddress'), leftPadding) // Junácka 4
+	doc.fontSize(fontSizeMedium).text(i18next.t('translation:pdfVatCity'), leftPadding) // 831 04 Bratislava 3
+	doc.fontSize(fontSizeMedium).text(i18next.t('translation:pdfVatCountry'), leftPadding) // Slovenská republika
 
 	doc.moveDown()
 
@@ -599,10 +578,7 @@ export const generatePdfVatDocument = async (
 			{
 				font: { size: fontSizeMedium },
 				align: { x: 'right', y: 'top' },
-				text:
-					row.quantity +
-					' ' +
-					i18next.t('translation:pdfVatQuantity'), // ks
+				text: row.quantity + ' ' + i18next.t('translation:pdfVatQuantity'), // ks
 			},
 			{
 				font: { size: fontSizeMedium },
@@ -657,10 +633,7 @@ export const generatePdfVatDocument = async (
 			(acc, ticketType) =>
 				acc +
 				round(
-					ticketType.reduce(
-						(acc, row) => acc + row.sumPriceWithoutVat,
-						0
-					),
+					ticketType.reduce((acc, row) => acc + row.sumPriceWithoutVat, 0),
 					2
 				),
 			0
@@ -812,7 +785,8 @@ export const generatePdfVatDocument = async (
 
 	const thankYouPadding = 350
 
-	doc.fontSize(fontSizeMedium)
+	doc
+		.fontSize(fontSizeMedium)
 		.font('resources/fonts/WorkSans-Bold.ttf')
 		.text(i18next.t('translation:pdfVatThankYou'), thankYouPadding) // ĎAKUJEME, UŽ UHRADENÉ
 
@@ -843,21 +817,11 @@ function getDataForTicketType(
 		let ticketName = ticketType.name
 
 		if (discountPercent > 0) {
-			ticketName = `${i18next.t(
-				'translation:pdfVatDiscount'
-			)} ${discountPercent} % – ${ticketName}`
-			priceVat = getDiscount(
-				ticketType.priceWithVat,
-				discountPercent
-			).newTicketsPrice
+			ticketName = `${i18next.t('translation:pdfVatDiscount')} ${discountPercent} % – ${ticketName}`
+			priceVat = getDiscount(ticketType.priceWithVat, discountPercent).newTicketsPrice
 		}
 		ticketsRowData.push(
-			getTicketRowData(
-				ticketName,
-				numberOfAdults,
-				priceVat,
-				ticketType.vatPercentage
-			)
+			getTicketRowData(ticketName, numberOfAdults, priceVat, ticketType.vatPercentage)
 		)
 	}
 
@@ -865,21 +829,11 @@ function getDataForTicketType(
 		let priceVat = ticketType.childrenPriceWithVat
 		let ticketName = getChildrenTicketName()
 		if (discountPercent > 0) {
-			ticketName = `${i18next.t(
-				'translation:pdfVatDiscount'
-			)} ${discountPercent} % – ${ticketName}`
-			priceVat = getDiscount(
-				ticketType.childrenPriceWithVat,
-				discountPercent
-			).newTicketsPrice
+			ticketName = `${i18next.t('translation:pdfVatDiscount')} ${discountPercent} % – ${ticketName}`
+			priceVat = getDiscount(ticketType.childrenPriceWithVat, discountPercent).newTicketsPrice
 		}
 		ticketsRowData.push(
-			getTicketRowData(
-				ticketName,
-				numberOfChildren,
-				priceVat,
-				ticketType.childrenVatPercentage
-			)
+			getTicketRowData(ticketName, numberOfChildren, priceVat, ticketType.childrenVatPercentage)
 		)
 	}
 	return ticketsRowData

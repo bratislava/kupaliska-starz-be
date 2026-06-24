@@ -26,13 +26,9 @@ export default (extractFrom = 'params') =>
 
 		const usersSwimmingPools = map(user.swimmingPools, (pool) => pool.id)
 		const accessedSwimmingPools =
-			extractFrom === 'params'
-				? [params.swimmingPoolId]
-				: (query.swimmingPools as string[])
+			extractFrom === 'params' ? [params.swimmingPoolId] : (query.swimmingPools as string[])
 
-		if (
-			difference(accessedSwimmingPools, usersSwimmingPools).length === 0
-		) {
+		if (difference(accessedSwimmingPools, usersSwimmingPools).length === 0) {
 			return next()
 		}
 

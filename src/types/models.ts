@@ -1,11 +1,5 @@
 import { Strategy, StrategyOptions, VerifyCallback } from 'passport-jwt'
-import {
-	InstanceDestroyOptions,
-	Model,
-	WhereOptions,
-	UpdateOptions,
-	FindOptions,
-} from 'sequelize'
+import { InstanceDestroyOptions, Model, WhereOptions, UpdateOptions, FindOptions } from 'sequelize'
 
 /* eslint-disable import/prefer-default-export */
 export class DatabaseModel extends Model {

@@ -23,11 +23,7 @@ export const schema = Joi.object().keys({
 	}),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	let transaction: any = null
 
 	try {
@@ -43,16 +39,11 @@ export const workflow = async (
 				{
 					association: 'ticketType',
 					paranoid: false,
-					include: [
-						{ association: 'swimmingPools', attributes: ['id'] },
-					],
+					include: [{ association: 'swimmingPools', attributes: ['id'] }],
 				},
 				{
 					association: 'entries',
-					model: EntryModel.scope([
-						{ method: ['timestamp'] },
-						'manual',
-					]),
+					model: EntryModel.scope([{ method: ['timestamp'] }, 'manual']),
 					separate: true,
 					order: [['timestamp', 'asc']],
 					attributes: ['id', 'timestamp', 'type'],
@@ -64,10 +55,7 @@ export const workflow = async (
 			throw new ErrorBuilder(404, req.t('error:ticketNotFound'))
 		}
 
-		const checkoutTicketErrorBuilder = validateCheckout(
-			ticket,
-			params.swimmingPoolId
-		)
+		const checkoutTicketErrorBuilder = validateCheckout(ticket, params.swimmingPoolId)
 
 		if (checkoutTicketErrorBuilder.getStatus() === CHECK_STATUS.OK) {
 			transaction = await sequelize.transaction()

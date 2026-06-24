@@ -28,10 +28,7 @@ export class UserModel extends DatabaseModel {
 		}
 
 		if (this.role === USER_ROLE.OPERATOR) {
-			return (
-				targetRole !== USER_ROLE.SUPER_ADMIN &&
-				targetRole !== USER_ROLE.OPERATOR
-			)
+			return targetRole !== USER_ROLE.SUPER_ADMIN && targetRole !== USER_ROLE.OPERATOR
 		}
 		return false
 	}

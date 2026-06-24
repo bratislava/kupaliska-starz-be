@@ -36,17 +36,12 @@ const getDiscountPercentForTicket = (
 		return 0
 	}
 	const code = sortedDiscountCodesModels.find((discountCodeModel) =>
-		discountCodeModel.ticketTypes?.some(
-			(ticketType) => ticketType.id === ticket.ticketTypeId
-		)
+		discountCodeModel.ticketTypes?.some((ticketType) => ticketType.id === ticket.ticketTypeId)
 	)
 	return code ? code.amount : 0
 }
 
-export const sendOrderEmail = async (
-	req: Request | undefined,
-	orderId: string
-) => {
+export const sendOrderEmail = async (req: Request | undefined, orderId: string) => {
 	const order = await Order.findByPk(orderId, {
 		include: [
 			{
@@ -87,8 +82,7 @@ export const sendOrderEmail = async (
 				...i18NextConfig,
 			}) // it has to be copy otherwise is readonly
 	}
-	const zerofilled =
-		order.orderPaidInYear + `00000000${order.orderNumberInYear}`.slice(-8)
+	const zerofilled = order.orderPaidInYear + `00000000${order.orderNumberInYear}`.slice(-8)
 
 	for (const ticket of order.tickets) {
 		ticket.qrCode = await generateQrCodeBuffer(ticket.id, {
@@ -114,20 +108,12 @@ export const sendOrderEmail = async (
 		// TODO refactor in getOrderEmailData we are using order.getItems where adults and children are grouped and counted by ticketType
 		// and then we are using mappedTickets to generate pdfs and qr codes
 		getOrderEmailData(order),
-		order.tickets.length < 10
-			? await getOrderEmailInlineAttachments(order.tickets)
-			: undefined,
-		await getOrderEmailAttachments(
-			mappedTickets,
-			order.priceWithVat,
-			zerofilled
-		)
+		order.tickets.length < 10 ? await getOrderEmailInlineAttachments(order.tickets) : undefined,
+		await getOrderEmailAttachments(mappedTickets, order.priceWithVat, zerofilled)
 	)
 }
 
-const getOrderEmailInlineAttachments = async (
-	tickets: TicketModel[]
-): Promise<CustomFile[]> => {
+const getOrderEmailInlineAttachments = async (tickets: TicketModel[]): Promise<CustomFile[]> => {
 	return await Promise.all(
 		map(tickets, async (ticket, index) => {
 			return {
@@ -147,26 +133,17 @@ const getOrderEmailAttachments = async (
 		await Promise.all(
 			tickets.length <= 5
 				? map(tickets, async (ticket) => {
-						const ticketProfileName = ticket.profile.name
-							? `${ticket.profile.name}_`
-							: ''
+						const ticketProfileName = ticket.profile.name ? `${ticket.profile.name}_` : ''
 						ticket.qrCode = await generateQrCodeBuffer(ticket.id)
 						return {
-							data: Buffer.from(
-								await generatePdf([ticket]),
-								'base64'
-							),
+							data: Buffer.from(await generatePdf([ticket]), 'base64'),
 
 							// when filename contains "/" it will be deleted with everything before it therefore we need to replace it with something else
-							filename: `${ticketProfileName
+							filename: `${ticketProfileName.toString().replace('/', ', ')}${ticket.ticketType.name
 								.toString()
-								.replace('/', ', ')}${ticket.ticketType.name
-								.toString()
-								.replace('/', ', ')}_${ticket.id.substr(
-								ticket.id.length - 8
-							)}.pdf`,
+								.replace('/', ', ')}_${ticket.id.substr(ticket.id.length - 8)}.pdf`,
 						}
-				  })
+					})
 				: []
 		),
 		tickets.length > 1
@@ -175,15 +152,11 @@ const getOrderEmailAttachments = async (
 						data: Buffer.from(await generatePdf(tickets), 'base64'),
 						filename: `${i18next.t('allTickets')}.pdf`,
 					},
-			  ]
+				]
 			: [],
 		{
 			data: Buffer.from(
-				await generatePdfVatDocument(
-					tickets,
-					orderPriceWithVat,
-					orderVatDocumentNumber
-				),
+				await generatePdfVatDocument(tickets, orderPriceWithVat, orderVatDocumentNumber),
 				'base64'
 			),
 			filename: `danovy-doklad.pdf`,
@@ -201,27 +174,21 @@ const getOrderEmailData = (order: OrderModel) => {
 						const appleWalletUrl = `${appConfig.host}/api/v1/orders/appleWallet/${ticket.id}`
 						const googleWalletUrl = `${appConfig.host}/api/v1/orders/googlePay/${ticket.id}`
 						return {
-							heading: ticket.isChildren
-								? getChildrenTicketName()
-								: ticket.ticketType.name,
+							heading: ticket.isChildren ? getChildrenTicketName() : ticket.ticketType.name,
 							subheading: !ticket.ticketType.isDisposable
 								? ticket.profile.name +
-								  `, ${i18next.t('year', {
+									`, ${i18next.t('year', {
 										count: ticket.profile.age,
-								  })}`
+									})}`
 								: null,
 							qrCode: `cid:qr-code-${index + 1}.png`,
-							backgroundColor:
-								textColorsMap[ticket.getCategory()].background,
+							backgroundColor: textColorsMap[ticket.getCategory()].background,
 							textColor: textColorsMap[ticket.getCategory()].text,
 							appleWalletUrl: appleWalletUrl,
 							googleWalletUrl: googleWalletUrl,
-							hasWalletTicket:
-								appleWalletUrl || googleWalletUrl
-									? true
-									: false,
+							hasWalletTicket: appleWalletUrl || googleWalletUrl ? true : false,
 						}
-				  })
+					})
 				: [],
 	}
 }

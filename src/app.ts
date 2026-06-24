@@ -33,10 +33,7 @@ import { IAppConfig, IPassportConfig } from './types/interfaces'
 import { checkPaymentKeys } from './services/webpayService'
 
 import routerAdmin from './api/admin'
-import {
-	downloadFileFromBucket,
-	minioStaticServeMiddleware,
-} from './utils/minio'
+import { downloadFileFromBucket, minioStaticServeMiddleware } from './utils/minio'
 import { readFile } from 'fs/promises'
 import { CognitoStrategy } from './types/models'
 import { httpLogger } from './utils/logger'
@@ -158,8 +155,7 @@ app.use('/public', express.static('files/public'))
 
 // TODO only for testing, remove
 app.use('/api/test-download-base64', async (_req, res) => {
-	const fullFilePath =
-		'files/private/swimming-logged-user/file-1654531467171.jpeg'
+	const fullFilePath = 'files/private/swimming-logged-user/file-1654531467171.jpeg'
 	await downloadFileFromBucket(fullFilePath)
 	const base64File = await readFile(fullFilePath, { encoding: 'base64' })
 	res.json({ base64: base64File })

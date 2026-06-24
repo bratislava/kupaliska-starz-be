@@ -46,11 +46,7 @@ export default () => {
 		}
 	)
 
-	router.get(
-		'/tickets',
-		passport.authenticate('jwt-cognito'),
-		GetLoggedUserTickets.workflow
-	)
+	router.get('/tickets', passport.authenticate('jwt-cognito'), GetLoggedUserTickets.workflow)
 
 	router.post(
 		'/getPrice',
@@ -97,11 +93,7 @@ export default () => {
 		schemaMiddleware(GetAppleWallet.schema),
 		GetAppleWallet.workflow
 	)
-	router.get(
-		'/googlePay/:ticketId',
-		schemaMiddleware(GetGooglePay.schema),
-		GetGooglePay.workflow
-	)
+	router.get('/googlePay/:ticketId', schemaMiddleware(GetGooglePay.schema), GetGooglePay.workflow)
 
 	return router
 }

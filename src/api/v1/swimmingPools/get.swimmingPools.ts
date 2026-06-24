@@ -15,22 +15,14 @@ export const schema = Joi.object().keys({
 			.valid('name', 'description', 'createdAt', 'ordering')
 			.empty(['', null])
 			.default('createdAt'),
-		direction: Joi.string()
-			.lowercase()
-			.valid('asc', 'desc')
-			.empty(['', null])
-			.default('desc'),
+		direction: Joi.string().lowercase().valid('asc', 'desc').empty(['', null]).default('desc'),
 	}),
 	params: Joi.object(),
 })
 
 const { SwimmingPool } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { query }: any = req
 		const { limit, page } = query
@@ -45,13 +37,7 @@ export const workflow = async (
 		}
 
 		const swimmingPools = await SwimmingPool.findAll({
-			attributes: [
-				'id',
-				'name',
-				'description',
-				'locationUrl',
-				'ordering',
-			],
+			attributes: ['id', 'name', 'description', 'locationUrl', 'ordering'],
 			where,
 			limit,
 			offset,
@@ -64,9 +50,7 @@ export const workflow = async (
 		})
 
 		return res.json({
-			swimmingPools: map(swimmingPools, (pool) =>
-				formatSwimmingPool(pool)
-			),
+			swimmingPools: map(swimmingPools, (pool) => formatSwimmingPool(pool)),
 			pagination: {
 				page: query.page,
 				limit: query.limit,

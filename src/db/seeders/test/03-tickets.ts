@@ -1,10 +1,4 @@
-import {
-	ENTRY_FLAG,
-	ENTRY_TYPE,
-	TICKET_TYPE,
-	USER_ROLE,
-	ORDER_STATE,
-} from '../../../utils/enums'
+import { ENTRY_FLAG, ENTRY_TYPE, TICKET_TYPE, USER_ROLE, ORDER_STATE } from '../../../utils/enums'
 import { QueryInterface } from 'sequelize'
 import { TicketModel } from '../../models/ticket'
 import { UserModel } from '../../models/user'
@@ -13,12 +7,9 @@ import { createProfile } from '../../factories/profile'
 import faker from 'faker'
 
 export const ticketId = 'c70954c7-970d-4f1a-acf4-12b91acabe01'
-export const ticketAllowedSwimmingPoolId =
-	'c70954c7-970d-4f1a-acf4-12b91acabe05'
-export const ticketTypeSeasonNameRequired =
-	'c70954c7-970d-4f1a-acf4-12b91acabe02'
-export const ticket2AllowedSwimmingPoolId =
-	'c70954c7-970d-4f1a-acf4-12b91acabe07'
+export const ticketAllowedSwimmingPoolId = 'c70954c7-970d-4f1a-acf4-12b91acabe05'
+export const ticketTypeSeasonNameRequired = 'c70954c7-970d-4f1a-acf4-12b91acabe02'
+export const ticket2AllowedSwimmingPoolId = 'c70954c7-970d-4f1a-acf4-12b91acabe07'
 export const ticket3Id = 'c70954c7-970d-4f1a-acf4-12b91acabe03'
 export const ticketTypeIdEntries = 'c70954c7-970d-4f1a-acf4-12b91acabe06'
 
@@ -58,10 +49,7 @@ export async function up(queryInterface: QueryInterface) {
 					validTo: '2021-07-12',
 					hasTicketDuration: false,
 					hasEntranceConstraints: false,
-					swimmingPools: [
-						createSwimmingPool(),
-						createSwimmingPool(ticketAllowedSwimmingPoolId),
-					],
+					swimmingPools: [createSwimmingPool(), createSwimmingPool(ticketAllowedSwimmingPoolId)],
 				},
 			},
 			{
@@ -93,10 +81,7 @@ export async function up(queryInterface: QueryInterface) {
 					entranceFrom: '14:00',
 					entranceTo: '15:00',
 					entriesNumber: 10,
-					swimmingPools: [
-						createSwimmingPool(),
-						createSwimmingPool(ticket2AllowedSwimmingPoolId),
-					],
+					swimmingPools: [createSwimmingPool(), createSwimmingPool(ticket2AllowedSwimmingPoolId)],
 				},
 				entries: [
 					{
@@ -186,10 +171,7 @@ export async function up(queryInterface: QueryInterface) {
 					entranceFrom: '14:00',
 					entranceTo: '15:00',
 					entriesNumber: 5,
-					swimmingPools: [
-						createSwimmingPool(),
-						createSwimmingPool(ticketTypeIdEntries),
-					],
+					swimmingPools: [createSwimmingPool(), createSwimmingPool(ticketTypeIdEntries)],
 				},
 			},
 		],
@@ -203,10 +185,7 @@ export async function up(queryInterface: QueryInterface) {
 				},
 				{
 					association: 'entries',
-					include: [
-						{ association: 'employee' },
-						{ association: 'swimmingPool' },
-					],
+					include: [{ association: 'employee' }, { association: 'swimmingPool' }],
 				},
 			],
 		}

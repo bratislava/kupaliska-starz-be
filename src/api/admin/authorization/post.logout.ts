@@ -13,11 +13,7 @@ export const schema = Joi.object().keys({
 
 const { User } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const user = req.user as UserModel
 		const userExists = await User.findByPk(user.id)
