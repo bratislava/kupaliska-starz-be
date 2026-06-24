@@ -22,14 +22,10 @@ export = {
 	},
 	workers: {
 		schedule: {
-			visitsComputation:
-				process.env.SCHEDULE_VISITS_COMPUTATION || '00 00 23 * * *', // Run visits computation at 23:00 every day
-			refreshCustomersView:
-				process.env.SCHEDULE_REFRESH_CUSTOMERS_VIEW || '00 00 23 * * *', // Refresh customers views at 23:00 every day
+			visitsComputation: process.env.SCHEDULE_VISITS_COMPUTATION || '00 00 23 * * *', // Run visits computation at 23:00 every day
+			refreshCustomersView: process.env.SCHEDULE_REFRESH_CUSTOMERS_VIEW || '00 00 23 * * *', // Refresh customers views at 23:00 every day
 			updateAge: process.env.SCHEDULE_UPDATE_AGE || '00 00 23 * * *', // Run update age at 23:00 every day
-			checkCreatedUnpaidOrders:
-				process.env.SCHEDULE_CHECK_CREATED_UNPAID_ORDERS ||
-				'0 */1 * * * *', // check created unpaid orders every 1 minutes
+			checkCreatedUnpaidOrders: process.env.SCHEDULE_CHECK_CREATED_UNPAID_ORDERS || '0 */1 * * * *', // check created unpaid orders every 1 minutes
 		},
 	},
 	i18next: <I18nextOptions>{
@@ -72,9 +68,7 @@ export = {
 			orderResponse: {
 				audience: 'jwt-order-response',
 				exp: '10m',
-				jwtFromRequest: ExtractJwt.fromExtractors([
-					ExtractJwt.fromHeader('order-authorization'),
-				]),
+				jwtFromRequest: ExtractJwt.fromExtractors([ExtractJwt.fromHeader('order-authorization')]),
 			},
 		},
 	},
@@ -110,9 +104,7 @@ export = {
 			? path.join(process.env.GP_WEBPAY_KEYS_PATH, 'gpe.signing.pem')
 			: path.join(process.cwd(), 'resources', 'keys', 'gpe.signing.pem'), // GPE public key (certificate) path
 		privateKeyPassword: process.env.GP_WEBPAY_PRIV_KEY_PASS, // Private key passphrase
-		clientAppUrl:
-			process.env.GP_WEBPAY_CLIENT_APP_URL ||
-			'http://kupaliska.bratislava.sk', // front-end URL
+		clientAppUrl: process.env.GP_WEBPAY_CLIENT_APP_URL || 'http://kupaliska.bratislava.sk', // front-end URL
 		provider: process.env.GP_WEBPAY_PROVIDER, // Provider code = Global Payments s.r.o. – SK
 	},
 	minio: {
