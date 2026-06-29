@@ -29,10 +29,6 @@ export const getAllAges = (ageInterval: number, ageMinimum: number) => {
 
 // TODO this should live in authorization middleware and attach the city account data to the request object
 export const getCityAccountData = async (accessToken: string) => {
-	// TODO proper error handling,
-	// at least https://github.com/node-fetch/node-fetch#handling-client-and-server-errors
-	// check also other fetch usages
-
 	const response = await fetch(`${process.env.CITY_ACCOUNT_BE_URL}/auth/user`, {
 		headers: {
 			Authorization: accessToken,
