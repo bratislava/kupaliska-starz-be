@@ -50,7 +50,7 @@
 		"minimumIsOneAdult": "Súčasťou lístka musí byť aspoň 1 dospelý",
 		"emailIsEmpty": "Email je povinný",
 		"emailNotFoundOnUser": "Nepodarilo sa získať emailovú adresu z mestského konta - kontaktujte prosím podporu",
-		"discountOnlyForOneUser": "Zľavový kód môže byť uplatnený iba pre jednu dospelú osobu, odstránte prosím ostatné dospelé osoby z objednávky.",
+		"discountOnlyForOneUser": "Zľavový kód môže byť uplatnený iba pre jednu dospelú osobu, odstráňte prosím ostatné dospelé osoby z objednávky.",
 		"userNotAllowedTicketType": "Používateľ nemá povolený tento typ lístka. Prosím, založte si konto ako fyzická osoba."
 	},
 	"ticketNotFound": "Lístok sa nenašiel",
