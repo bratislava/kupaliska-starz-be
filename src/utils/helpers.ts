@@ -1,14 +1,14 @@
-import { map, round } from 'lodash'
+import { map } from 'lodash'
 import { QueryInterface } from 'sequelize'
-import fetch from 'node-fetch'
 import dayjs from 'dayjs'
 import { CityAccountUser } from './cityAccountDto'
-import ErrorBuilder from './ErrorBuilder'
 import i18next from 'i18next'
 import { ORDER_STATE, TICKET_CATEGORY } from './enums'
 import { TicketModel } from '../db/models/ticket'
 import sequelize, { models } from '../db/models'
 import { OrderModel } from '../db/models/order'
+import { checkStatus } from './HTTPResponseErrorBuilder'
+import logger from './logger'
 export const checkTableExists = async (queryInterface: QueryInterface, table: string) => {
 	const tables = await queryInterface.showAllTables()
 	return tables.find((item: string) => item === table)
@@ -29,19 +29,33 @@ export const getAllAges = (ageInterval: number, ageMinimum: number) => {
 
 // TODO this should live in authorization middleware and attach the city account data to the request object
 export const getCityAccountData = async (accessToken: string) => {
-	const result = await fetch(`${process.env.CITY_ACCOUNT_BE_URL}/auth/user`, {
+	// TODO proper error handling,
+	// at least https://github.com/node-fetch/node-fetch#handling-client-and-server-errors
+	// check also other fetch usages
+
+	const response = await fetch(`${process.env.CITY_ACCOUNT_BE_URL}/auth/user`, {
 		headers: {
 			Authorization: accessToken,
 		},
 	})
-	if (!result.ok) {
-		if (result.status === 401) {
-			throw new ErrorBuilder(401, 'Unauthorized')
-		} else {
-			throw new Error('Error fetching account')
-		}
+	try {
+		checkStatus(response)
+	} catch (error) {
+		logger.error(error)
+
+		const errorBody = await error.response.text()
+		logger.error(`Error body: ${errorBody}`)
 	}
-	return (await result.json()) as Partial<CityAccountUser>
+	// if (!response.ok) {
+	// 	// TODO add logging of the error itself
+	// 	if (response.status === 401) {
+	// 		throw new ErrorBuilder(401, 'Unauthorized')
+	// 	} else {
+	// 		throw new Error('Error fetching account')
+	// 	}
+	// }
+
+	return (await response.json()) as Partial<CityAccountUser>
 }
 
 // https://stackoverflow.com/a/39077686
