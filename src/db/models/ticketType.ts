@@ -34,7 +34,7 @@ export class TicketTypeModel extends DatabaseModel {
 	entranceTo: string
 	hasTicketDuration: boolean
 	ticketDuration: string
-	ordering: number
+	displayOrder: number
 	// entrances ticket
 	entriesNumber: number
 	// meta
@@ -158,7 +158,7 @@ export default (sequelize: Sequelize) => {
 						: null
 				},
 			},
-			ordering: {
+			displayOrder: {
 				type: DataTypes.SMALLINT,
 				allowNull: false,
 				defaultValue: 0,
@@ -225,25 +225,26 @@ export default (sequelize: Sequelize) => {
 			hooks: {
 				beforeCreate: async (ticketType, options) => {
 					const ticketTypesCount = await TicketTypeModel.count()
-					if (ticketType.ordering === 0) {
-						ticketType.ordering = ticketTypesCount + 1
+					if (ticketType.displayOrder === 0) {
+						ticketType.displayOrder = ticketTypesCount + 1
 					} else {
 						validateZod(
 							true,
-							ticketType.ordering,
+							ticketType.displayOrder,
 							z.number().max(ticketTypesCount + 1),
-							i18next.t('error:exceededOrderingNumber'),
-							'exceededOrderingNumber'
+							i18next.t('error:exceededDisplayOrderNumber'),
+							'exceededDisplayOrderNumber'
 						)
 
 						await TicketTypeModel.update(
 							{
-								ordering: Sequelize.literal('ordering +1'),
+								displayOrder:
+									Sequelize.literal('displayOrder +1'),
 							},
 							{
 								where: {
-									ordering: {
-										[Op.gte]: ticketType.ordering,
+									displayOrder: {
+										[Op.gte]: ticketType.displayOrder,
 									},
 								},
 								transaction: options.transaction,
@@ -253,43 +254,44 @@ export default (sequelize: Sequelize) => {
 					}
 				},
 				beforeUpdate: async (ticketType, options) => {
-					const previousOrdering = ticketType.previous('ordering')
+					const previousDisplayOrder =
+						ticketType.previous('displayOrder')
 
 					if (
-						ticketType.ordering !== 0 &&
-						previousOrdering !== ticketType.ordering
+						ticketType.displayOrder !== 0 &&
+						previousDisplayOrder !== ticketType.displayOrder
 					) {
 						const ticketTypesCount = await TicketTypeModel.count()
 						validateZod(
 							true,
-							ticketType.ordering,
+							ticketType.displayOrder,
 							z.number().max(ticketTypesCount),
-							i18next.t('error:exceededOrderingNumber'),
-							'exceededOrderingNumber'
+							i18next.t('error:exceededDisplayOrderNumber'),
+							'exceededDisplayOrderNumber'
 						)
 
-						let ordering: any = {}
+						let displayOrder: any = {}
 						let direction: string
-						if (ticketType.ordering < previousOrdering) {
-							ordering = {
+						if (ticketType.displayOrder < previousDisplayOrder) {
+							displayOrder = {
 								[Op.and]: [
 									{
-										[Op.gte]: ticketType.ordering,
+										[Op.gte]: ticketType.displayOrder,
 									},
 									{
-										[Op.lte]: previousOrdering,
+										[Op.lte]: previousDisplayOrder,
 									},
 								],
 							}
 							direction = '+1'
 						} else {
-							ordering = {
+							displayOrder = {
 								[Op.and]: [
 									{
-										[Op.lte]: ticketType.ordering,
+										[Op.lte]: ticketType.displayOrder,
 									},
 									{
-										[Op.gt]: previousOrdering,
+										[Op.gt]: previousDisplayOrder,
 									},
 								],
 							}
@@ -298,8 +300,8 @@ export default (sequelize: Sequelize) => {
 
 						await TicketTypeModel.update(
 							{
-								ordering: Sequelize.literal(
-									`ordering ${direction}`
+								displayOrder: Sequelize.literal(
+									`displayOrder ${direction}`
 								),
 							},
 							{
@@ -307,25 +309,25 @@ export default (sequelize: Sequelize) => {
 									id: {
 										[Op.not]: ticketType.id,
 									},
-									ordering,
+									displayOrder,
 								},
 								transaction: options.transaction,
 								hooks: false,
 							}
 						)
 					} else {
-						ticketType.ordering = previousOrdering
+						ticketType.displayOrder = previousDisplayOrder
 					}
 				},
 				beforeDestroy: async (ticketType, options) => {
 					await TicketTypeModel.update(
 						{
-							ordering: Sequelize.literal('ordering -1'),
+							displayOrder: Sequelize.literal('displayOrder -1'),
 						},
 						{
 							where: {
-								ordering: {
-									[Op.gt]: ticketType.ordering,
+								displayOrder: {
+									[Op.gt]: ticketType.displayOrder,
 								},
 							},
 							transaction: options.transaction,

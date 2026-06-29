@@ -15,7 +15,7 @@ export async function up(queryInterface: QueryInterface) {
 
 		await queryInterface.addColumn(
 			'ticketTypes',
-			'ordering',
+			'displayOrder',
 			{
 				type: DataTypes.SMALLINT,
 				allowNull: false,
@@ -43,7 +43,7 @@ export async function down(queryInterface: QueryInterface) {
 			return
 		}
 
-		await queryInterface.removeColumn('ticketTypes', 'ordering', {
+		await queryInterface.removeColumn('ticketTypes', 'displayOrder', {
 			transaction,
 		})
 

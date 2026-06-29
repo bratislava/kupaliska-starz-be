@@ -136,7 +136,7 @@ export const formatTicketType = (ticketType: TicketTypeModel) => {
 		entranceTo: ticketType.entranceTo,
 		hasTicketDuration: ticketType.hasTicketDuration,
 		ticketDuration: ticketType.ticketDuration,
-		ordering: ticketType.ordering,
+		displayOrder: ticketType.displayOrder,
 		validFrom: ticketType.validFrom,
 		validTo: ticketType.validTo,
 		isSeniorIsDisabled: ticketType.isSeniorIsDisabled,
