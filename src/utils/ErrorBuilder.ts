@@ -38,6 +38,7 @@ export default class ErrorBuilder extends Error {
 
 	constructor(
 		status: number,
+		// TODO ErrorBuilder should consume Zod's error as well
 		name: string | Joi.ValidationErrorItem[],
 		key?: string
 	) {

@@ -94,6 +94,7 @@ export default (sequelize: Sequelize) => {
 					if (swimmingPool.ordering === 0) {
 						swimmingPool.ordering = swimmingPoolsCount + 1
 					} else {
+						// TODO use simple if
 						validate(
 							true,
 							swimmingPool.ordering,
@@ -127,6 +128,8 @@ export default (sequelize: Sequelize) => {
 					) {
 						const swimmingPoolsCount =
 							await SwimmingPoolModel.count()
+
+						// TODO use simple if
 						validate(
 							true,
 							swimmingPool.ordering,
