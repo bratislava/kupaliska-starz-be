@@ -112,6 +112,9 @@ export const ticketTypeAddSchema = {
 			then: Joi.required(),
 			otherwise: Joi.forbidden(),
 		}),
+	// when `displayOrder` is below 1,
+	// TicketType model hooks will automatically set it after every other active ticketType
+	// which is bit counterintuitive, that's why we have min requirement set to 1
 	displayOrder: Joi.number().integer().min(1).default(0),
 }
 
@@ -128,7 +131,7 @@ export const workflow = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	const transaction = await DB.transaction()
+	let transaction = await DB.transaction()
 
 	try {
 		const { body } = req
@@ -150,6 +153,7 @@ export const workflow = async (
 			}
 		}
 
+		// hooks of model will take care of assigning correct displayNumber
 		const ticketType = await TicketType.create(
 			{
 				...body,
@@ -168,8 +172,9 @@ export const workflow = async (
 		}
 
 		await transaction.commit()
-		await ticketType.reload({ include: { association: 'swimmingPools' } })
+		transaction = null
 
+		await ticketType.reload({ include: { association: 'swimmingPools' } })
 		return res.json({
 			data: {
 				id: ticketType.id,

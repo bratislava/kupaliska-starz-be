@@ -66,6 +66,7 @@
 	"generalNotFound": "Všeobecné informácie sa nenašli",
 	"wrongEmail": "Používateľ so zadaným emailom neexistuje",
 	"exceededOrderingNumber": "Prekročené maximálne poradie",
+	"exceededDisplayOrderNumber": "Prekročené maximálne poradie",
 	"register": {
 		"userExists": "Používateľ už existuje"
 	},

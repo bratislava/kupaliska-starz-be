@@ -4,8 +4,7 @@ import i18next from 'i18next'
 import { DatabaseModel } from '../../types/models'
 import { TICKET_TYPE } from '../../utils/enums'
 import { SwimmingPoolModel } from './swimmingPool'
-import { z } from 'zod'
-import { validateZod } from '../../utils/validation'
+import ErrorBuilder from '../../utils/ErrorBuilder'
 
 export class TicketTypeModel extends DatabaseModel {
 	id: string
@@ -225,16 +224,17 @@ export default (sequelize: Sequelize) => {
 			hooks: {
 				beforeCreate: async (ticketType, options) => {
 					const ticketTypesCount = await TicketTypeModel.count()
+					// if ticketType.displayOrder === 0, it's displayOrder is set after every other active ticketType in displayOrder
 					if (ticketType.displayOrder === 0) {
 						ticketType.displayOrder = ticketTypesCount + 1
 					} else {
-						validateZod(
-							true,
-							ticketType.displayOrder,
-							z.number().max(ticketTypesCount + 1),
-							i18next.t('error:exceededDisplayOrderNumber'),
-							'exceededDisplayOrderNumber'
-						)
+						if (ticketType.displayOrder > ticketTypesCount + 1) {
+							throw new ErrorBuilder(
+								400,
+								i18next.t('error:exceededDisplayOrderNumber'),
+								'exceededDisplayOrderNumber'
+							)
+						}
 
 						await TicketTypeModel.update(
 							{
@@ -262,13 +262,13 @@ export default (sequelize: Sequelize) => {
 						previousDisplayOrder !== ticketType.displayOrder
 					) {
 						const ticketTypesCount = await TicketTypeModel.count()
-						validateZod(
-							true,
-							ticketType.displayOrder,
-							z.number().max(ticketTypesCount),
-							i18next.t('error:exceededDisplayOrderNumber'),
-							'exceededDisplayOrderNumber'
-						)
+						if (ticketType.displayOrder > ticketTypesCount + 1) {
+							throw new ErrorBuilder(
+								400,
+								i18next.t('error:exceededDisplayOrderNumber'),
+								'exceededDisplayOrderNumber'
+							)
+						}
 
 						let displayOrder: any = {}
 						let direction: string
