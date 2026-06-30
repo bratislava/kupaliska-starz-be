@@ -47,6 +47,8 @@ if (dbOptions.logging) {
 	}
 }
 
+// TODO: error handling when GeneralSettings is not found don't run the app
+
 const sequelize = new Sequelize(url, dbOptions)
 
 sequelize
