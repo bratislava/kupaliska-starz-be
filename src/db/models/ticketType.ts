@@ -223,7 +223,8 @@ export default (sequelize: Sequelize) => {
 			},
 			hooks: {
 				beforeCreate: async (ticketType, options) => {
-					const ticketTypesCount = await TicketTypeModel.count()
+					const ticketTypesCount =
+						await TicketTypeModel.count(options)
 					// if ticketType.displayOrder === 0, it's displayOrder is set after every other active ticketType in displayOrder
 					if (ticketType.displayOrder === 0) {
 						ticketType.displayOrder = ticketTypesCount + 1
@@ -261,7 +262,8 @@ export default (sequelize: Sequelize) => {
 						ticketType.displayOrder !== 0 &&
 						previousDisplayOrder !== ticketType.displayOrder
 					) {
-						const ticketTypesCount = await TicketTypeModel.count()
+						const ticketTypesCount =
+							await TicketTypeModel.count(options)
 						if (ticketType.displayOrder > ticketTypesCount + 1) {
 							throw new ErrorBuilder(
 								400,

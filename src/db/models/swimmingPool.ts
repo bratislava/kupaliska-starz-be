@@ -90,7 +90,8 @@ export default (sequelize: Sequelize) => {
 			modelName: 'swimmingPool',
 			hooks: {
 				beforeCreate: async (swimmingPool, options) => {
-					const swimmingPoolsCount = await SwimmingPoolModel.count()
+					const swimmingPoolsCount =
+						await SwimmingPoolModel.count(options)
 					if (swimmingPool.ordering === 0) {
 						swimmingPool.ordering = swimmingPoolsCount + 1
 					} else {
@@ -127,7 +128,7 @@ export default (sequelize: Sequelize) => {
 						previousOrdering !== swimmingPool.ordering
 					) {
 						const swimmingPoolsCount =
-							await SwimmingPoolModel.count()
+							await SwimmingPoolModel.count(options)
 
 						// TODO use simple if
 						validate(
