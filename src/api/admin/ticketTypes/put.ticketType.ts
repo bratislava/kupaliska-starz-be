@@ -71,7 +71,7 @@ export const workflow = async (
 			throw new ErrorBuilder(400, req.t('error:incorrectSwimmingPools'))
 		}
 
-		// hooks of model will take care of assigning correct displayNumber
+		// hooks of model will take care of assigning correct displayOrder
 		await ticketType.update(body, { transaction })
 
 		await SwimmingPoolTicketType.destroy({
