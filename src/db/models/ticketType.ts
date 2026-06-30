@@ -240,7 +240,7 @@ export default (sequelize: Sequelize) => {
 						await TicketTypeModel.update(
 							{
 								displayOrder:
-									Sequelize.literal('displayOrder +1'),
+									Sequelize.literal('"displayOrder" +1'),
 							},
 							{
 								where: {
@@ -264,7 +264,7 @@ export default (sequelize: Sequelize) => {
 					) {
 						const ticketTypesCount =
 							await TicketTypeModel.count(options)
-						if (ticketType.displayOrder > ticketTypesCount + 1) {
+						if (ticketType.displayOrder > ticketTypesCount) {
 							throw new ErrorBuilder(
 								400,
 								i18next.t('error:exceededDisplayOrderNumber'),
@@ -303,7 +303,7 @@ export default (sequelize: Sequelize) => {
 						await TicketTypeModel.update(
 							{
 								displayOrder: Sequelize.literal(
-									`displayOrder ${direction}`
+									`"displayOrder" ${direction}`
 								),
 							},
 							{
@@ -324,7 +324,8 @@ export default (sequelize: Sequelize) => {
 				beforeDestroy: async (ticketType, options) => {
 					await TicketTypeModel.update(
 						{
-							displayOrder: Sequelize.literal('displayOrder -1'),
+							displayOrder:
+								Sequelize.literal('"displayOrder" -1'),
 						},
 						{
 							where: {
