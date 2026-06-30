@@ -11,8 +11,8 @@ export const minioClient = new Client({
 	endPoint: minioConfig.endPoint,
 	port: Number(minioConfig.port),
 	useSSL: true,
-	accessKey: process.env.MINIO_ACCESS_KEY,
-	secretKey: process.env.MINIO_SECRET_KEY,
+	accessKey: minioConfig.accessKey,
+	secretKey: minioConfig.secretKey,
 	pathStyle: false,
 })
 
@@ -20,7 +20,7 @@ export const minioClient = new Client({
 // path in bucket matches path on drive
 export const uploadFileToBucket = (fullPath: string) => {
 	return new Promise((resolve, reject) => {
-		minioClient.fPutObject(process.env.MINIO_BUCKET, fullPath, fullPath, {}, function (e) {
+		minioClient.putObject(minioConfig.bucket, fullPath, Buffer.from(''), 0, function (e) {
 			if (e) {
 				logger.error(e)
 				reject(e)
@@ -34,7 +34,7 @@ export const uploadFileToBucket = (fullPath: string) => {
 // path in bucket matches path on drive
 export const downloadFileFromBucket = (fullPath: string) =>
 	new Promise((resolve, reject) => {
-		minioClient.fGetObject(process.env.MINIO_BUCKET, fullPath, fullPath, function (e) {
+		minioClient.getObject(minioConfig.bucket, fullPath, function (e) {
 			if (e) {
 				logger.error(e)
 				reject(e)
@@ -49,7 +49,7 @@ export const downloadFileFromBucket = (fullPath: string) =>
 // path assumes no trailing / !
 export const minioStaticServeMiddleware = (path: string) => async (req: Request, res: Response) => {
 	await new Promise((resolve, reject) =>
-		minioClient.getObject(process.env.MINIO_BUCKET, `${path}${req.url}`, (err, stream) => {
+		minioClient.getObject(minioConfig.bucket, `${path}${req.url}`, (err, stream) => {
 			if (err) {
 				logger.error(err)
 				return reject(err)

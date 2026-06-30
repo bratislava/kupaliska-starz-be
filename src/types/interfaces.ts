@@ -45,8 +45,12 @@ export interface IGPWebpayConfig {
 	provider: string
 }
 
+// TODO this does not corresponds with values,
+// bucket, accessKey, secretKey can be undefined
+// we need to ensure env vars is available
 export interface IMinioConfig {
 	endPoint: string
+	bucket: string
 	port: number
 	accessKey: string
 	secretKey: string
