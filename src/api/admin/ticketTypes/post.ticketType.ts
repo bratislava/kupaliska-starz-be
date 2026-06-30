@@ -1,7 +1,7 @@
 import Joi from 'joi'
 
 import { NextFunction, Request, Response } from 'express'
-import { Op } from 'sequelize'
+import { Op, Transaction } from 'sequelize'
 import { TICKET_TYPE, MESSAGE_TYPE, TICKET_TYPES } from '../../../utils/enums'
 import DB, { models } from '../../../db/models'
 import { isEmpty, map } from 'lodash'
@@ -131,7 +131,7 @@ export const workflow = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	let transaction = await DB.transaction()
+	let transaction: Transaction | null = await DB.transaction()
 
 	try {
 		const { body } = req

@@ -5,7 +5,7 @@ import DB, { models } from '../../../db/models'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { map } from 'lodash'
-import { Op } from 'sequelize'
+import { Op, Transaction } from 'sequelize'
 
 export const ticketTypePutSchema = {
 	name: Joi.string().max(255).required(),
@@ -48,7 +48,7 @@ export const workflow = async (
 ) => {
 	const { TicketType, SwimmingPool, SwimmingPoolTicketType } = models
 
-	let transaction = await DB.transaction()
+	let transaction: Transaction | null = await DB.transaction()
 
 	try {
 		const { body, params } = req
