@@ -223,6 +223,14 @@ export default (sequelize: Sequelize) => {
 			},
 			hooks: {
 				beforeCreate: async (ticketType, options) => {
+					// hooks do a read-modify-write,
+					// but the transaction runs at the default READ COMMITED isolation,
+					// so a concurrent insert/reorder isn't visible to the count().
+					// Two simultaneous operations operations can produce duplicate values.
+
+					// this is not going to be an issue,
+					// since the reorder is not going to happen more than twice each season,
+					// if problem does happen we can talk about fixing this
 					const ticketTypesCount =
 						await TicketTypeModel.count(options)
 					// if ticketType.displayOrder === 0, it's displayOrder is set after every other active ticketType in displayOrder
@@ -262,6 +270,14 @@ export default (sequelize: Sequelize) => {
 						ticketType.displayOrder !== 0 &&
 						previousDisplayOrder !== ticketType.displayOrder
 					) {
+						// hooks do a read-modify-write,
+						// but the transaction runs at the default READ COMMITED isolation,
+						// so a concurrent insert/reorder isn't visible to the count().
+						// Two simultaneous operations operations can produce duplicate values.
+
+						// this is not going to be an issue,
+						// since the reorder is not going to happen more than twice each season,
+						// if problem does happen we can talk about fixing this
 						const ticketTypesCount =
 							await TicketTypeModel.count(options)
 						if (ticketType.displayOrder > ticketTypesCount) {
