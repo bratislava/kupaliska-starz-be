@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import Joi from 'joi'
 import config from 'config'
 import formurlencoded from 'form-urlencoded'
+import _ from 'lodash'
 import { models } from '../../../db/models'
 import { registerPaymentResult } from '../../../services/webpayService'
 import { logger } from '../../../utils/logger'
@@ -26,7 +27,7 @@ export const schema = Joi.object({
 export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { body, query, method } = req
-		const { Order } = models
+		const { Order, PaymentResponse } = models
 		const data = method === 'POST' ? body : query
 
 		logger.info(
@@ -99,6 +100,27 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
+		const existingPaymentResponses = await PaymentResponse.findAll({
+			where: {
+				paymentOrderId: {
+					[Op.eq]: paymentOrder.id,
+				},
+			},
+		})
+
+		const alreadyProcessed = existingPaymentResponses.some((paymentResponse) =>
+			_.isEqual(paymentResponse.data, data)
+		)
+
+		if (alreadyProcessed) {
+			logger.info(
+				`INFO - Duplicate payment response received for already processed order - ${JSON.stringify(
+					data
+				)} - ${req.method} - ${req.ip}`
+			)
+			return res.redirect(await buildSuccessRedirectUrl(order.id))
+		}
+
 		const paymentResult = await registerPaymentResult(data, paymentOrder.id, req)
 
 		if (!paymentResult.isVerified) {
@@ -119,31 +141,35 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 
 		await payOrderWithNextOrderNumber(order)
 
-		// Generate JWT for getting order`s info
-		const orderAccessToken = await createJwt(
-			{
-				uid: order.id,
-			},
-			{
-				audience: passwordConfig.jwt.orderResponse.audience,
-				expiresIn: passwordConfig.jwt.orderResponse.exp,
-			}
-		)
-
 		await sendOrderEmail(req, order.id)
 
-		const queryParams = formurlencoded(
-			{
-				orderId: order.id,
-				orderAccessToken: orderAccessToken ? orderAccessToken : null,
-			},
-			{ ignorenull: true }
-		)
-
-		return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_SUCCESSFUL}?${queryParams}`)
+		return res.redirect(await buildSuccessRedirectUrl(order.id))
 	} catch (error) {
 		return next(error)
 	}
+}
+
+const buildSuccessRedirectUrl = async (orderId: string) => {
+	// Generate JWT for getting order`s info
+	const orderAccessToken = await createJwt(
+		{
+			uid: orderId,
+		},
+		{
+			audience: passwordConfig.jwt.orderResponse.audience,
+			expiresIn: passwordConfig.jwt.orderResponse.exp,
+		}
+	)
+
+	const queryParams = formurlencoded(
+		{
+			orderId: orderId,
+			orderAccessToken: orderAccessToken ? orderAccessToken : null,
+		},
+		{ ignorenull: true }
+	)
+
+	return `${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_SUCCESSFUL}?${queryParams}`
 }
 
 const handleGlobalPaymentsErrorResponse = async (data: any, req: Request, order: OrderModel) => {
