@@ -94,99 +94,87 @@ export default (sequelize: Sequelize) => {
 						await SwimmingPoolModel.count(options)
 					if (swimmingPool.ordering === 0) {
 						swimmingPool.ordering = swimmingPoolsCount + 1
-					} else {
-						// TODO use simple if
-						validate(
-							true,
-							swimmingPool.ordering,
-							Joi.number().max(swimmingPoolsCount + 1),
-							i18next.t('error:exceededOrderingNumber'),
-							'exceededOrderingNumber'
-						)
-
-						await SwimmingPoolModel.update(
-							{
-								ordering: Sequelize.literal('ordering +1'),
-							},
-							{
-								where: {
-									ordering: {
-										[Op.gte]: swimmingPool.ordering,
-									},
-								},
-								transaction: options.transaction,
-								hooks: false,
-							}
-						)
+						return
 					}
+					// TODO use simple if
+					validate(
+						true,
+						swimmingPool.ordering,
+						Joi.number().max(swimmingPoolsCount + 1),
+						i18next.t('error:exceededOrderingNumber'),
+						'exceededOrderingNumber'
+					)
+
+					await SwimmingPoolModel.update(
+						{
+							ordering: Sequelize.literal('"ordering" +1'),
+						},
+						{
+							where: {
+								ordering: {
+									[Op.gte]: swimmingPool.ordering,
+								},
+							},
+							transaction: options.transaction,
+							hooks: false,
+						}
+					)
 				},
 				beforeUpdate: async (swimmingPool, options) => {
 					const previousOrdering = swimmingPool.previous('ordering')
 
 					if (
-						swimmingPool.ordering !== 0 &&
-						previousOrdering !== swimmingPool.ordering
+						!(
+							swimmingPool.ordering === 0 ||
+							previousOrdering === swimmingPool.ordering
+						)
 					) {
-						const swimmingPoolsCount =
-							await SwimmingPoolModel.count(options)
-
-						// TODO use simple if
-						validate(
-							true,
-							swimmingPool.ordering,
-							Joi.number().max(swimmingPoolsCount),
-							i18next.t('error:exceededOrderingNumber'),
-							'exceededOrderingNumber'
-						)
-
-						let ordering: any = {}
-						let direction: string
-						if (swimmingPool.ordering < previousOrdering) {
-							ordering = {
-								[Op.and]: [
-									{
-										[Op.gte]: swimmingPool.ordering,
-									},
-									{
-										[Op.lte]: previousOrdering,
-									},
-								],
-							}
-							direction = '+1'
-						} else {
-							ordering = {
-								[Op.and]: [
-									{
-										[Op.lte]: swimmingPool.ordering,
-									},
-									{
-										[Op.gt]: previousOrdering,
-									},
-								],
-							}
-							direction = '-1'
-						}
-
-						await SwimmingPoolModel.update(
-							{
-								ordering: Sequelize.literal(
-									`ordering ${direction}`
-								),
-							},
-							{
-								where: {
-									id: {
-										[Op.not]: swimmingPool.id,
-									},
-									ordering,
-								},
-								transaction: options.transaction,
-								hooks: false,
-							}
-						)
-					} else {
 						swimmingPool.ordering = previousOrdering
+						return
 					}
+
+					const swimmingPoolsCount =
+						await SwimmingPoolModel.count(options)
+
+					// TODO use simple if
+					validate(
+						true,
+						swimmingPool.ordering,
+						Joi.number().max(swimmingPoolsCount),
+						i18next.t('error:exceededOrderingNumber'),
+						'exceededOrderingNumber'
+					)
+
+					const movingUp = swimmingPool.ordering < previousOrdering
+					const direction = movingUp ? '+1' : '-1'
+
+					const ordering = {
+						[Op.and]: [
+							{
+								[movingUp ? Op.gte : Op.lte]:
+									swimmingPool.ordering,
+							},
+							{ [movingUp ? Op.lte : Op.gt]: previousOrdering },
+						],
+					}
+
+					await SwimmingPoolModel.update(
+						{
+							ordering: Sequelize.literal(
+								`ordering ${direction}`
+							),
+						},
+						{
+							where: {
+								id: {
+									[Op.not]: swimmingPool.id,
+								},
+								ordering,
+							},
+							transaction: options.transaction,
+							hooks: false,
+						}
+					)
 				},
 				beforeDestroy: async (swimmingPool, options) => {
 					await SwimmingPoolModel.update(
