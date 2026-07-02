@@ -26,33 +26,15 @@ async function checkDestinationAccess(req: Request, directory: string) {
 					// create filesystem errors log
 					logger.error(err)
 					logger.error(resultPath)
-					logger.error(
-						`${403} - ${err.message} - ${req.originalUrl} - ${
-							req.method
-						} - ${req.ip}`
-					)
-					logger.error(
-						`stack: ${JSON.stringify(util.inspect(err.stack))} \n`
-					)
-					throw new ErrorBuilder(
-						403,
-						req.t('error:uploadIncorrectSubdir')
-					)
+					logger.error(`${403} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`)
+					logger.error(`stack: ${JSON.stringify(util.inspect(err.stack))} \n`)
+					throw new ErrorBuilder(403, req.t('error:uploadIncorrectSubdir'))
 				case 'LIMIT_FILE_SIZE':
 					// create filesystem errors log
 					logger.error(err)
-					logger.error(
-						`${418} - ${err.message} - ${req.originalUrl} - ${
-							req.method
-						} - ${req.ip}`
-					)
-					logger.error(
-						`stack: ${JSON.stringify(util.inspect(err.stack))} \n`
-					)
-					throw new ErrorBuilder(
-						418,
-						req.t('error:uploadFileTooLarge')
-					)
+					logger.error(`${418} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`)
+					logger.error(`stack: ${JSON.stringify(util.inspect(err.stack))} \n`)
+					throw new ErrorBuilder(418, req.t('error:uploadFileTooLarge'))
 				default:
 					throw err
 			}

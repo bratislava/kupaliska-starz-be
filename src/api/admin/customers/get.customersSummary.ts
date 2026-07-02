@@ -12,11 +12,7 @@ export const schema = Joi.object().keys({
 	params: Joi.object(),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const user = req.user as UserModel
 
@@ -24,10 +20,7 @@ export const workflow = async (
 		await user.reload({ include: { association: 'swimmingPools' } })
 		let swimmingPoolsFilterSql = ''
 		if (user.role === USER_ROLE.SWIMMING_POOL_OPERATOR) {
-			const usersSwimmingPools = map(
-				user.swimmingPools,
-				(pool) => pool.id
-			)
+			const usersSwimmingPools = map(user.swimmingPools, (pool) => pool.id)
 			const usersSwimmingPoolsArray = map(
 				usersSwimmingPools,
 				(_id, index) => `$swimmingPool${index}::uuid`
@@ -132,9 +125,7 @@ export const workflow = async (
 			mostFrequentZipCode: mostFrequentZipCode[0].frequentZip,
 			zipCodeFrequency: mostFrequentZipCode[0].zipFrequency,
 			maxNumberOfOrders: orderStatistics[0].maxNumberOfOrders,
-			averageNumberOfOrders: Number(
-				orderStatistics[0].averageNumberOfOrders
-			),
+			averageNumberOfOrders: Number(orderStatistics[0].averageNumberOfOrders),
 		})
 	} catch (err) {
 		return next(err)

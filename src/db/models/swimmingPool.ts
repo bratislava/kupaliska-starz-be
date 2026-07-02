@@ -90,8 +90,7 @@ export default (sequelize: Sequelize) => {
 			modelName: 'swimmingPool',
 			hooks: {
 				beforeCreate: async (swimmingPool, options) => {
-					const swimmingPoolsCount =
-						await SwimmingPoolModel.count(options)
+					const swimmingPoolsCount = await SwimmingPoolModel.count(options)
 					if (swimmingPool.ordering === 0) {
 						swimmingPool.ordering = swimmingPoolsCount + 1
 						return
@@ -123,18 +122,12 @@ export default (sequelize: Sequelize) => {
 				beforeUpdate: async (swimmingPool, options) => {
 					const previousOrdering = swimmingPool.previous('ordering')
 
-					if (
-						!(
-							swimmingPool.ordering === 0 ||
-							previousOrdering === swimmingPool.ordering
-						)
-					) {
+					if (swimmingPool.ordering === 0 || previousOrdering === swimmingPool.ordering) {
 						swimmingPool.ordering = previousOrdering
 						return
 					}
 
-					const swimmingPoolsCount =
-						await SwimmingPoolModel.count(options)
+					const swimmingPoolsCount = await SwimmingPoolModel.count(options)
 
 					// TODO use simple if
 					validate(
@@ -151,8 +144,7 @@ export default (sequelize: Sequelize) => {
 					const ordering = {
 						[Op.and]: [
 							{
-								[movingUp ? Op.gte : Op.lte]:
-									swimmingPool.ordering,
+								[movingUp ? Op.gte : Op.lte]: swimmingPool.ordering,
 							},
 							{ [movingUp ? Op.lte : Op.gt]: previousOrdering },
 						],
@@ -160,9 +152,7 @@ export default (sequelize: Sequelize) => {
 
 					await SwimmingPoolModel.update(
 						{
-							ordering: Sequelize.literal(
-								`ordering ${direction}`
-							),
+							ordering: Sequelize.literal(`ordering ${direction}`),
 						},
 						{
 							where: {

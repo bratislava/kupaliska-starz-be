@@ -15,11 +15,7 @@ process.on('message', async () => {
 		return process.send({ type: 'success' })
 	} catch (err) {
 		logger.info(JSON.stringify(err))
-		logger.info(
-			`ERROR - Visits computation worker failed - ERROR: ${JSON.stringify(
-				err
-			)}`
-		)
+		logger.info(`ERROR - Visits computation worker failed - ERROR: ${JSON.stringify(err)}`)
 		return process.send({ type: 'error', err })
 	}
 })

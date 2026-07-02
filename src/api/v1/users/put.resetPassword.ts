@@ -9,9 +9,7 @@ import { Transaction } from 'sequelize'
 import passwordComplexity, { ComplexityOptions } from 'joi-password-complexity'
 import config from 'config'
 
-const complexityOptions: ComplexityOptions = config.get(
-	'passwordComplexityOptions'
-)
+const complexityOptions: ComplexityOptions = config.get('passwordComplexityOptions')
 
 export const userResetPasswordSchema = {
 	password: passwordComplexity(complexityOptions).required(),
@@ -24,11 +22,7 @@ export const schema = Joi.object().keys({
 	params: Joi.object(),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	const { User } = models
 
 	let transaction: Transaction

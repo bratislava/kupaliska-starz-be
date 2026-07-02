@@ -28,9 +28,7 @@ describe(`[GET] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Expect status 401 | Invalid or missing auth token', async () => {
-		const response = await request
-			.get(endpoint())
-			.set('Content-Type', 'application/json')
+		const response = await request.get(endpoint()).set('Content-Type', 'application/json')
 		expect(response.status).toBe(401)
 	})
 
@@ -46,10 +44,7 @@ describe(`[GET] ${endpoint})`, () => {
 		const response = await request
 			.get(endpoint())
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolEmployee}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolEmployee}`)
 		expect(response.status).toBe(403)
 	})
 
@@ -72,14 +67,10 @@ describe(`[GET] ${endpoint})`, () => {
 
 		expect(response.body.name).toBe('Delfin')
 		expect(response.body.description).toBe('Popis kupaliska delfín.')
-		expect(response.body.expandedDescription).toBe(
-			'Dlhsí Popis kupaliska delfín.'
-		)
+		expect(response.body.expandedDescription).toBe('Dlhsí Popis kupaliska delfín.')
 		expect(response.body.waterTemp).toBe(-5)
 		expect(response.body.maxCapacity).toBe(1000)
-		expect(response.body.locationUrl).toBe(
-			'https://goo.gl/maps/gvuMM4mYWvtGiRfN8'
-		)
+		expect(response.body.locationUrl).toBe('https://goo.gl/maps/gvuMM4mYWvtGiRfN8')
 		expect(response.body.openingHours).toStrictEqual([
 			{ startFrom: '2021-01-01', startTo: '2022-01-01' },
 		])
@@ -90,19 +81,13 @@ describe(`[GET] ${endpoint})`, () => {
 		let response = await request
 			.get(endpoint())
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolOperator}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolOperator}`)
 		expect(response.status).toBe(200)
 
 		response = await request
 			.get(endpoint(swimmingPool2Id))
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolOperator}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolOperator}`)
 		expect(response.status).toBe(403)
 	})
 })

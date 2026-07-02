@@ -23,11 +23,7 @@ export const schema = Joi.object({
 	params: Joi.object(),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { body, query, method } = req
 		const { Order } = models
@@ -71,9 +67,7 @@ export const workflow = async (
 					data
 				)} - ${req.method} - ${req.ip}`
 			)
-			return res.redirect(
-				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
-			)
+			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
 		if (!data.PRCODE || !data.SRCODE) {
@@ -82,20 +76,14 @@ export const workflow = async (
 					data
 				)} - ${req.method} - ${req.ip}`
 			)
-			return res.redirect(
-				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
-			)
+			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
 		if (!order) {
 			logger.info(
-				`ERROR - ${404} - Order not found - ${JSON.stringify(data)} - ${
-					req.method
-				} - ${req.ip}`
+				`ERROR - ${404} - Order not found - ${JSON.stringify(data)} - ${req.method} - ${req.ip}`
 			)
-			return res.redirect(
-				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
-			)
+			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
 		const paymentOrder = order.paymentOrder
@@ -108,16 +96,10 @@ export const workflow = async (
 			)
 			logger.error('PAYMENT - payment  order not found', req.ip)
 			await order.update({ state: ORDER_STATE.FAILED })
-			return res.redirect(
-				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
-			)
+			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
-		const paymentResult = await registerPaymentResult(
-			data,
-			paymentOrder.id,
-			req
-		)
+		const paymentResult = await registerPaymentResult(data, paymentOrder.id, req)
 
 		if (!paymentResult.isVerified) {
 			logger.info(
@@ -127,16 +109,12 @@ export const workflow = async (
 			)
 			logger.info('PAYMENT - payment  verification failed', req.ip)
 			await order.update({ state: ORDER_STATE.FAILED })
-			return res.redirect(
-				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
-			)
+			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
 		if (!paymentResult.isSuccess) {
 			await handleGlobalPaymentsErrorResponse(data, req, order)
-			return res.redirect(
-				`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`
-			)
+			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
 		await payOrderWithNextOrderNumber(order)
@@ -162,101 +140,45 @@ export const workflow = async (
 			{ ignorenull: true }
 		)
 
-		return res.redirect(
-			`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_SUCCESSFUL}?${queryParams}`
-		)
+		return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_SUCCESSFUL}?${queryParams}`)
 	} catch (error) {
 		return next(error)
 	}
 }
 
-const handleGlobalPaymentsErrorResponse = async (
-	data: any,
-	req: Request,
-	order: OrderModel
-) => {
+const handleGlobalPaymentsErrorResponse = async (data: any, req: Request, order: OrderModel) => {
 	// https://portal.gpwebpay.com/portal/tools/GP_webpay_Seznam_navratovych_kodu_CZ.pdf?locale=cs_CZ
 
 	// PRCODE 14 means "RESULTTEXT":"Duplicate order number" and in this case we should not update order state beacause if it is already paid we don't want to change it
 	if (parseInt(data.PRCODE, 10) === 14 || parseInt(data.SRCODE, 10) === 0) {
 		return
 	} else {
-		if (
-			parseInt(data.PRCODE, 10) === 20 ||
-			parseInt(data.SRCODE, 10) === 22
-		) {
-			logger.info(
-				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
-					req.ip
-				}`
-			)
+		if (parseInt(data.PRCODE, 10) === 20 || parseInt(data.SRCODE, 10) === 22) {
+			logger.info(`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${req.ip}`)
 		} else if (
 			// PRCODE 28 SRCODE 3000 means "RESULTTEXT":"Declined in 3D. Cardholder not authenticated in 3D."
 			parseInt(data.PRCODE, 10) === 28 ||
 			parseInt(data.SRCODE, 10) === 3000
 		) {
-			logger.info(
-				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
-					req.ip
-				}`
-			)
+			logger.info(`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${req.ip}`)
 		} else if (
 			// PRCODE 28 SRCODE 3007 means "RESULTTEXT":"Declined in 3D. Acquirer technical problem. Contact the merchant."
 			parseInt(data.PRCODE, 10) === 28 ||
 			parseInt(data.SRCODE, 10) === 3007
 		) {
-			logger.info(
-				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
-					req.ip
-				}`
-			)
-		} else if (
-			parseInt(data.PRCODE, 10) === 30 ||
-			parseInt(data.SRCODE, 10) === 300
-		) {
+			logger.info(`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${req.ip}`)
+		} else if (parseInt(data.PRCODE, 10) === 30 || parseInt(data.SRCODE, 10) === 300) {
 			// Soft decline – issuer requires SCA (Strong Customer Authentication)
-			logger.info(
-				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
-					req.ip
-				}`
-			)
-		} else if (
-			parseInt(data.PRCODE, 10) === 30 ||
-			parseInt(data.SRCODE, 10) === 1002
-		) {
+			logger.info(`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${req.ip}`)
+		} else if (parseInt(data.PRCODE, 10) === 30 || parseInt(data.SRCODE, 10) === 1002) {
 			// Vydavatel, nebo finanční asociace zamítla autorizaci BEZ udání důvodu
-			logger.info(
-				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
-					req.ip
-				}`
-			)
-		} else if (
-			parseInt(data.PRCODE, 10) === 30 ||
-			parseInt(data.SRCODE, 10) === 9100
-		) {
-			logger.info(
-				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
-					req.ip
-				}`
-			)
-		} else if (
-			parseInt(data.PRCODE, 10) === 30 ||
-			parseInt(data.SRCODE, 10) === 9500
-		) {
-			logger.info(
-				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
-					req.ip
-				}`
-			)
-		} else if (
-			parseInt(data.PRCODE, 10) === 30 ||
-			parseInt(data.SRCODE, 10) === 9900
-		) {
-			logger.info(
-				`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${
-					req.ip
-				}`
-			)
+			logger.info(`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${req.ip}`)
+		} else if (parseInt(data.PRCODE, 10) === 30 || parseInt(data.SRCODE, 10) === 9100) {
+			logger.info(`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${req.ip}`)
+		} else if (parseInt(data.PRCODE, 10) === 30 || parseInt(data.SRCODE, 10) === 9500) {
+			logger.info(`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${req.ip}`)
+		} else if (parseInt(data.PRCODE, 10) === 30 || parseInt(data.SRCODE, 10) === 9900) {
+			logger.info(`WARNING - ${400} - ${JSON.stringify(data)} - ${req.method} - ${req.ip}`)
 		} else if (
 			// PRCODE 35 means "RESULTTEXT":"Vyprsal cas pre zadanie cisla karty. Objednavku nie je mozne dokoncit."
 			parseInt(data.PRCODE, 10) === 35 ||

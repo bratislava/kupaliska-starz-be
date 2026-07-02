@@ -12,11 +12,7 @@ import {
 } from '../types/interfaces'
 import ErrorBuilder from '../utils/ErrorBuilder'
 
-export const checkTokenFirstAuthentication = (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const checkTokenFirstAuthentication = (req: Request, res: Response, next: NextFunction) => {
 	passport.authenticate(['jwt-forgotten-password'], (_err, user) => {
 		if (user) {
 			req.user = user
@@ -39,10 +35,7 @@ export const optionalAuthenticationMiddleware = (
 	})(req, res, next)
 }
 
-export const jwtAdminVerify = async (
-	payload: IJwtPayload,
-	done: VerifiedCallback
-) => {
+export const jwtAdminVerify = async (payload: IJwtPayload, done: VerifiedCallback) => {
 	try {
 		const { User } = models
 		const user = await User.findOne({

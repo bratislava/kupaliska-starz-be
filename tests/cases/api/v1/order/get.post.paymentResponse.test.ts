@@ -15,14 +15,9 @@ describe(`[GET] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it(`Request without DIGEST params should return redirect to ${FE_ROUTES.ORDER_UNSUCCESSFUL} `, async () => {
-		const response = await request
-			.get(`${endpoint}`)
-			.set('Content-Type', 'application/json')
-			.send()
+		const response = await request.get(`${endpoint}`).set('Content-Type', 'application/json').send()
 		expect(response.status).toEqual(302)
-		expect(response.headers.location).toContain(
-			FE_ROUTES.ORDER_UNSUCCESSFUL
-		)
+		expect(response.headers.location).toContain(FE_ROUTES.ORDER_UNSUCCESSFUL)
 	})
 
 	it(`Request without PRCODE and SRCODE param should return redirect to ${FE_ROUTES.ORDER_UNSUCCESSFUL} `, async () => {
@@ -37,9 +32,7 @@ describe(`[GET] ${endpoint})`, () => {
 			.send()
 
 		expect(response.status).toEqual(302)
-		expect(response.headers.location).toContain(
-			FE_ROUTES.ORDER_UNSUCCESSFUL
-		)
+		expect(response.headers.location).toContain(FE_ROUTES.ORDER_UNSUCCESSFUL)
 	})
 
 	it(`Request without ORDER NUMBER param should return redirect to ${FE_ROUTES.ORDER_UNSUCCESSFUL} `, async () => {
@@ -56,9 +49,7 @@ describe(`[GET] ${endpoint})`, () => {
 			.send()
 
 		expect(response.status).toEqual(302)
-		expect(response.headers.location).toContain(
-			FE_ROUTES.ORDER_UNSUCCESSFUL
-		)
+		expect(response.headers.location).toContain(FE_ROUTES.ORDER_UNSUCCESSFUL)
 	})
 
 	it(`Request with wrong ORDERNUMBER param should return redirect to ${FE_ROUTES.ORDER_UNSUCCESSFUL} `, async () => {
@@ -76,9 +67,7 @@ describe(`[GET] ${endpoint})`, () => {
 			.send()
 
 		expect(response.status).toEqual(302)
-		expect(response.headers.location).toContain(
-			FE_ROUTES.ORDER_UNSUCCESSFUL
-		)
+		expect(response.headers.location).toContain(FE_ROUTES.ORDER_UNSUCCESSFUL)
 	})
 
 	it(`Order without payment order should return redirect to ${FE_ROUTES.ORDER_UNSUCCESSFUL} `, async () => {
@@ -95,9 +84,7 @@ describe(`[GET] ${endpoint})`, () => {
 			.set('Content-Type', 'application/json')
 			.send()
 		expect(response.status).toEqual(302)
-		expect(response.headers.location).toContain(
-			FE_ROUTES.ORDER_UNSUCCESSFUL
-		)
+		expect(response.headers.location).toContain(FE_ROUTES.ORDER_UNSUCCESSFUL)
 	})
 
 	it('Is not verified', async () => {
@@ -118,9 +105,7 @@ describe(`[GET] ${endpoint})`, () => {
 			.send()
 
 		expect(response.status).toEqual(302)
-		expect(response.headers.location).toContain(
-			FE_ROUTES.ORDER_UNSUCCESSFUL
-		)
+		expect(response.headers.location).toContain(FE_ROUTES.ORDER_UNSUCCESSFUL)
 
 		const order = (await OrderModel.findOne({
 			where: {
@@ -159,9 +144,7 @@ describe(`[GET] ${endpoint})`, () => {
 			.send()
 
 		expect(response.status).toEqual(302)
-		expect(response.headers.location).toContain(
-			FE_ROUTES.ORDER_UNSUCCESSFUL
-		)
+		expect(response.headers.location).toContain(FE_ROUTES.ORDER_UNSUCCESSFUL)
 
 		const order = (await OrderModel.findOne({
 			where: {

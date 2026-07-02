@@ -12,11 +12,7 @@ export const schema = Joi.object().keys({
 
 const { GeneralSettings } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const general = await GeneralSettings.findOne({
 			attributes: ['alertText', 'showAlert', 'isOffSeason'],

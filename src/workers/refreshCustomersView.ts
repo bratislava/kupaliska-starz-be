@@ -16,9 +16,7 @@ process.on('message', async () => {
 	} catch (err) {
 		logger.info(JSON.stringify(err))
 		logger.info(
-			`ERROR - Refreshing materialized view customers failed - ERROR: ${JSON.stringify(
-				err
-			)}`
+			`ERROR - Refreshing materialized view customers failed - ERROR: ${JSON.stringify(err)}`
 		)
 		return process.send({ type: 'error', err })
 	}

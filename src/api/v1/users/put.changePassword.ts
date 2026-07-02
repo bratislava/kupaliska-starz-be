@@ -5,24 +5,16 @@ import { NextFunction, Request, Response } from 'express'
 import DB, { models } from '../../../db/models'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
-import {
-	comparePassword,
-	createJwt,
-	hashPassword,
-} from '../../../utils/authorization'
+import { comparePassword, createJwt, hashPassword } from '../../../utils/authorization'
 import { IPassportConfig } from '../../../types/interfaces'
 import { Transaction } from 'sequelize'
 import passwordComplexity, { ComplexityOptions } from 'joi-password-complexity'
 
 const passwordConfig: IPassportConfig = config.get('passport')
-const complexityOptions: ComplexityOptions = config.get(
-	'passwordComplexityOptions'
-)
+const complexityOptions: ComplexityOptions = config.get('passwordComplexityOptions')
 
 export const userPutSchema = {
-	oldPassword: Joi.string()
-		.required()
-		.pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')),
+	oldPassword: Joi.string().required().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')),
 	password: passwordComplexity(complexityOptions).required(),
 	passwordConfirmation: Joi.string().valid(Joi.ref('password')).required(),
 }
@@ -33,11 +25,7 @@ export const schema = Joi.object().keys({
 	params: Joi.object(),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	const { User } = models
 
 	let transaction: Transaction
@@ -50,17 +38,10 @@ export const workflow = async (
 			throw new ErrorBuilder(404, req.t('error:userNotFound'))
 		}
 
-		const passwordVerified = await comparePassword(
-			body.oldPassword,
-			user.hash
-		)
+		const passwordVerified = await comparePassword(body.oldPassword, user.hash)
 
 		if (!passwordVerified) {
-			throw new ErrorBuilder(
-				400,
-				req.t('error:incorrectPassword'),
-				'incorrectPassword'
-			)
+			throw new ErrorBuilder(400, req.t('error:incorrectPassword'), 'incorrectPassword')
 		}
 
 		const hashedPassword = await hashPassword(body.password)

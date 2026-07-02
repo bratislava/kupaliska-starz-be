@@ -58,12 +58,8 @@ export const getFilters = (filters: any, tablePrefix = '', func = '') => {
 
 			if (filters[filterName].type === 'range') {
 				filterVariables = {
-					[`${filterName}From`]: filters[filterName].from
-						? filters[filterName].from
-						: undefined,
-					[`${filterName}To`]: filters[filterName].to
-						? filters[filterName].to
-						: undefined,
+					[`${filterName}From`]: filters[filterName].from ? filters[filterName].from : undefined,
+					[`${filterName}To`]: filters[filterName].to ? filters[filterName].to : undefined,
 					...filterVariables,
 				}
 				const column =
@@ -72,12 +68,8 @@ export const getFilters = (filters: any, tablePrefix = '', func = '') => {
 						: `${tablePrefixString}"${filterName}"`
 
 				return (
-					(filters[filterName].from
-						? `AND ${column} >= $${`${filterName}From`} `
-						: '') +
-					(filters[filterName].to
-						? `AND ${column} <= $${`${filterName}To`}`
-						: '')
+					(filters[filterName].from ? `AND ${column} >= $${`${filterName}From`} ` : '') +
+					(filters[filterName].to ? `AND ${column} <= $${`${filterName}To`}` : '')
 				)
 			}
 
@@ -150,19 +142,12 @@ export const getSequelizeFilters = (filters: any, tablePrefix = '') => {
 		if (filters[filterName].type === 'range') {
 			const tablePrefixString = tablePrefix ? `"${tablePrefix}".` : ''
 
-			const from = filters[filterName].from
-				? { [Op.gte]: filters[filterName].from }
-				: undefined
-			const to = filters[filterName].to
-				? { [Op.lte]: filters[filterName].to }
-				: undefined
+			const from = filters[filterName].from ? { [Op.gte]: filters[filterName].from } : undefined
+			const to = filters[filterName].to ? { [Op.lte]: filters[filterName].to } : undefined
 
 			return sequelize.where(
 				filters[filterName].dataType === 'date'
-					? sequelize.cast(
-							sequelize.col(`${tablePrefixString}${filterName}`),
-							'date'
-					  )
+					? sequelize.cast(sequelize.col(`${tablePrefixString}${filterName}`), 'date')
 					: (filterName as any), // TODO add types
 				{
 					...from,

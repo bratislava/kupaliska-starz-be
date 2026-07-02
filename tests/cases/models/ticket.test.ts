@@ -20,19 +20,13 @@ describe('Ticket model', () => {
 			ticket.ticketType = new TicketTypeModel()
 			ticket.ticketType.swimmingPools = []
 			for (const pool of allowedSwimmingPools) {
-				ticket.ticketType.swimmingPools.push(
-					new SwimmingPoolModel({ id: pool })
-				)
+				ticket.ticketType.swimmingPools.push(new SwimmingPoolModel({ id: pool }))
 			}
 
 			if (expected) {
-				expect(
-					ticket.canCustomerEnterSwimmingPool(testSwimmingPool)
-				).toBe(true)
+				expect(ticket.canCustomerEnterSwimmingPool(testSwimmingPool)).toBe(true)
 			} else {
-				expect(
-					ticket.canCustomerEnterSwimmingPool(testSwimmingPool)
-				).toBe(false)
+				expect(ticket.canCustomerEnterSwimmingPool(testSwimmingPool)).toBe(false)
 			}
 		}
 	)
@@ -105,13 +99,7 @@ describe('Ticket model', () => {
 		['08:15:00', '19:00:00', false, '', true],
 	]).it(
 		"Test entrance constraints ( input is '%s' '%s' '%s' '%s' '%s' )",
-		async (
-			entranceFrom,
-			entranceTo,
-			hasEntranceConstraints,
-			testTime,
-			expected
-		) => {
+		async (entranceFrom, entranceTo, hasEntranceConstraints, testTime, expected) => {
 			let ticket = new TicketModel()
 			ticket.ticketType = new TicketTypeModel({
 				entranceFrom: entranceFrom,
@@ -197,23 +185,11 @@ describe('Ticket model', () => {
 			'2021-05-04 02:05:01',
 			false,
 		],
-		[
-			false,
-			'03:05:00',
-			new EntryModel({ timestamp: '2021-05-03 23:00:00' }),
-			'',
-			true,
-		],
+		[false, '03:05:00', new EntryModel({ timestamp: '2021-05-03 23:00:00' }), '', true],
 		[true, '03:05:00', undefined, '', true],
 	]).it(
 		"Test ticket duration ( input is '%s' '%s' '%s' '%s' '%s' )",
-		async (
-			hasTicketDuration,
-			ticketDuration,
-			entry,
-			testTime,
-			expected
-		) => {
+		async (hasTicketDuration, ticketDuration, entry, testTime, expected) => {
 			let ticket = new TicketModel()
 			ticket.ticketType = new TicketTypeModel()
 			jest.useFakeTimers('modern')

@@ -28,25 +28,14 @@ export const schema = Joi.object().keys({
 
 const { SwimmingLoggedUser } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	let transaction: Transaction | null = null
 	try {
 		const { body } = req
 		const sub = await getCognitoIdOfLoggedInUser(req)
 		if (sub) {
 			const swimmingLoggedUser = await SwimmingLoggedUser.findOne({
-				attributes: [
-					'id',
-					'externalCognitoId',
-					'age',
-					'dateOfBirth',
-					'zip',
-					'dateOfBirth',
-				],
+				attributes: ['id', 'externalCognitoId', 'age', 'dateOfBirth', 'zip', 'dateOfBirth'],
 				where: {
 					externalCognitoId: { [Op.eq]: sub },
 				},
@@ -60,9 +49,7 @@ export const workflow = async (
 			const age = calculateAge(body.dateOfBirth)
 			await swimmingLoggedUser.update(
 				{
-					dateOfBirth: body.dateOfBirth
-						? body.dateOfBirth
-						: swimmingLoggedUser.dateOfBirth,
+					dateOfBirth: body.dateOfBirth ? body.dateOfBirth : swimmingLoggedUser.dateOfBirth,
 					age: age ? age : swimmingLoggedUser.age,
 					zip: body.zip ? body.zip : swimmingLoggedUser.zip,
 				},
@@ -76,9 +63,7 @@ export const workflow = async (
 					SwimmingLoggedUserModel.name,
 					swimmingLoggedUserUploadFolder,
 					transaction,
-					swimmingLoggedUser.image
-						? swimmingLoggedUser.image.id
-						: undefined
+					swimmingLoggedUser.image ? swimmingLoggedUser.image.id : undefined
 				)
 			}
 
@@ -90,9 +75,7 @@ export const workflow = async (
 
 			let swimmingLoggedUserWithImageBase64 = {
 				...formatSwimmingLoggedUser(swimmingLoggedUser),
-				image: swimmingLoggedUser.image
-					? await readAsBase64(swimmingLoggedUser.image)
-					: null,
+				image: swimmingLoggedUser.image ? await readAsBase64(swimmingLoggedUser.image) : null,
 			}
 
 			return res.json({
@@ -103,9 +86,7 @@ export const workflow = async (
 				messages: [
 					{
 						type: MESSAGE_TYPE.SUCCESS,
-						message: req.t(
-							'success:loggedSwimmer.swimmingLoggedUsers.updated'
-						),
+						message: req.t('success:loggedSwimmer.swimmingLoggedUsers.updated'),
 					},
 				],
 			})

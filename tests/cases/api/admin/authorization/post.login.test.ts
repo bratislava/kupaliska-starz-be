@@ -32,24 +32,18 @@ describe(`[POST] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Expect status 401 | Unauthorized', async () => {
-		const response = await request
-			.post(endpoint)
-			.set('Content-Type', 'application/json')
-			.send({
-				email: 'admin@amcef.com',
-				password: 'amcefPass13',
-			})
+		const response = await request.post(endpoint).set('Content-Type', 'application/json').send({
+			email: 'admin@amcef.com',
+			password: 'amcefPass13',
+		})
 		expect(response.status).toBe(401)
 	})
 
 	it('Response should return status code 200', async () => {
-		const response = await request
-			.post(endpoint)
-			.set('Content-Type', 'application/json')
-			.send({
-				email: 'admin@amcef.com',
-				password: 'amcefPass132',
-			})
+		const response = await request.post(endpoint).set('Content-Type', 'application/json').send({
+			email: 'admin@amcef.com',
+			password: 'amcefPass132',
+		})
 
 		expect(response.type).toBe('application/json')
 		expect(response.status).toBe(200)

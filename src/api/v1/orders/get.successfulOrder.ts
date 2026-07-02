@@ -20,11 +20,7 @@ export const schema = Joi.object().keys({
 	}),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { params } = req
 		const authInfo = req.authInfo as { orderId: string }
@@ -45,13 +41,7 @@ export const workflow = async (
 					include: [
 						{
 							association: 'ticketType',
-							attributes: [
-								'id',
-								'validTo',
-								'name',
-								'childrenAgeToWithAdult',
-								'isSeniorIsDisabled',
-							],
+							attributes: ['id', 'validTo', 'name', 'childrenAgeToWithAdult', 'isSeniorIsDisabled'],
 						},
 						{
 							association: 'profile',

@@ -11,17 +11,10 @@ export const createSignature = (
 	const signer = crypto.createSign(ALGORITHM)
 	signer.update(data)
 	signer.end()
-	return signer.sign(
-		{ key: privateKey, passphrase: privateKeyPassphrase },
-		SIGNATURE_FORMAT
-	)
+	return signer.sign({ key: privateKey, passphrase: privateKeyPassphrase }, SIGNATURE_FORMAT)
 }
 
-export const verifySignature = (
-	data: string,
-	signature: string,
-	publicKey: Buffer
-): boolean => {
+export const verifySignature = (data: string, signature: string, publicKey: Buffer): boolean => {
 	const verifier = crypto.createVerify(ALGORITHM)
 	verifier.update(data)
 	verifier.end()

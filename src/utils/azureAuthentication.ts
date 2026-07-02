@@ -11,7 +11,7 @@ interface keysResponse {
 			kty: string
 			e: string
 			n: string
-		}
+		},
 	]
 }
 

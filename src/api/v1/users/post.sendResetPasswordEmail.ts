@@ -5,11 +5,7 @@ import { models } from '../../../db/models'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { createJwt } from '../../../utils/authorization'
-import {
-	IAppConfig,
-	IMailgunserviceConfig,
-	IPassportConfig,
-} from '../../../types/interfaces'
+import { IAppConfig, IMailgunserviceConfig, IPassportConfig } from '../../../types/interfaces'
 import { Op } from 'sequelize'
 import { sendEmail } from '../../../services/mailerService'
 
@@ -28,11 +24,7 @@ export const schema = Joi.object().keys({
 	params: Joi.object(),
 })
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	const { User } = models
 
 	try {
@@ -59,14 +51,9 @@ export const workflow = async (
 		)
 
 		// send email
-		await sendEmail(
-			body.email,
-			req.t('email:resetPasswordSubject'),
-			resetPasswordTemplate,
-			{
-				resetLink: `${appConfig.feResetPasswordUrl}?token=${accessToken}`,
-			}
-		)
+		await sendEmail(body.email, req.t('email:resetPasswordSubject'), resetPasswordTemplate, {
+			resetLink: `${appConfig.feResetPasswordUrl}?token=${accessToken}`,
+		})
 
 		return res.json({
 			data: {},

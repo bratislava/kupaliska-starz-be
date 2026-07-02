@@ -10,10 +10,8 @@ import app from '../../../../../src/app'
 import { TicketModel } from '../../../../../src/db/models/ticket'
 
 const swimmingPoolIdAllowed = 'c70954c7-970d-4f1a-acf4-12b91acabe01'
-const endpoint = (
-	swimmingPoolId = swimmingPoolIdAllowed,
-	ticketId = process.env.ticketId
-) => `/api/admin/tickets/swimmingPools/${swimmingPoolId}/checkout/${ticketId}`
+const endpoint = (swimmingPoolId = swimmingPoolIdAllowed, ticketId = process.env.ticketId) =>
+	`/api/admin/tickets/swimmingPools/${swimmingPoolId}/checkout/${ticketId}`
 
 const schema = Joi.object().keys()
 
@@ -21,9 +19,7 @@ describe(`[POST] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Expect status 401 | Invalid or missing auth token', async () => {
-		const response = await request
-			.post(endpoint())
-			.set('Content-Type', 'application/json')
+		const response = await request.post(endpoint()).set('Content-Type', 'application/json')
 		expect(response.status).toBe(401)
 	})
 
@@ -58,9 +54,7 @@ describe(`[POST] ${endpoint})`, () => {
 		expect(ticket.entries[0].type).toBe(ENTRY_TYPE.CHECKOUT)
 		expect(ticket.entries[0].flag).toBe(ENTRY_FLAG.MANUAL)
 		expect(ticket.entries[0].employeeId).toBe(process.env.operatorId)
-		expect(ticket.entries[0].swimmingPoolId).toBe(
-			process.env.ticketAllowedSwimmingPoolId
-		)
+		expect(ticket.entries[0].swimmingPoolId).toBe(process.env.ticketAllowedSwimmingPoolId)
 
 		jest.useRealTimers()
 	})

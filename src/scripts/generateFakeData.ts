@@ -67,9 +67,7 @@ async function generateData() {
 		amount: 20,
 	})
 
-	const zipCodes = map([...Array(10).keys()], () =>
-		faker.address.zipCode('#####')
-	)
+	const zipCodes = map([...Array(10).keys()], () => faker.address.zipCode('#####'))
 
 	for (let i = 0; i <= 20; i++) {
 		// 20 iteration, in every iteration will be created (numberOfOrdersInBulk x 2) orders
@@ -84,8 +82,7 @@ async function generateData() {
 				const addDiscount = faker.random.boolean()
 				const price =
 					(seasonalTicketType.priceWithVat +
-						numberOfChildren *
-							seasonalTicketType.childrenPriceWithVat) *
+						numberOfChildren * seasonalTicketType.childrenPriceWithVat) *
 					(addDiscount ? (100 - discountCode.amount) / 100 : 1)
 
 				return {
@@ -93,9 +90,8 @@ async function generateData() {
 					price: price,
 					discount: addDiscount
 						? (seasonalTicketType.priceWithVat +
-								numberOfChildren *
-									seasonalTicketType.childrenPriceWithVat) *
-						  (discountCode.amount / 100)
+								numberOfChildren * seasonalTicketType.childrenPriceWithVat) *
+							(discountCode.amount / 100)
 						: 0,
 					discountCodeId: addDiscount ? discountCode.id : null,
 					tickets: concat(
@@ -106,16 +102,8 @@ async function generateData() {
 								remainingEntries: null,
 								profile: {
 									...createProfile(),
-									zip:
-										faker.random.number(100) > 40
-											? faker.random.arrayElement(
-													zipCodes
-											  )
-											: null,
-									age:
-										faker.random.number(100) > 40
-											? faker.random.number(80) + 17
-											: null,
+									zip: faker.random.number(100) > 40 ? faker.random.arrayElement(zipCodes) : null,
+									age: faker.random.number(100) > 40 ? faker.random.number(80) + 17 : null,
 								},
 								ticketTypeId: seasonalTicketType.id,
 								entries: generateEntries(
@@ -133,14 +121,8 @@ async function generateData() {
 							remainingEntries: null,
 							profile: {
 								...createProfile(),
-								zip:
-									faker.random.number(100) > 40
-										? faker.random.arrayElement(zipCodes)
-										: null,
-								age:
-									faker.random.number(100) > 40
-										? faker.random.number(20) + 3
-										: null,
+								zip: faker.random.number(100) > 40 ? faker.random.arrayElement(zipCodes) : null,
+								age: faker.random.number(100) > 40 ? faker.random.number(20) + 3 : null,
 							},
 							ticketTypeId: seasonalTicketType.id,
 							entries: generateEntries(
@@ -181,16 +163,12 @@ async function generateData() {
 
 				const addDiscount = faker.random.boolean()
 				const price =
-					entriesTicketType.priceWithVat *
-					(addDiscount ? (100 - discountCode.amount) / 100 : 1)
+					entriesTicketType.priceWithVat * (addDiscount ? (100 - discountCode.amount) / 100 : 1)
 
 				return {
 					...createOrder(),
 					price: price,
-					discount: addDiscount
-						? entriesTicketType.priceWithVat *
-						  (discountCode.amount / 100)
-						: 0,
+					discount: addDiscount ? entriesTicketType.priceWithVat * (discountCode.amount / 100) : 0,
 					discountCodeId: addDiscount ? discountCode.id : null,
 					tickets: map([...Array(numberOfTickets).keys()], () => ({
 						...createTicket(),
@@ -198,14 +176,8 @@ async function generateData() {
 						remainingEntries: remainingEntries,
 						profile: {
 							...createProfile(),
-							zip:
-								faker.random.number(100) > 40
-									? faker.random.arrayElement(zipCodes)
-									: null,
-							age:
-								faker.random.number(100) > 40
-									? faker.random.number(80) + 17
-									: null,
+							zip: faker.random.number(100) > 40 ? faker.random.arrayElement(zipCodes) : null,
+							age: faker.random.number(100) > 40 ? faker.random.number(80) + 17 : null,
 						},
 						ticketTypeId: entriesTicketType.id,
 						entries: generateEntries(
@@ -247,10 +219,7 @@ const generateEntries = (
 ) =>
 	map([...Array(numberOfEntries).keys()], () => {
 		const swimmingPoolId = faker.random.arrayElement(swimmingPoolsIds)
-		const entryType = faker.random.arrayElement([
-			ENTRY_TYPE.CHECKIN,
-			ENTRY_TYPE.CHECKOUT,
-		])
+		const entryType = faker.random.arrayElement([ENTRY_TYPE.CHECKIN, ENTRY_TYPE.CHECKOUT])
 		return {
 			timestamp: faker.date.between(eventsFrom, eventsTo),
 			employeeId: employeeId,

@@ -99,11 +99,7 @@ export const schema = Joi.object().keys({
 			)
 			.empty(['', null])
 			.default('createdAt'),
-		direction: Joi.string()
-			.lowercase()
-			.valid('asc', 'desc')
-			.empty(['', null])
-			.default('desc'),
+		direction: Joi.string().lowercase().valid('asc', 'desc').empty(['', null]).default('desc'),
 	}),
 	params: Joi.object().keys({
 		swimmingPoolId: Joi.string()
@@ -114,29 +110,20 @@ export const schema = Joi.object().keys({
 
 // this is used, fix price from float to integer, from euros to cents
 // for now not used in FE, code is commented out
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { query, params }: any = req
 		const { limit, page } = query
 		const offset = limit * page - limit
 
-		const { ticketTypes, zip, age, numberOfVisits, ...otherFilters } =
-			query.filters || {}
+		const { ticketTypes, zip, age, numberOfVisits, ...otherFilters } = query.filters || {}
 
 		let havingSQL = ''
 		let havingVariables: any = {}
 
 		if (numberOfVisits) {
-			havingSQL += numberOfVisits.from
-				? ` AND COUNT(visits) >= $numberOfVisitsFrom `
-				: ''
-			havingSQL += numberOfVisits.to
-				? `AND COUNT(visits) <= $numberOfVisitsTo `
-				: ''
+			havingSQL += numberOfVisits.from ? ` AND COUNT(visits) >= $numberOfVisitsFrom ` : ''
+			havingSQL += numberOfVisits.to ? `AND COUNT(visits) <= $numberOfVisitsTo ` : ''
 			havingVariables.numberOfVisitsFrom = numberOfVisits.from
 			havingVariables.numberOfVisitsTo = numberOfVisits.to
 		}
@@ -148,14 +135,8 @@ export const workflow = async (
 			query.order = `profile.${query.order}`
 		}
 
-		const [ticketsFilterVariables, ticketsFilterSQL] = getFilters(
-			otherFilters,
-			'tickets'
-		)
-		const [profilesFilterVariables, profilesFilterSQL] = getFilters(
-			{ zip },
-			'profiles'
-		)
+		const [ticketsFilterVariables, ticketsFilterSQL] = getFilters(otherFilters, 'tickets')
+		const [profilesFilterVariables, profilesFilterSQL] = getFilters({ zip }, 'profiles')
 		const [ticketTypesFilterVariables, ticketTypesFilterSQL] = getFilters(
 			{ id: ticketTypes },
 			'ticketTypes'
@@ -166,9 +147,7 @@ export const workflow = async (
 		if (age) {
 			ageFilterSql += age.from ? `"profiles"."age" >= $ageFrom` : ''
 			const addAnd = age.from ? 'AND' : ''
-			ageFilterSql += age.to
-				? ` ${addAnd} "profiles"."age" <= $ageTo`
-				: ''
+			ageFilterSql += age.to ? ` ${addAnd} "profiles"."age" <= $ageTo` : ''
 			ageFilterSql = age.showUnspecified
 				? `(${ageFilterSql} OR "profiles"."age" IS NULL)`
 				: ageFilterSql

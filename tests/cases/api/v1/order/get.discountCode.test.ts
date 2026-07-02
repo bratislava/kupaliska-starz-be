@@ -8,8 +8,7 @@ import { DiscountCodeTicketTypeModel } from '../../../../../src/db/models/discou
 import { discountCodeUsed } from '../../../../../src/db/seeders/test/05-discountCodes'
 import MockDate from 'mockdate'
 
-const endpoint = (discountCode: string) =>
-	`/api/v1/orders/discountCodes/${discountCode}`
+const endpoint = (discountCode: string) => `/api/v1/orders/discountCodes/${discountCode}`
 
 const discountCode = 'EEEEEEEE'
 const discountCodeId = uuidv4()
@@ -46,17 +45,13 @@ describe(`[GET] ${endpoint}`, () => {
 	it('Discount code not between valid dates', async () => {
 		MockDate.set('2021-04-11 23:59:59')
 
-		let response = await request
-			.get(endpoint(discountCode))
-			.set('Content-Type', 'application/json')
+		let response = await request.get(endpoint(discountCode)).set('Content-Type', 'application/json')
 
 		expect(response.status).toBe(404)
 
 		MockDate.set('2021-07-13 00:00:00')
 
-		response = await request
-			.get(endpoint(discountCode))
-			.set('Content-Type', 'application/json')
+		response = await request.get(endpoint(discountCode)).set('Content-Type', 'application/json')
 
 		expect(response.status).toBe(404)
 
@@ -79,9 +74,7 @@ describe(`[GET] ${endpoint}`, () => {
 	it('Response should return code 200', async () => {
 		MockDate.set('2021-04-12 00:00:00')
 
-		let response = await request
-			.get(endpoint(discountCode))
-			.set('Content-Type', 'application/json')
+		let response = await request.get(endpoint(discountCode)).set('Content-Type', 'application/json')
 
 		expect(response.status).toBe(200)
 		expect(response.type).toBe('application/json')
@@ -91,9 +84,7 @@ describe(`[GET] ${endpoint}`, () => {
 
 		MockDate.set('2021-07-12 23:59:59')
 
-		response = await request
-			.get(endpoint(discountCode))
-			.set('Content-Type', 'application/json')
+		response = await request.get(endpoint(discountCode)).set('Content-Type', 'application/json')
 
 		expect(response.status).toBe(200)
 

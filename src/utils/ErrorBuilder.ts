@@ -10,10 +10,7 @@ interface IErrorBuilderItem {
 	path?: string
 }
 
-const prepareErrorItems = (
-	name: string | Joi.ValidationErrorItem[],
-	key?: string
-) => {
+const prepareErrorItems = (name: string | Joi.ValidationErrorItem[], key?: string) => {
 	if (typeof name === 'string') {
 		return [
 			{

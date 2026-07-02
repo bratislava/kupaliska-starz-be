@@ -41,10 +41,11 @@ describe('Authorization middleware', () => {
 			},
 		}
 
-		authorizationMiddleware([
-			USER_ROLE.OPERATOR,
-			USER_ROLE.SWIMMING_POOL_EMPLOYEE,
-		])(mockRequest as Request, mockResponse as Response, nextFunction)
+		authorizationMiddleware([USER_ROLE.OPERATOR, USER_ROLE.SWIMMING_POOL_EMPLOYEE])(
+			mockRequest as Request,
+			mockResponse as Response,
+			nextFunction
+		)
 		expect(nextFunction).toBeCalledTimes(2)
 	})
 
@@ -72,10 +73,11 @@ describe('Authorization middleware', () => {
 			},
 		}
 		expect(() => {
-			authorizationMiddleware([
-				USER_ROLE.SWIMMING_POOL_OPERATOR,
-				USER_ROLE.OPERATOR,
-			])(mockRequest as Request, mockResponse as Response, nextFunction)
+			authorizationMiddleware([USER_ROLE.SWIMMING_POOL_OPERATOR, USER_ROLE.OPERATOR])(
+				mockRequest as Request,
+				mockResponse as Response,
+				nextFunction
+			)
 		}).toThrow(new ErrorBuilder(403, 'Forbidden'))
 	})
 
@@ -91,11 +93,7 @@ describe('Authorization middleware', () => {
 
 	it('Should throw error', async () => {
 		expect(() => {
-			authorizationMiddleware([])(
-				mockRequest as Request,
-				mockResponse as Response,
-				nextFunction
-			)
+			authorizationMiddleware([])(mockRequest as Request, mockResponse as Response, nextFunction)
 		}).toThrow(Error)
 	})
 })

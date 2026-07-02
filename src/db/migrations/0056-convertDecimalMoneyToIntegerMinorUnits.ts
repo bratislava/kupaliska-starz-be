@@ -36,12 +36,9 @@ const toDecimalCurrency = async (
 export async function up(queryInterface: QueryInterface) {
 	const transaction = await DB.transaction()
 	try {
-		const tablePaymentOrdersExists = await queryInterface.tableExists(
-			'paymentOrders',
-			{
-				transaction,
-			}
-		)
+		const tablePaymentOrdersExists = await queryInterface.tableExists('paymentOrders', {
+			transaction,
+		})
 
 		const tableOrdersExists = await queryInterface.tableExists('orders', {
 			transaction,
@@ -51,12 +48,9 @@ export async function up(queryInterface: QueryInterface) {
 			transaction,
 		})
 
-		const tableTicketTypesExists = await queryInterface.tableExists(
-			'ticketTypes',
-			{
-				transaction,
-			}
-		)
+		const tableTicketTypesExists = await queryInterface.tableExists('ticketTypes', {
+			transaction,
+		})
 
 		if (
 			!tablePaymentOrdersExists ||
@@ -68,64 +62,30 @@ export async function up(queryInterface: QueryInterface) {
 			return
 		}
 
-		const tablePaymentOrders = await queryInterface.describeTable(
-			'paymentOrders'
-		)
+		const tablePaymentOrders = await queryInterface.describeTable('paymentOrders')
 		if (tablePaymentOrders.paymentAmount) {
-			await toIntegerCurrency(
-				queryInterface,
-				'paymentOrders',
-				'paymentAmount',
-				transaction
-			)
+			await toIntegerCurrency(queryInterface, 'paymentOrders', 'paymentAmount', transaction)
 		}
 
 		const tableOrders = await queryInterface.describeTable('orders')
 		if (tableOrders.priceWithVat) {
-			await toIntegerCurrency(
-				queryInterface,
-				'orders',
-				'priceWithVat',
-				transaction
-			)
+			await toIntegerCurrency(queryInterface, 'orders', 'priceWithVat', transaction)
 		}
 		if (tableOrders.discount) {
-			await toIntegerCurrency(
-				queryInterface,
-				'orders',
-				'discount',
-				transaction
-			)
+			await toIntegerCurrency(queryInterface, 'orders', 'discount', transaction)
 		}
 
 		const tableTickets = await queryInterface.describeTable('tickets')
 		if (tableTickets.priceWithVat) {
-			await toIntegerCurrency(
-				queryInterface,
-				'tickets',
-				'priceWithVat',
-				transaction
-			)
+			await toIntegerCurrency(queryInterface, 'tickets', 'priceWithVat', transaction)
 		}
 
-		const tableTicketTypes = await queryInterface.describeTable(
-			'ticketTypes'
-		)
+		const tableTicketTypes = await queryInterface.describeTable('ticketTypes')
 		if (tableTicketTypes.priceWithVat) {
-			await toIntegerCurrency(
-				queryInterface,
-				'ticketTypes',
-				'priceWithVat',
-				transaction
-			)
+			await toIntegerCurrency(queryInterface, 'ticketTypes', 'priceWithVat', transaction)
 		}
 		if (tableTicketTypes.childrenPriceWithVat) {
-			await toIntegerCurrency(
-				queryInterface,
-				'ticketTypes',
-				'childrenPriceWithVat',
-				transaction
-			)
+			await toIntegerCurrency(queryInterface, 'ticketTypes', 'childrenPriceWithVat', transaction)
 		}
 
 		await transaction.commit()
@@ -138,12 +98,9 @@ export async function up(queryInterface: QueryInterface) {
 export async function down(queryInterface: QueryInterface) {
 	const transaction = await DB.transaction()
 	try {
-		const tablePaymentOrdersExists = await queryInterface.tableExists(
-			'paymentOrders',
-			{
-				transaction,
-			}
-		)
+		const tablePaymentOrdersExists = await queryInterface.tableExists('paymentOrders', {
+			transaction,
+		})
 
 		const tableOrdersExists = await queryInterface.tableExists('orders', {
 			transaction,
@@ -153,12 +110,9 @@ export async function down(queryInterface: QueryInterface) {
 			transaction,
 		})
 
-		const tableTicketTypesExists = await queryInterface.tableExists(
-			'ticketTypes',
-			{
-				transaction,
-			}
-		)
+		const tableTicketTypesExists = await queryInterface.tableExists('ticketTypes', {
+			transaction,
+		})
 
 		if (
 			!tablePaymentOrdersExists ||
@@ -169,64 +123,30 @@ export async function down(queryInterface: QueryInterface) {
 			await transaction.rollback()
 			return
 		}
-		const tablePaymentOrders = await queryInterface.describeTable(
-			'paymentOrders'
-		)
+		const tablePaymentOrders = await queryInterface.describeTable('paymentOrders')
 		if (tablePaymentOrders.paymentAmount) {
-			await toDecimalCurrency(
-				queryInterface,
-				'paymentOrders',
-				'paymentAmount',
-				transaction
-			)
+			await toDecimalCurrency(queryInterface, 'paymentOrders', 'paymentAmount', transaction)
 		}
 
 		const tableOrders = await queryInterface.describeTable('orders')
 		if (tableOrders.priceWithVat) {
-			await toDecimalCurrency(
-				queryInterface,
-				'orders',
-				'priceWithVat',
-				transaction
-			)
+			await toDecimalCurrency(queryInterface, 'orders', 'priceWithVat', transaction)
 		}
 		if (tableOrders.discount) {
-			await toDecimalCurrency(
-				queryInterface,
-				'orders',
-				'discount',
-				transaction
-			)
+			await toDecimalCurrency(queryInterface, 'orders', 'discount', transaction)
 		}
 
 		const tableTickets = await queryInterface.describeTable('tickets')
 		if (tableTickets.priceWithVat) {
-			await toDecimalCurrency(
-				queryInterface,
-				'tickets',
-				'priceWithVat',
-				transaction
-			)
+			await toDecimalCurrency(queryInterface, 'tickets', 'priceWithVat', transaction)
 		}
 
-		const tableTicketTypes = await queryInterface.describeTable(
-			'ticketTypes'
-		)
+		const tableTicketTypes = await queryInterface.describeTable('ticketTypes')
 		if (tableTicketTypes.priceWithVat) {
-			await toDecimalCurrency(
-				queryInterface,
-				'ticketTypes',
-				'priceWithVat',
-				transaction
-			)
+			await toDecimalCurrency(queryInterface, 'ticketTypes', 'priceWithVat', transaction)
 		}
 		if (tableTicketTypes.childrenPriceWithVat) {
-			await toDecimalCurrency(
-				queryInterface,
-				'ticketTypes',
-				'childrenPriceWithVat',
-				transaction
-			)
+			await toDecimalCurrency(queryInterface, 'ticketTypes', 'childrenPriceWithVat', transaction)
 		}
 
 		await transaction.commit()

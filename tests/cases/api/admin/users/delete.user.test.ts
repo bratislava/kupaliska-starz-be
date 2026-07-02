@@ -2,11 +2,7 @@ import { createUser } from './../../../../../src/db/factories/user'
 import supertest from 'supertest'
 import Joi from 'joi'
 import app from '../../../../../src/app'
-import {
-	MESSAGE_TYPE,
-	MESSAGE_TYPES,
-	USER_ROLE,
-} from '../../../../../src/utils/enums'
+import { MESSAGE_TYPE, MESSAGE_TYPES, USER_ROLE } from '../../../../../src/utils/enums'
 import { UserModel } from '../../../../../src/db/models/user'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -48,9 +44,7 @@ describe(`[DELETE] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Expect status 401 | Invalid or missing auth token', async () => {
-		const response = await request
-			.delete(endpoint())
-			.set('Content-Type', 'application/json')
+		const response = await request.delete(endpoint()).set('Content-Type', 'application/json')
 		expect(response.status).toBe(401)
 	})
 
@@ -66,10 +60,7 @@ describe(`[DELETE] ${endpoint})`, () => {
 		const response = await request
 			.delete(endpoint())
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolOperator}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolOperator}`)
 		expect(response.status).toBe(403)
 	})
 
@@ -77,10 +68,7 @@ describe(`[DELETE] ${endpoint})`, () => {
 		const response = await request
 			.delete(endpoint())
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolEmployee}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolEmployee}`)
 		expect(response.status).toBe(403)
 	})
 

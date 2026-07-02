@@ -62,10 +62,7 @@ export const formatTicket = (ticket: TicketModel) => {
 	}
 }
 
-export const formatSwimmingPool = (
-	swimmingPool: SwimmingPoolModel,
-	role?: USER_ROLE
-) => {
+export const formatSwimmingPool = (swimmingPool: SwimmingPoolModel, role?: USER_ROLE) => {
 	if (!swimmingPool) {
 		return null
 	}
@@ -184,14 +181,9 @@ export const formatOrder = (order: OrderModel) => {
 	let adultTickets
 	let userName
 	if (order.tickets) {
-		adultTickets = filter(
-			order.tickets,
-			(ticket) => ticket.isChildren === false
-		)
+		adultTickets = filter(order.tickets, (ticket) => ticket.isChildren === false)
 		userName =
-			adultTickets.length > 0
-				? adultTickets[0].profile.name
-				: order.tickets[0].profile.name
+			adultTickets.length > 0 ? adultTickets[0].profile.name : order.tickets[0].profile.name
 	}
 
 	return {
@@ -202,18 +194,11 @@ export const formatOrder = (order: OrderModel) => {
 		orderNumber: order.orderNumber,
 		numberOfTickets: order.tickets ? order.tickets.length : undefined,
 		numberOfChildren: order.tickets
-			? reduce(
-					order.tickets,
-					(number, ticket) =>
-						ticket.isChildren ? number + 1 : number,
-					0
-				)
+			? reduce(order.tickets, (number, ticket) => (ticket.isChildren ? number + 1 : number), 0)
 			: undefined,
 		email: order.tickets ? order.tickets[0].profile.email : undefined,
 		userName: adultTickets ? userName : undefined,
-		ticketName: order.tickets
-			? order.tickets[0].ticketType.name
-			: undefined,
+		ticketName: order.tickets ? order.tickets[0].ticketType.name : undefined,
 		createdAt: order.createdAt,
 		updatedAt: order.updatedAt,
 	}
@@ -243,10 +228,7 @@ export const formatVisits = (
 			swimmingPoolsAverageVisits,
 			(obj) => obj.id === swimmingPool.id
 		)
-		const average =
-			swimmingPoolAverageVisits.length > 0
-				? swimmingPoolAverageVisits[0].total
-				: zero
+		const average = swimmingPoolAverageVisits.length > 0 ? swimmingPoolAverageVisits[0].total : zero
 
 		return {
 			id: swimmingPool.id,
@@ -277,9 +259,7 @@ export const formatVisits = (
 	})
 }
 
-export const formatSwimmingLoggedUser = (
-	swimmingLoggedUser: SwimmingLoggedUserModel
-) => {
+export const formatSwimmingLoggedUser = (swimmingLoggedUser: SwimmingLoggedUserModel) => {
 	if (!swimmingLoggedUser) {
 		return null
 	}
@@ -296,9 +276,7 @@ export const formatSwimmingLoggedUser = (
 	}
 }
 
-export const formatAssociatedSwimmer = (
-	associatedSwimmer: AssociatedSwimmerModel
-) => {
+export const formatAssociatedSwimmer = (associatedSwimmer: AssociatedSwimmerModel) => {
 	if (!associatedSwimmer) {
 		return null
 	}

@@ -34,11 +34,7 @@ interface TicketColors {
 	background: string
 }
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const swimmingLoggedUser = await getDataAboutCurrentUser(req)
 		const tickets = await Ticket.findAll({
@@ -80,19 +76,14 @@ export const workflow = async (
 				ticketResult.vatPercentage = ticket.vatPercentage
 				ticketResult.remainingEntries = ticket.remainingEntries
 
-				const ticketType = await TicketType.findByPk(
-					ticket.ticketTypeId,
-					{
-						paranoid: false,
-					}
-				)
+				const ticketType = await TicketType.findByPk(ticket.ticketTypeId, {
+					paranoid: false,
+				})
 				// ?. for cases when the ticketType has been removed
 				ticketResult.type = ticketType?.name
 				ticketResult.validTo = ticketType?.validTo
 				const qrCode = await generateQrCodeBuffer(ticket.id)
-				ticketResult.qrCode =
-					'data:image/png;base64, ' +
-					Buffer.from(qrCode).toString('base64')
+				ticketResult.qrCode = 'data:image/png;base64, ' + Buffer.from(qrCode).toString('base64')
 
 				// ?. operator just in case
 				ticketResult.ownerName = ticket.profile?.name

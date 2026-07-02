@@ -5,11 +5,7 @@ import { concat, filter, map, reduce } from 'lodash'
 import { OrderModel } from '../db/models/order'
 import dateformat from 'dateformat'
 import { DiscountCodeModel } from '../db/models/discountCode'
-export const downloadOrdersAsCsv = (
-	res: Response,
-	fileName: string,
-	orders: OrderModel[]
-) => {
+export const downloadOrdersAsCsv = (res: Response, fileName: string, orders: OrderModel[]) => {
 	const fields = [
 		{
 			label: i18next.t('orderNumber'),
@@ -55,30 +51,20 @@ export const downloadOrdersAsCsv = (
 			let adultTickets
 			let userName
 			if (order.tickets) {
-				adultTickets = filter(
-					order.tickets,
-					(ticket) => ticket.isChildren === false
-				)
+				adultTickets = filter(order.tickets, (ticket) => ticket.isChildren === false)
 				userName =
-					adultTickets.length > 0
-						? adultTickets[0].profile.name
-						: order.tickets[0].profile.name
+					adultTickets.length > 0 ? adultTickets[0].profile.name : order.tickets[0].profile.name
 			}
 			return {
-				priceWithVat: (order.priceWithVat / 100)
-					.toFixed(2)
-					.replace('.', ','),
+				priceWithVat: (order.priceWithVat / 100).toFixed(2).replace('.', ','),
 				discount: (order.discount / 100).toFixed(2).replace('.', ','),
 				state: i18next.t('states', {
 					context: order.state.toLocaleLowerCase(),
 				}),
 				orderNumber: order.orderNumber,
-				numberOfTickets: order.tickets
-					? order.tickets.length
-					: undefined,
+				numberOfTickets: order.tickets ? order.tickets.length : undefined,
 				email: order.tickets[0].profile.email,
-				userName:
-					adultTickets && userName ? userName : i18next.t('empty'),
+				userName: adultTickets && userName ? userName : i18next.t('empty'),
 				ticketName: order.tickets[0].ticketType.name,
 				createdAt: dateformat(new Date(order.createdAt), 'd.m.yyyy'),
 			}
@@ -131,22 +117,14 @@ export const downloadDiscountCodesAsCsv = (
 			return {
 				code: discountCode.code,
 				amount: discountCode.amount,
-				validFrom: dateformat(
-					new Date(discountCode.validFrom),
-					'd.m.yyyy'
-				),
+				validFrom: dateformat(new Date(discountCode.validFrom), 'd.m.yyyy'),
 				validTo: dateformat(new Date(discountCode.validTo), 'd.m.yyyy'),
-				usedAt: discountCode.usedAt
-					? dateformat(new Date(discountCode.usedAt), 'd.m.yyyy')
-					: '',
+				usedAt: discountCode.usedAt ? dateformat(new Date(discountCode.usedAt), 'd.m.yyyy') : '',
 				customerEmail:
 					discountCode.order && discountCode.order.tickets[0]
 						? discountCode.order.tickets[0].profile.email
 						: '',
-				createdAt: dateformat(
-					new Date(discountCode.createdAt),
-					'd.m.yyyy'
-				),
+				createdAt: dateformat(new Date(discountCode.createdAt), 'd.m.yyyy'),
 			}
 		})
 	)

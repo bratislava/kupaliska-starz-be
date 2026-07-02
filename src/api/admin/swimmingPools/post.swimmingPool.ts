@@ -16,9 +16,7 @@ export const swimmingPoolAddSchema = {
 	image: Joi.object()
 		.required()
 		.keys({
-			base64: Joi.string()
-				.custom(validBase64(maxFileSize, validExtensions))
-				.required(),
+			base64: Joi.string().custom(validBase64(maxFileSize, validExtensions)).required(),
 			altText: Joi.string().max(500),
 		}),
 	description: Joi.string().max(1000).required(),
@@ -39,11 +37,7 @@ export const schema = Joi.object().keys({
 
 const { SwimmingPool, File } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	let transaction: Transaction
 	try {
 		const { body } = req
@@ -65,12 +59,7 @@ export const workflow = async (
 			{ transaction }
 		)
 
-		const image = await uploadImage(
-			req,
-			body.image,
-			swimmingPool.id,
-			transaction
-		)
+		const image = await uploadImage(req, body.image, swimmingPool.id, transaction)
 		swimmingPool.image = image
 
 		await transaction.commit()
@@ -79,10 +68,7 @@ export const workflow = async (
 		return res.json({
 			data: {
 				id: swimmingPool.id,
-				swimmingPool: formatSwimmingPool(
-					swimmingPool,
-					USER_ROLE.OPERATOR
-				),
+				swimmingPool: formatSwimmingPool(swimmingPool, USER_ROLE.OPERATOR),
 			},
 			messages: [
 				{
@@ -105,11 +91,7 @@ const uploadImage = async (
 	swimmingPoolId: string,
 	transaction: any
 ) => {
-	const file = await uploadFileFromBase64(
-		req,
-		image.base64,
-		swimmingPoolUploadFolder
-	)
+	const file = await uploadFileFromBase64(req, image.base64, swimmingPoolUploadFolder)
 	return await File.create(
 		{
 			name: file.fileName,

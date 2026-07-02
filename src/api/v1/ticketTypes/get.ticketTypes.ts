@@ -23,22 +23,14 @@ export const schema = Joi.object().keys({
 			)
 			.empty(['', null])
 			.default('displayOrder'),
-		direction: Joi.string()
-			.lowercase()
-			.valid('asc', 'desc')
-			.empty(['', null])
-			.default('asc'),
+		direction: Joi.string().lowercase().valid('asc', 'desc').empty(['', null]).default('asc'),
 	}),
 	params: Joi.object(),
 })
 
 const { TicketType } = models
 
-export const workflow = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { query }: any = req
 		const { limit, page } = query
@@ -92,9 +84,7 @@ export const workflow = async (
 		})
 
 		return res.json({
-			ticketTypes: map(ticketTypes, (ticketType) =>
-				formatTicketType(ticketType)
-			),
+			ticketTypes: map(ticketTypes, (ticketType) => formatTicketType(ticketType)),
 			pagination: {
 				page: query.page,
 				limit: query.limit,

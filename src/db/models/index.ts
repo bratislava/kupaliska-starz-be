@@ -47,6 +47,8 @@ if (dbOptions.logging) {
 	}
 }
 
+// TODO: error handling when GeneralSettings is not found don't run the app
+
 const sequelize = new Sequelize(url, dbOptions)
 
 sequelize
@@ -54,13 +56,9 @@ sequelize
 	.then(
 		() =>
 			env !== ENV.test &&
-			logger.info(
-				'Database Connection has been established successfully.'.green
-			)
+			logger.info('Database Connection has been established successfully.'.green)
 	)
-	.catch((e: any) =>
-		logger.error(`Unable to connect to the database${e}.`.red)
-	)
+	.catch((e: any) => logger.error(`Unable to connect to the database${e}.`.red))
 
 const models = {
 	DiscountCodeTicketType: defineDiscountCodeTicketTypeModel(sequelize),

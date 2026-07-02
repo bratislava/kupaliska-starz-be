@@ -7,8 +7,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { createUser } from '../../../../../src/db/factories/user'
 import { Sequelize } from 'sequelize'
 
-const endpoint = (id = employeeToBeActivateId) =>
-	`/api/admin/users/${id}/activate`
+const endpoint = (id = employeeToBeActivateId) => `/api/admin/users/${id}/activate`
 
 const schema = Joi.object().keys({
 	data: Joi.object().keys({
@@ -31,10 +30,7 @@ describe(`[PUT] ${endpoint})`, () => {
 	beforeAll(async () => {
 		await UserModel.bulkCreate([
 			{
-				...createUser(
-					employeeToBeActivateId,
-					USER_ROLE.SWIMMING_POOL_EMPLOYEE
-				),
+				...createUser(employeeToBeActivateId, USER_ROLE.SWIMMING_POOL_EMPLOYEE),
 				deletedAt: Sequelize.literal('CURRENT_TIMESTAMP'),
 			},
 			{
@@ -51,9 +47,7 @@ describe(`[PUT] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Expect status 401 | Invalid or missing auth token', async () => {
-		const response = await request
-			.put(endpoint())
-			.set('Content-Type', 'application/json')
+		const response = await request.put(endpoint()).set('Content-Type', 'application/json')
 		expect(response.status).toBe(401)
 	})
 
@@ -69,10 +63,7 @@ describe(`[PUT] ${endpoint})`, () => {
 		const response = await request
 			.put(endpoint())
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolOperator}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolOperator}`)
 		expect(response.status).toBe(403)
 	})
 
@@ -80,10 +71,7 @@ describe(`[PUT] ${endpoint})`, () => {
 		const response = await request
 			.put(endpoint())
 			.set('Content-Type', 'application/json')
-			.set(
-				'Authorization',
-				`Bearer ${process.env.jwtSwimmingPoolEmployee}`
-			)
+			.set('Authorization', `Bearer ${process.env.jwtSwimmingPoolEmployee}`)
 		expect(response.status).toBe(403)
 	})
 

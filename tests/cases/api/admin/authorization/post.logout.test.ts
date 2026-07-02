@@ -45,9 +45,7 @@ describe(`[POST] ${endpoint})`, () => {
 	const request = supertest(app)
 
 	it('Expect status 401 | Unauthorized', async () => {
-		const response = await request
-			.post(endpoint)
-			.set('Content-Type', 'application/json')
+		const response = await request.post(endpoint).set('Content-Type', 'application/json')
 
 		expect(response.status).toBe(401)
 	})
@@ -57,10 +55,7 @@ describe(`[POST] ${endpoint})`, () => {
 			{ uid: userToLogout, s: 1 },
 			{ audience: passportConfig.jwt.user.audience }
 		)
-		await createJwt(
-			{ uid: userToLogout, s: 2 },
-			{ audience: passportConfig.jwt.user.audience }
-		)
+		await createJwt({ uid: userToLogout, s: 2 }, { audience: passportConfig.jwt.user.audience })
 
 		const response = await request
 			.post(endpoint)
