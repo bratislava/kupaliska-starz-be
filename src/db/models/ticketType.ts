@@ -240,6 +240,9 @@ export default (sequelize: Sequelize) => {
 						if (ticketType.displayOrder > ticketTypesCount + 1) {
 							throw new ErrorBuilder(
 								400,
+								// this translation is outside of request, so this will fall inside default language
+								// for now it is fine as for now we only support only one language
+								// TODO change whole BE to only send only error key
 								i18next.t('error:exceededDisplayOrderNumber'),
 								'exceededDisplayOrderNumber'
 							)
@@ -271,7 +274,7 @@ export default (sequelize: Sequelize) => {
 						previousDisplayOrder !== ticketType.displayOrder
 					) {
 						// hooks do a read-modify-write,
-						// but the transaction runs at the default READ COMMITED isolation,
+						// but the transaction runs at the default READ COMMITTED isolation,
 						// so a concurrent insert/reorder isn't visible to the count().
 						// Two simultaneous operations operations can produce duplicate values.
 
@@ -283,6 +286,9 @@ export default (sequelize: Sequelize) => {
 						if (ticketType.displayOrder > ticketTypesCount) {
 							throw new ErrorBuilder(
 								400,
+								// this translation is outside of request, so this will fall inside default language
+								// for now it is fine as for now we only support only one language
+								// TODO change whole BE to only send only error key
 								i18next.t('error:exceededDisplayOrderNumber'),
 								'exceededDisplayOrderNumber'
 							)
