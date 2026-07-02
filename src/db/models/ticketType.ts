@@ -1,8 +1,10 @@
-import { Sequelize, DataTypes, literal, UUIDV4 } from 'sequelize'
+import { Sequelize, DataTypes, literal, UUIDV4, Op } from 'sequelize'
+import i18next from 'i18next'
 
 import { DatabaseModel } from '../../types/models'
 import { TICKET_TYPE } from '../../utils/enums'
 import { SwimmingPoolModel } from './swimmingPool'
+import ErrorBuilder from '../../utils/ErrorBuilder'
 
 export class TicketTypeModel extends DatabaseModel {
 	id: string
@@ -31,6 +33,7 @@ export class TicketTypeModel extends DatabaseModel {
 	entranceTo: string
 	hasTicketDuration: boolean
 	ticketDuration: string
+	displayOrder: number
 	// entrances ticket
 	entriesNumber: number
 	// meta
@@ -152,6 +155,11 @@ export default (sequelize: Sequelize) => {
 					return rawValue ? rawValue.substring(0, rawValue.length - 3) : null
 				},
 			},
+			displayOrder: {
+				type: DataTypes.SMALLINT,
+				allowNull: false,
+				defaultValue: 0,
+			},
 			entriesNumber: {
 				type: DataTypes.SMALLINT,
 				allowNull: true,
@@ -204,7 +212,138 @@ export default (sequelize: Sequelize) => {
 					return this.type === TICKET_TYPE.ENTRIES
 				},
 			},
-			hooks: {},
+			hooks: {
+				beforeCreate: async (ticketType, options) => {
+					// Hooks do a read-modify-write, but the transaction runs at
+					// the default READ COMMITTED isolation, so a concurrent
+					// insert/reorder isn't visible to the count(). Two
+					// simultaneous operations can produce duplicate values.
+					//
+					// This is not going to be an issue, since the reorder is
+					// not going to happen more than twice each season, if the
+					// problem does happen, we can talk about fixing this.
+					const ticketTypesCount =
+						await TicketTypeModel.count(options)
+
+					// if ticketType.displayOrder === 0, it's displayOrder is
+					// set after every other active ticketType in displayOrder
+					if (ticketType.displayOrder === 0) {
+						ticketType.displayOrder = ticketTypesCount + 1
+						return
+					}
+
+					if (ticketType.displayOrder > ticketTypesCount + 1) {
+						throw new ErrorBuilder(
+							400,
+							// This translation is outside of request, so this will fall inside default language.
+							// For now it is fine as for now we only support only one language.
+							// TODO change whole BE to only send only error key
+							i18next.t('error:exceededDisplayOrderNumber'),
+							'exceededDisplayOrderNumber'
+						)
+					}
+
+					await TicketTypeModel.update(
+						{
+							displayOrder:
+								Sequelize.literal('"displayOrder" +1'),
+						},
+						{
+							where: {
+								displayOrder: {
+									[Op.gte]: ticketType.displayOrder,
+								},
+							},
+							transaction: options.transaction,
+							hooks: false,
+						}
+					)
+				},
+				beforeUpdate: async (ticketType, options) => {
+					const previousDisplayOrder =
+						ticketType.previous('displayOrder')
+
+					if (
+						ticketType.displayOrder === 0 ||
+						previousDisplayOrder === ticketType.displayOrder
+					) {
+						ticketType.displayOrder = previousDisplayOrder
+						return
+					}
+
+					// Hooks do a read-modify-write, but the transaction runs at
+					// the default READ COMMITTED isolation, so a concurrent
+					// insert/reorder isn't visible to the count(). Two
+					// simultaneous operations can produce duplicate values.
+					//
+					// This is not going to be an issue, since the reorder is
+					// not going to happen more than twice each season, if the
+					// problem does happen, we can talk about fixing this.
+					const ticketTypesCount =
+						await TicketTypeModel.count(options)
+					if (ticketType.displayOrder > ticketTypesCount) {
+						throw new ErrorBuilder(
+							400,
+							// this translation is outside of request, so this will fall inside default language
+							// for now it is fine as for now we only support only one language
+							// TODO change whole BE to only send only error key
+							i18next.t('error:exceededDisplayOrderNumber'),
+							'exceededDisplayOrderNumber'
+						)
+					}
+
+					const movingUp =
+						ticketType.displayOrder < previousDisplayOrder
+					const direction = movingUp ? '+1' : '-1'
+					const displayOrder = {
+						[Op.and]: [
+							{
+								[movingUp ? Op.gte : Op.lte]:
+									ticketType.displayOrder,
+							},
+							{
+								[movingUp ? Op.lte : Op.gt]:
+									previousDisplayOrder,
+							},
+						],
+					}
+
+					await TicketTypeModel.update(
+						{
+							displayOrder: Sequelize.literal(
+								`"displayOrder" ${direction}`
+							),
+						},
+						{
+							where: {
+								id: {
+									[Op.not]: ticketType.id,
+								},
+								displayOrder,
+							},
+							transaction: options.transaction,
+							hooks: false,
+						}
+					)
+				},
+				beforeDestroy: async (ticketType, options) => {
+					await TicketTypeModel.update(
+						{
+							displayOrder:
+								Sequelize.literal('"displayOrder" -1'),
+						},
+						{
+							where: {
+								displayOrder: {
+									[Op.gt]: ticketType.displayOrder,
+								},
+							},
+							transaction: options.transaction,
+							hooks: false,
+						}
+					)
+				},
+			},
 		}
 	)
 

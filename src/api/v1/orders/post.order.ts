@@ -405,6 +405,7 @@ const basicChecks = async (
 	}
 
 	for (const { ticketType } of ticketsWithTicketType) {
+		// TODO use simple if
 		validate(
 			true,
 			ticketType.validTo,
@@ -461,6 +462,7 @@ const basicChecks = async (
 
 		// children allowed rules
 		if (ticketType.childrenAllowed) {
+			// TODO use simple if
 			validate(
 				true,
 				numberOfChildrenForTicketType,
