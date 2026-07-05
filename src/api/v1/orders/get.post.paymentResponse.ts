@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import Joi from 'joi'
 import config from 'config'
 import formurlencoded from 'form-urlencoded'
-import _ from 'lodash'
+import { isEqual } from 'lodash'
 import { models } from '../../../db/models'
 import { registerPaymentResult } from '../../../services/webpayService'
 import { logger } from '../../../utils/logger'
@@ -100,6 +100,8 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
+		// TODO fix race condition when there could be another payment that can pass this
+		// between the time this findAll executes and registerPaymentResult finishes execution
 		const existingPaymentResponses = await PaymentResponse.findAll({
 			where: {
 				paymentOrderId: {
@@ -109,7 +111,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		})
 
 		const alreadyProcessed = existingPaymentResponses.some((paymentResponse) =>
-			_.isEqual(paymentResponse.data, data)
+			isEqual(paymentResponse.data, data)
 		)
 
 		if (alreadyProcessed) {
@@ -118,7 +120,12 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 					data
 				)} - ${req.method} - ${req.ip}`
 			)
-			return res.redirect(await buildSuccessRedirectUrl(order.id))
+			// there can be a lot more responses successful and unsuccessful in all kind of order,
+			// in the and what matters is, if after all of them, order is paid or not.
+			if (order.state === ORDER_STATE.PAID) {
+				return res.redirect(await buildSuccessRedirectUrl(order.id))
+			}
+			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
 		const paymentResult = await registerPaymentResult(data, paymentOrder.id, req)
