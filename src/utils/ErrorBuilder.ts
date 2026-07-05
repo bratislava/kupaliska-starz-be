@@ -33,7 +33,12 @@ export default class ErrorBuilder extends Error {
 	isJoi: boolean
 	items: IErrorBuilderItem[]
 
-	constructor(status: number, name: string | Joi.ValidationErrorItem[], key?: string) {
+	constructor(
+		status: number,
+		// TODO ErrorBuilder should consume Zod's error as well
+		name: string | Joi.ValidationErrorItem[],
+		key?: string
+	) {
 		// fix when base64 value is too long
 		if (typeof name !== 'string') {
 			name.forEach((record) => {

@@ -25,6 +25,10 @@ export const ticketTypePutSchema = {
 				.required()
 		)
 		.required(),
+	// when `displayOrder` is below 1,
+	// TicketType model hooks will automatically set it after every other active ticketType
+	// which is bit counterintuitive, that's why we have min requirement set to 1
+	displayOrder: Joi.number().integer().min(1).default(0),
 }
 
 export const schema = Joi.object().keys({
@@ -40,7 +44,8 @@ export const schema = Joi.object().keys({
 export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	const { TicketType, SwimmingPool, SwimmingPoolTicketType } = models
 
-	let transaction: Transaction
+	let transaction: Transaction | null = await DB.transaction()
+
 	try {
 		const { body, params } = req
 
@@ -62,8 +67,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			throw new ErrorBuilder(400, req.t('error:incorrectSwimmingPools'))
 		}
 
-		transaction = await DB.transaction()
-
+		// hooks of model will take care of assigning correct displayOrder
 		await ticketType.update(body, { transaction })
 
 		await SwimmingPoolTicketType.destroy({
