@@ -13,7 +13,7 @@ import {
 import { OrderModel } from '../db/models/order'
 import { PAYMENT_OPERATION, ORDER_PAYMENT_METHOD_STATE } from '../utils/enums'
 import { logger } from '../utils/logger'
-import { checkStatus } from '../utils/HTTPResponseErrorBuilder'
+import { checkStatus } from '../utils/HttpResponseErrorBuilder'
 
 const appConfig: IAppConfig = config.get('app')
 const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')

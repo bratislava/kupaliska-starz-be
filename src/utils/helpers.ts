@@ -7,7 +7,7 @@ import { ORDER_STATE, TICKET_CATEGORY } from './enums'
 import { TicketModel } from '../db/models/ticket'
 import sequelize, { models } from '../db/models'
 import { OrderModel } from '../db/models/order'
-import { checkStatus } from './HTTPResponseErrorBuilder'
+import { checkStatus } from './HttpResponseErrorBuilder'
 import logger from './logger'
 import ErrorBuilder from './ErrorBuilder'
 export const checkTableExists = async (queryInterface: QueryInterface, table: string) => {
