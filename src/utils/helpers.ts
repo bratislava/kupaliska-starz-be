@@ -9,6 +9,7 @@ import sequelize, { models } from '../db/models'
 import { OrderModel } from '../db/models/order'
 import { checkStatus } from './HTTPResponseErrorBuilder'
 import logger from './logger'
+import ErrorBuilder from './ErrorBuilder'
 export const checkTableExists = async (queryInterface: QueryInterface, table: string) => {
 	const tables = await queryInterface.showAllTables()
 	return tables.find((item: string) => item === table)
@@ -40,16 +41,12 @@ export const getCityAccountData = async (accessToken: string) => {
 		logger.error(error)
 
 		const errorBody = await error.response.text()
-		logger.error(`Error body: ${errorBody}`)
+		if (response.status === 401) {
+			throw new ErrorBuilder(401, 'Unauthorized')
+		} else {
+			logger.error(`Error fetching account - Error body: ${errorBody}`)
+		}
 	}
-	// if (!response.ok) {
-	// 	// TODO add logging of the error itself
-	// 	if (response.status === 401) {
-	// 		throw new ErrorBuilder(401, 'Unauthorized')
-	// 	} else {
-	// 		throw new Error('Error fetching account')
-	// 	}
-	// }
 
 	return (await response.json()) as Partial<CityAccountUser>
 }
