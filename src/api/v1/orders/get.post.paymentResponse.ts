@@ -96,7 +96,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				)} - ${req.method} - ${req.ip}`
 			)
 			logger.error('PAYMENT - payment  order not found', req.ip)
-			await order.update({ state: ORDER_STATE.FAILED })
+			await failOrderUnlessPaid(order)
 			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
@@ -137,7 +137,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				)} - ${req.method} - ${req.ip}`
 			)
 			logger.info('PAYMENT - payment  verification failed', req.ip)
-			await order.update({ state: ORDER_STATE.FAILED })
+			await failOrderUnlessPaid(order)
 			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
@@ -156,6 +156,22 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 	} catch (error) {
 		return next(error)
 	}
+}
+
+// Atomic conditional update so a late/duplicate failure response cannot overwrite an order that was
+// already paid
+const failOrderUnlessPaid = async (order: OrderModel) => {
+	await models.Order.update(
+		{ state: ORDER_STATE.FAILED },
+		{
+			where: {
+				id: order.id,
+				state: {
+					[Op.ne]: ORDER_STATE.PAID,
+				},
+			},
+		}
+	)
 }
 
 const buildSuccessRedirectUrl = async (orderId: string) => {
@@ -242,6 +258,6 @@ const handleGlobalPaymentsErrorResponse = async (data: any, req: Request, order:
 			)
 			logger.error('PAYMENT - was not successful', req.ip)
 		}
-		await order.update({ state: ORDER_STATE.FAILED })
+		await failOrderUnlessPaid(order)
 	}
 }
