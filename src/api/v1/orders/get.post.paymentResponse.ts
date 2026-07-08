@@ -12,7 +12,7 @@ import { IPassportConfig, IGPWebpayConfig } from '../../../types/interfaces'
 import { ORDER_STATE } from '../../../utils/enums'
 import { sendOrderEmail } from '../../../utils/emailSender'
 import { FE_ROUTES } from '../../../utils/constants'
-import { payOrderWithNextOrderNumber } from '../../../utils/helpers'
+import { markOrderPaid } from '../../../utils/helpers'
 import { OrderModel } from '../../../db/models/order'
 
 const passwordConfig: IPassportConfig = config.get('passport')
@@ -146,9 +146,11 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
-		await payOrderWithNextOrderNumber(order)
+		const paidNow = await markOrderPaid(order)
 
-		await sendOrderEmail(req, order.id)
+		if (paidNow) {
+			await sendOrderEmail(req, order.id)
+		}
 
 		return res.redirect(await buildSuccessRedirectUrl(order.id))
 	} catch (error) {

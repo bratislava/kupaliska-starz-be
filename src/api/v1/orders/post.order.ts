@@ -23,7 +23,7 @@ import { sendOrderEmail } from '../../../utils/emailSender'
 import {
 	getDiscount,
 	getCityAccountData,
-	payOrderWithNextOrderNumber,
+	markOrderPaid,
 	isDefined,
 	getAdultsAndChildrenCountForTicketType,
 } from '../../../utils/helpers'
@@ -175,7 +175,7 @@ export const workflow = async (req: RequestPostOrder, res: Response, next: NextF
 		const order = await createAndProcessOrder(email, mappedTickets, pricing)
 		if (mappedTickets.every((ticket) => ticket.discountCode?.amount === 100)) {
 			// refactor this - extract to separate function that can be used both here and in get.post.paymentResponse.ts
-			await payOrderWithNextOrderNumber(order)
+			const paidNow = await markOrderPaid(order)
 			const orderAccessToken = await createJwt(
 				{
 					uid: order.id,
@@ -186,7 +186,9 @@ export const workflow = async (req: RequestPostOrder, res: Response, next: NextF
 				}
 			)
 
-			await sendOrderEmail(req, order.id)
+			if (paidNow) {
+				await sendOrderEmail(req, order.id)
+			}
 
 			return res.json({
 				data: {
