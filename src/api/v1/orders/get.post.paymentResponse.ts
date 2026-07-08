@@ -100,8 +100,9 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
-		// TODO fix race condition when there could be another payment that can pass this
-		// between the time this findAll executes and registerPaymentResult finishes execution
+		// NOTE: two concurrent identical responses can both pass this check and both get stored by
+		//       registerPaymentResult. That is now harmless - paying the order, sending the email and
+		//       failing the order are all idempotent / guarded against races.
 		const existingPaymentResponses = await PaymentResponse.findAll({
 			where: {
 				paymentOrderId: {
@@ -110,11 +111,11 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			},
 		})
 
-		const alreadyProcessed = existingPaymentResponses.some((paymentResponse) =>
+		const existingPaymentResponse = existingPaymentResponses.find((paymentResponse) =>
 			isEqual(paymentResponse.data, data)
 		)
 
-		if (alreadyProcessed) {
+		if (existingPaymentResponse) {
 			logger.info(
 				`INFO - Duplicate payment response received for already processed order - ${JSON.stringify(
 					data
@@ -122,7 +123,16 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			)
 			// there can be a lot more responses successful and unsuccessful in all kind of order,
 			// in the and what matters is, if after all of them, order is paid or not.
-			if (order.state === ORDER_STATE.PAID) {
+			if (order.isPaid()) {
+				return res.redirect(await buildSuccessRedirectUrl(order.id))
+			}
+			if (existingPaymentResponse.isVerified && existingPaymentResponse.isSuccess) {
+				// the response was successful, but the order was never marked as paid -
+				// the first processing must have crashed before completing, so finish it now
+				const paidNow = await markOrderPaid(order)
+				if (paidNow) {
+					await sendOrderEmail(req, order.id)
+				}
 				return res.redirect(await buildSuccessRedirectUrl(order.id))
 			}
 			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
