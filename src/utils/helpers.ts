@@ -97,17 +97,42 @@ export const printDecimal2 = (value: number) => {
 	return (value / 100).toFixed(2).replace('.', ',')
 }
 
-export const payOrderWithNextOrderNumber = async (order: OrderModel) => {
+/**
+ * Marks the order as PAID and assigns it the next sequential order number of the year.
+ * Idempotent.
+ *
+ * @returns true if the order was transitioned to PAID by this call,
+ * false if it was already paid (concurrent request or earlier processing)
+ */
+export const markOrderPaid = async (order: OrderModel): Promise<boolean> => {
 	const { Order } = models
 	const now = new Date().getFullYear()
 
-	await sequelize.transaction(async (t) => {
+	return sequelize.transaction(async (t) => {
+		// lock the order row so concurrent attempts to pay the same order serialize here
+		const lockedOrder = await Order.findOne({
+			where: {
+				id: order.id,
+			},
+			lock: t.LOCK.UPDATE,
+			transaction: t,
+		})
+
+		if (!lockedOrder || lockedOrder.isPaid()) {
+			return false
+		}
+
+		// Locking the row of the currently latest order would not prevent two concurrent transactions
+		// from computing the same next number
+		await sequelize.query(`SELECT pg_advisory_xact_lock(hashtext('orderNumberInYear'))`, {
+			transaction: t,
+		})
+
 		const latestOrder = await Order.findOne({
 			where: {
 				orderPaidInYear: now,
 			},
 			order: [['orderNumberInYear', 'DESC']],
-			lock: t.LOCK.UPDATE,
 			transaction: t,
 		})
 
@@ -121,6 +146,7 @@ export const payOrderWithNextOrderNumber = async (order: OrderModel) => {
 			},
 			{ transaction: t }
 		)
+		return true
 	})
 }
 

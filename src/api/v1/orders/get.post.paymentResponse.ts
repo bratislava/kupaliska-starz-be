@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import Joi from 'joi'
 import config from 'config'
 import formurlencoded from 'form-urlencoded'
+import { isEqual } from 'lodash'
 import { models } from '../../../db/models'
 import { registerPaymentResult } from '../../../services/webpayService'
 import { logger } from '../../../utils/logger'
@@ -11,7 +12,7 @@ import { IPassportConfig, IGPWebpayConfig } from '../../../types/interfaces'
 import { ORDER_STATE } from '../../../utils/enums'
 import { sendOrderEmail } from '../../../utils/emailSender'
 import { FE_ROUTES } from '../../../utils/constants'
-import { payOrderWithNextOrderNumber } from '../../../utils/helpers'
+import { markOrderPaid } from '../../../utils/helpers'
 import { OrderModel } from '../../../db/models/order'
 
 const passwordConfig: IPassportConfig = config.get('passport')
@@ -26,7 +27,7 @@ export const schema = Joi.object({
 export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const { body, query, method } = req
-		const { Order } = models
+		const { Order, PaymentResponse } = models
 		const data = method === 'POST' ? body : query
 
 		logger.info(
@@ -95,7 +96,45 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				)} - ${req.method} - ${req.ip}`
 			)
 			logger.error('PAYMENT - payment  order not found', req.ip)
-			await order.update({ state: ORDER_STATE.FAILED })
+			await failOrderUnlessPaid(order)
+			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
+		}
+
+		// NOTE: two concurrent identical responses can both pass this check and both get stored by
+		//       registerPaymentResult. That is now harmless - paying the order, sending the email and
+		//       failing the order are all idempotent / guarded against races.
+		const existingPaymentResponses = await PaymentResponse.findAll({
+			where: {
+				paymentOrderId: {
+					[Op.eq]: paymentOrder.id,
+				},
+			},
+		})
+
+		const existingPaymentResponse = existingPaymentResponses.find((paymentResponse) =>
+			isEqual(paymentResponse.data, data)
+		)
+
+		if (existingPaymentResponse) {
+			logger.info(
+				`INFO - Duplicate payment response received for already processed order - ${JSON.stringify(
+					data
+				)} - ${req.method} - ${req.ip}`
+			)
+			// there can be a lot more responses successful and unsuccessful in all kind of order,
+			// in the and what matters is, if after all of them, order is paid or not.
+			if (order.isPaid()) {
+				return res.redirect(await buildSuccessRedirectUrl(order.id))
+			}
+			if (existingPaymentResponse.isVerified && existingPaymentResponse.isSuccess) {
+				// the response was successful, but the order was never marked as paid -
+				// the first processing must have crashed before completing, so finish it now
+				const paidNow = await markOrderPaid(order)
+				if (paidNow) {
+					await sendOrderEmail(req, order.id)
+				}
+				return res.redirect(await buildSuccessRedirectUrl(order.id))
+			}
 			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
@@ -108,7 +147,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				)} - ${req.method} - ${req.ip}`
 			)
 			logger.info('PAYMENT - payment  verification failed', req.ip)
-			await order.update({ state: ORDER_STATE.FAILED })
+			await failOrderUnlessPaid(order)
 			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
@@ -117,33 +156,55 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_UNSUCCESSFUL}`)
 		}
 
-		await payOrderWithNextOrderNumber(order)
+		const paidNow = await markOrderPaid(order)
 
-		// Generate JWT for getting order`s info
-		const orderAccessToken = await createJwt(
-			{
-				uid: order.id,
-			},
-			{
-				audience: passwordConfig.jwt.orderResponse.audience,
-				expiresIn: passwordConfig.jwt.orderResponse.exp,
-			}
-		)
+		if (paidNow) {
+			await sendOrderEmail(req, order.id)
+		}
 
-		await sendOrderEmail(req, order.id)
-
-		const queryParams = formurlencoded(
-			{
-				orderId: order.id,
-				orderAccessToken: orderAccessToken ? orderAccessToken : null,
-			},
-			{ ignorenull: true }
-		)
-
-		return res.redirect(`${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_SUCCESSFUL}?${queryParams}`)
+		return res.redirect(await buildSuccessRedirectUrl(order.id))
 	} catch (error) {
 		return next(error)
 	}
+}
+
+// Atomic conditional update so a late/duplicate failure response cannot overwrite an order that was
+// already paid
+const failOrderUnlessPaid = async (order: OrderModel) => {
+	await models.Order.update(
+		{ state: ORDER_STATE.FAILED },
+		{
+			where: {
+				id: order.id,
+				state: {
+					[Op.ne]: ORDER_STATE.PAID,
+				},
+			},
+		}
+	)
+}
+
+const buildSuccessRedirectUrl = async (orderId: string) => {
+	// Generate JWT for getting order`s info
+	const orderAccessToken = await createJwt(
+		{
+			uid: orderId,
+		},
+		{
+			audience: passwordConfig.jwt.orderResponse.audience,
+			expiresIn: passwordConfig.jwt.orderResponse.exp,
+		}
+	)
+
+	const queryParams = formurlencoded(
+		{
+			orderId: orderId,
+			orderAccessToken: orderAccessToken ? orderAccessToken : null,
+		},
+		{ ignorenull: true }
+	)
+
+	return `${webpayConfig.clientAppUrl}${FE_ROUTES.ORDER_SUCCESSFUL}?${queryParams}`
 }
 
 const handleGlobalPaymentsErrorResponse = async (data: any, req: Request, order: OrderModel) => {
@@ -207,6 +268,6 @@ const handleGlobalPaymentsErrorResponse = async (data: any, req: Request, order:
 			)
 			logger.error('PAYMENT - was not successful', req.ip)
 		}
-		await order.update({ state: ORDER_STATE.FAILED })
+		await failOrderUnlessPaid(order)
 	}
 }

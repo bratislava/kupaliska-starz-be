@@ -9,7 +9,7 @@ import {
 	verifyDataGetPaymentStatusWebserviceResponse,
 } from '../services/webpayService'
 import { sendOrderEmail } from '../utils/emailSender'
-import { payOrderWithNextOrderNumber } from '../utils/helpers'
+import { markOrderPaid } from '../utils/helpers'
 
 const gpWebserviceSchema = Joi.object({
 	'soapenv:Envelope': Joi.object().keys({
@@ -119,9 +119,12 @@ process.on('message', async () => {
 							logger.info(
 								`Found PAID order without proper status in order - id: ${orderNumber} changing status to PAID and sending email`
 							)
-							await payOrderWithNextOrderNumber(order)
+							const paidNow = await markOrderPaid(order)
 
-							await sendOrderEmail(undefined, order.id)
+							// only send the email if this call actually paid the order
+							if (paidNow) {
+								await sendOrderEmail(undefined, order.id)
+							}
 						}
 					}
 				} catch (error) {
