@@ -46,6 +46,10 @@ export const getCityAccountData = async (accessToken: string) => {
 		if (response.status === 401) {
 			throw new ErrorBuilder(401, 'Unauthorized')
 		}
+		throw new ErrorBuilder(
+			500,
+			`Error occurred while fetching user from ${process.env.CITY_ACCOUNT_BE_URL}/auth/user`
+		)
 	}
 
 	return (await response.json()) as Partial<CityAccountUser>

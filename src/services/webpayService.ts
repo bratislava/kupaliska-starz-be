@@ -14,6 +14,7 @@ import { OrderModel } from '../db/models/order'
 import { PAYMENT_OPERATION, ORDER_PAYMENT_METHOD_STATE } from '../utils/enums'
 import { logger } from '../utils/logger'
 import { checkStatus } from '../utils/HttpResponseErrorBuilder'
+import ErrorBuilder from '../utils/ErrorBuilder'
 
 const appConfig: IAppConfig = config.get('app')
 const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
@@ -238,6 +239,11 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 
 		const errorBody = await error.response.text()
 		logger.error(`Error body: ${errorBody}`)
+
+		throw new ErrorBuilder(
+			500,
+			`Error occurred while fetching paymentService from ${webpayConfig.httpApi}/pay-ws/v1/PaymentService`
+		)
 	}
 	return response
 }
