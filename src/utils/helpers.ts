@@ -45,8 +45,7 @@ export const getCityAccountData = async (accessToken: string) => {
 	if (!response.ok) {
 		logger.error(httpErrorStatusString(response))
 
-		const errorBody = await response.text()
-		logger.error(`Error fetching account - Error body: ${errorBody}`)
+		logger.error(`Error fetching account - Error body: ${await response.text()}`)
 
 		if (response.status === 401) {
 			throw new ErrorBuilder(401, 'Unauthorized')

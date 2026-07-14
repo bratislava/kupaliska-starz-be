@@ -238,8 +238,7 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 	if (!response.ok) {
 		logger.error(httpErrorStatusString(response))
 
-		const errorBody = await response.text()
-		logger.error(`Error body: ${errorBody}`)
+		logger.error(`Error body: ${await response.text()}`)
 
 		throw new ErrorBuilder(
 			500,
