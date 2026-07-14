@@ -14,7 +14,7 @@ import { OrderModel } from '../db/models/order'
 import { PAYMENT_OPERATION, ORDER_PAYMENT_METHOD_STATE } from '../utils/enums'
 import { logger } from '../utils/logger'
 import ErrorBuilder from '../utils/ErrorBuilder'
-import { httpErrorString } from '../utils/helpers'
+import { httpErrorStatusString } from '../utils/helpers'
 
 const appConfig: IAppConfig = config.get('app')
 const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
@@ -236,7 +236,7 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 	})
 
 	if (!response.ok) {
-		logger.error(httpErrorString(response))
+		logger.error(httpErrorStatusString(response))
 
 		const errorBody = await response.text()
 		logger.error(`Error body: ${errorBody}`)

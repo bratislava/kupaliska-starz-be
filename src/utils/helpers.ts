@@ -12,7 +12,7 @@ import ErrorBuilder from './ErrorBuilder'
 
 const cityAccountAuthUserURL = `${process.env.CITY_ACCOUNT_BE_URL}/auth/user`
 
-export const httpErrorString = (response: Response) => {
+export const httpErrorStatusString = (response: Response) => {
 	return `HTTP Error Response: ${response.status} ${response.statusText}`
 }
 
@@ -43,7 +43,7 @@ export const getCityAccountData = async (accessToken: string) => {
 	})
 
 	if (!response.ok) {
-		logger.error(httpErrorString(response))
+		logger.error(httpErrorStatusString(response))
 
 		const errorBody = await response.text()
 		logger.error(`Error fetching account - Error body: ${errorBody}`)
