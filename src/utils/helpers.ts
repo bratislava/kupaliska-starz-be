@@ -1,14 +1,21 @@
-import { map, round } from 'lodash'
+import { map } from 'lodash'
 import { QueryInterface } from 'sequelize'
-import fetch from 'node-fetch'
 import dayjs from 'dayjs'
 import { CityAccountUser } from './cityAccountDto'
-import ErrorBuilder from './ErrorBuilder'
 import i18next from 'i18next'
 import { ORDER_STATE, TICKET_CATEGORY } from './enums'
 import { TicketModel } from '../db/models/ticket'
 import sequelize, { models } from '../db/models'
 import { OrderModel } from '../db/models/order'
+import logger from './logger'
+import ErrorBuilder from './ErrorBuilder'
+
+const cityAccountAuthUserURL = `${process.env.CITY_ACCOUNT_BE_URL}/auth/user`
+
+export const httpErrorStatusString = (response: Response) => {
+	return `HTTP Error Response: ${response.status} ${response.statusText}`
+}
+
 export const checkTableExists = async (queryInterface: QueryInterface, table: string) => {
 	const tables = await queryInterface.showAllTables()
 	return tables.find((item: string) => item === table)
@@ -29,19 +36,27 @@ export const getAllAges = (ageInterval: number, ageMinimum: number) => {
 
 // TODO this should live in authorization middleware and attach the city account data to the request object
 export const getCityAccountData = async (accessToken: string) => {
-	const result = await fetch(`${process.env.CITY_ACCOUNT_BE_URL}/auth/user`, {
+	const response = await fetch(cityAccountAuthUserURL, {
 		headers: {
 			Authorization: accessToken,
 		},
 	})
-	if (!result.ok) {
-		if (result.status === 401) {
+
+	if (!response.ok) {
+		logger.error(httpErrorStatusString(response))
+
+		logger.error(`Error fetching account - Error body: ${await response.text()}`)
+
+		if (response.status === 401) {
 			throw new ErrorBuilder(401, 'Unauthorized')
-		} else {
-			throw new Error('Error fetching account')
 		}
+		throw new ErrorBuilder(
+			500,
+			`Error occurred while fetching user from "${cityAccountAuthUserURL}"`
+		)
 	}
-	return (await result.json()) as Partial<CityAccountUser>
+
+	return (await response.json()) as Partial<CityAccountUser>
 }
 
 // https://stackoverflow.com/a/39077686

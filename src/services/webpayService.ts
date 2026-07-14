@@ -1,7 +1,6 @@
 import formurlencoded from 'form-urlencoded'
 import fs from 'fs'
 import config from 'config'
-import fetch from 'node-fetch'
 import { models } from '../db/models'
 import { PaymentResponseModel } from '../db/models/paymentResponse'
 import { createSignature, verifySignature } from '../utils/webpay'
@@ -14,9 +13,13 @@ import {
 import { OrderModel } from '../db/models/order'
 import { PAYMENT_OPERATION, ORDER_PAYMENT_METHOD_STATE } from '../utils/enums'
 import { logger } from '../utils/logger'
+import ErrorBuilder from '../utils/ErrorBuilder'
+import { httpErrorStatusString } from '../utils/helpers'
 
 const appConfig: IAppConfig = config.get('app')
 const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
+
+const gpPaymentServiceURL = `${webpayConfig.httpApi}/pay-ws/v1/PaymentService`
 
 export const checkPaymentKeys = () => {
 	try {
@@ -191,7 +194,7 @@ export const registerPaymentResult = async (
 	})
 }
 
-export const getPaymentStatusWebServiceRequest = async (orderNumber: number): Promise<any> => {
+export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => {
 	const provider = webpayConfig.provider
 	const merchantNumber = webpayConfig.merchantNumber
 
@@ -226,10 +229,22 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number): Pr
 	}
 
 	const requestBody = `<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:v1='http://gpe.cz/pay/pay-ws/proc/v1' xmlns:type='http://gpe.cz/pay/pay-ws/proc/v1/type'><soapenv:Header/><soapenv:Body><v1:getPaymentStatus><v1:paymentStatusRequest><type:messageId>${paymentStatusRequestObject.messageId}</type:messageId><type:provider>${paymentStatusRequestObject.provider}</type:provider><type:merchantNumber>${paymentStatusRequestObject.merchantNumber}</type:merchantNumber><type:paymentNumber>${paymentStatusRequestObject.paymentNumber}</type:paymentNumber><type:signature>${paymentStatusRequestObject.signature}</type:signature></v1:paymentStatusRequest></v1:getPaymentStatus></soapenv:Body></soapenv:Envelope>`
-
-	return fetch(`${webpayConfig.httpApi}/pay-ws/v1/PaymentService`, {
+	const response = await fetch(gpPaymentServiceURL, {
 		method: 'post',
 		body: requestBody,
 		headers: { 'Content-Type': 'text/xml' },
 	})
+
+	if (!response.ok) {
+		logger.error(httpErrorStatusString(response))
+
+		logger.error(`Error body: ${await response.text()}`)
+
+		throw new ErrorBuilder(
+			500,
+			`Error occurred while fetching paymentService from "${gpPaymentServiceURL}"`
+		)
+	}
+
+	return response
 }
