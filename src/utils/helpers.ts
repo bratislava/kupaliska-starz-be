@@ -7,9 +7,15 @@ import { ORDER_STATE, TICKET_CATEGORY } from './enums'
 import { TicketModel } from '../db/models/ticket'
 import sequelize, { models } from '../db/models'
 import { OrderModel } from '../db/models/order'
-import { checkStatus } from './HttpResponseErrorBuilder'
 import logger from './logger'
 import ErrorBuilder from './ErrorBuilder'
+
+const cityAccountAuthUserURL = `${process.env.CITY_ACCOUNT_BE_URL}/auth/user`
+
+export const httpErrorString = (response: Response) => {
+	return `HTTP Error Response: ${response.status} ${response.statusText}`
+}
+
 export const checkTableExists = async (queryInterface: QueryInterface, table: string) => {
 	const tables = await queryInterface.showAllTables()
 	return tables.find((item: string) => item === table)
@@ -30,17 +36,16 @@ export const getAllAges = (ageInterval: number, ageMinimum: number) => {
 
 // TODO this should live in authorization middleware and attach the city account data to the request object
 export const getCityAccountData = async (accessToken: string) => {
-	const response = await fetch(`${process.env.CITY_ACCOUNT_BE_URL}/auth/user`, {
+	const response = await fetch(cityAccountAuthUserURL, {
 		headers: {
 			Authorization: accessToken,
 		},
 	})
-	try {
-		checkStatus(response)
-	} catch (error) {
-		logger.error(error)
 
-		const errorBody = await error.response.text()
+	if (!response.ok) {
+		logger.error(httpErrorString(response))
+
+		const errorBody = await response.text()
 		logger.error(`Error fetching account - Error body: ${errorBody}`)
 
 		if (response.status === 401) {
@@ -48,7 +53,7 @@ export const getCityAccountData = async (accessToken: string) => {
 		}
 		throw new ErrorBuilder(
 			500,
-			`Error occurred while fetching user from ${process.env.CITY_ACCOUNT_BE_URL}/auth/user`
+			`Error occurred while fetching user from "${cityAccountAuthUserURL}"`
 		)
 	}
 

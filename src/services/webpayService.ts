@@ -13,11 +13,13 @@ import {
 import { OrderModel } from '../db/models/order'
 import { PAYMENT_OPERATION, ORDER_PAYMENT_METHOD_STATE } from '../utils/enums'
 import { logger } from '../utils/logger'
-import { checkStatus } from '../utils/HttpResponseErrorBuilder'
 import ErrorBuilder from '../utils/ErrorBuilder'
+import { httpErrorString } from '../utils/helpers'
 
 const appConfig: IAppConfig = config.get('app')
 const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
+
+const gpPaymentServiceURL = `${webpayConfig.httpApi}/pay-ws/v1/PaymentService`
 
 export const checkPaymentKeys = () => {
 	try {
@@ -227,23 +229,23 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 	}
 
 	const requestBody = `<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:v1='http://gpe.cz/pay/pay-ws/proc/v1' xmlns:type='http://gpe.cz/pay/pay-ws/proc/v1/type'><soapenv:Header/><soapenv:Body><v1:getPaymentStatus><v1:paymentStatusRequest><type:messageId>${paymentStatusRequestObject.messageId}</type:messageId><type:provider>${paymentStatusRequestObject.provider}</type:provider><type:merchantNumber>${paymentStatusRequestObject.merchantNumber}</type:merchantNumber><type:paymentNumber>${paymentStatusRequestObject.paymentNumber}</type:paymentNumber><type:signature>${paymentStatusRequestObject.signature}</type:signature></v1:paymentStatusRequest></v1:getPaymentStatus></soapenv:Body></soapenv:Envelope>`
-	const response = await fetch(`${webpayConfig.httpApi}/pay-ws/v1/PaymentService`, {
+	const response = await fetch(gpPaymentServiceURL, {
 		method: 'post',
 		body: requestBody,
 		headers: { 'Content-Type': 'text/xml' },
 	})
-	try {
-		checkStatus(response)
-	} catch (error) {
-		logger.error(error)
 
-		const errorBody = await error.response.text()
+	if (!response.ok) {
+		logger.error(httpErrorString(response))
+
+		const errorBody = await response.text()
 		logger.error(`Error body: ${errorBody}`)
 
 		throw new ErrorBuilder(
 			500,
-			`Error occurred while fetching paymentService from ${webpayConfig.httpApi}/pay-ws/v1/PaymentService`
+			`Error occurred while fetching paymentService from "${gpPaymentServiceURL}"`
 		)
 	}
+
 	return response
 }
