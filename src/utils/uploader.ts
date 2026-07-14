@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import util from 'util'
 import config from 'config'
-import { access, unlink, writeFile } from 'fs/promises'
+import { access } from 'fs/promises'
 import mime from 'mime-types'
 
 import ErrorBuilder from './ErrorBuilder'
@@ -80,8 +80,9 @@ export default async function uploadFileFromBase64(
 	const relativeFilePath = getRelativeFilePath(fileName, directory)
 
 	try {
-		await writeFile(fullFilePath, base64, { encoding: 'base64' })
-		await uploadFileToBucket(fullFilePath)
+		const buffer = Buffer.from(base64, 'base64')
+		await uploadFileToBucket(fullFilePath, buffer)
+		logger.info(`File ${fullFilePath} was successfully uploaded to Minio.`)
 	} catch (err) {
 		logger.error(err)
 		throw new ErrorBuilder(409, req.t('error:failedUpload'))
