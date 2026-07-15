@@ -1,6 +1,8 @@
 import formurlencoded from 'form-urlencoded'
 import fs from 'fs'
 import config from 'config'
+import Joi from 'joi'
+import xml2js from 'xml2js'
 import { models } from '../db/models'
 import { PaymentResponseModel } from '../db/models/paymentResponse'
 import { createSignature, verifySignature } from '../utils/webpay'
@@ -20,6 +22,48 @@ const appConfig: IAppConfig = config.get('app')
 const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
 
 const gpPaymentServiceURL = `${webpayConfig.httpApi}/pay-ws/v1/PaymentService`
+
+export const gpWebservicePaymentStatusErrorSchema = Joi.object({
+	'soapenv:Envelope': Joi.object().keys({
+		$: Joi.object().keys({
+			'xmlns:soapenv': Joi.string(),
+		}),
+		'soapenv:Body': Joi.array()
+			.required()
+			.min(1)
+			.items({
+				'soapenv:Fault': Joi.array()
+					.min(1)
+					.required()
+					.items({
+						faultcode: Joi.array().required().items(Joi.string()),
+						faultstring: Joi.array().required().items(Joi.string()),
+						detail: Joi.array()
+							.min(1)
+							.required()
+							.items({
+								'ns4:serviceException': Joi.array()
+									.min(1)
+									.required()
+									.items({
+										$: Joi.object()
+											.keys({
+												'xmlns:ns4': Joi.string(),
+												'xmlns:ns5': Joi.string(),
+												'xmlns:ns3': Joi.string(),
+												'xmlns:ns2': Joi.string(),
+											})
+											.unknown(true),
+										'ns3:messageId': Joi.array().required().items(Joi.string()),
+										'ns3:primaryReturnCode': Joi.array().required().items(Joi.string()),
+										'ns3:secondaryReturnCode': Joi.array().required().items(Joi.string()),
+										'ns3:signature': Joi.array().required().items(Joi.string()),
+									}),
+							}),
+					}),
+			}),
+	}),
+})
 
 export const checkPaymentKeys = () => {
 	try {
@@ -205,6 +249,9 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 
 	const now = new Date()
 
+	// TODO add "orderNumber" to messageId so we can trace back to what order this requests belongs
+	// now we are dependent on synchronicity of this process and when requesting then we
+	// are await-ing for response that way it works for now
 	const messageId = `${now.getTime()}${provider}${merchantNumber}getPaymentStatus`
 
 	const requestObject = {
@@ -227,7 +274,6 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 		paymentNumber: orderNumber,
 		signature,
 	}
-
 	const requestBody = `<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:v1='http://gpe.cz/pay/pay-ws/proc/v1' xmlns:type='http://gpe.cz/pay/pay-ws/proc/v1/type'><soapenv:Header/><soapenv:Body><v1:getPaymentStatus><v1:paymentStatusRequest><type:messageId>${paymentStatusRequestObject.messageId}</type:messageId><type:provider>${paymentStatusRequestObject.provider}</type:provider><type:merchantNumber>${paymentStatusRequestObject.merchantNumber}</type:merchantNumber><type:paymentNumber>${paymentStatusRequestObject.paymentNumber}</type:paymentNumber><type:signature>${paymentStatusRequestObject.signature}</type:signature></v1:paymentStatusRequest></v1:getPaymentStatus></soapenv:Body></soapenv:Envelope>`
 	const response = await fetch(gpPaymentServiceURL, {
 		method: 'post',
@@ -235,16 +281,39 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 		headers: { 'Content-Type': 'text/xml' },
 	})
 
-	if (!response.ok) {
-		logger.error(httpErrorStatusString(response))
-
-		logger.error(`Error body: ${await response.text()}`)
-
-		throw new ErrorBuilder(
-			500,
-			`Error occurred while fetching paymentService from "${gpPaymentServiceURL}"`
-		)
+	if (response.ok) {
+		return response
 	}
+	const data = await response.text()
 
-	return response
+	// GP is returning for valid request (example is when sending request has OrderNumber that is not visited and therefore not yet consumed by GP),
+	// response 500, we need to act as it is fine and return undefined.
+
+	// TODO we should use axios
+	if (response.status === 500) {
+		try {
+			const parser = new xml2js.Parser()
+			const parsedBody = await parser.parseStringPromise(data)
+			const { error: validateErrorSchemaError } =
+				gpWebservicePaymentStatusErrorSchema.validate(parsedBody)
+
+			// this is 500 from GP but request was possibly valid and response should not be 500
+			if (!validateErrorSchemaError) {
+				// all return codes can be found in https://portal.gpwebpay.com/portal/tools/GP_webpay_WS_API.pdf part 5.2
+				logger.warn(`GP Response that shouldn't be 500 but it is: ${data}`)
+				return undefined
+			}
+		} catch (error) {
+			logger.warn(
+				`Error occurred while parsing XML and validating paymentService from "${gpPaymentServiceURL}"`
+			)
+		}
+	}
+	logger.error(httpErrorStatusString(response))
+
+	logger.error(`Error body: ${data}`)
+	throw new ErrorBuilder(
+		500,
+		`Error occurred while fetching paymentService from "${gpPaymentServiceURL}"`
+	)
 }

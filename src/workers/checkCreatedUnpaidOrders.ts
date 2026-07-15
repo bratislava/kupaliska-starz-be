@@ -4,14 +4,11 @@ import xml2js from 'xml2js'
 import { models } from '../db/models'
 import { ORDER_STATE, ORDER_STATE_GPWEBPAY } from '../utils/enums'
 import logger from '../utils/logger'
-import {
-	getPaymentStatusWebServiceRequest,
-	verifyDataGetPaymentStatusWebserviceResponse,
-} from '../services/webpayService'
+import { getPaymentStatusWebServiceRequest } from '../services/webpayService'
 import { sendOrderEmail } from '../utils/emailSender'
 import { markOrderPaid } from '../utils/helpers'
 
-const gpWebserviceSchema = Joi.object({
+const gpWebservicePaymentStatusSchema = Joi.object({
 	'soapenv:Envelope': Joi.object().keys({
 		$: Joi.object().keys({
 			'xmlns:soapenv': Joi.string(),
@@ -89,6 +86,11 @@ process.on('message', async () => {
 				const orderNumber = order.orderNumber
 				logger.info(`Found CREATED order - id: ${orderNumber} checking against GP`)
 				const responseFromGP = await getPaymentStatusWebServiceRequest(orderNumber)
+				if (!responseFromGP) {
+					// TODO gracefully handle GP errors
+					logger.info(`Skipping validating order.orderNumber: ${order.orderNumber}`)
+					continue
+				}
 				const data = await responseFromGP.text()
 				logger.info(`Data from GP received ${data}`)
 				const parser = new xml2js.Parser()
@@ -96,7 +98,8 @@ process.on('message', async () => {
 				try {
 					parsedBody = await parser.parseStringPromise(data)
 
-					const { error: validateSchemaError, value } = gpWebserviceSchema.validate(parsedBody)
+					const { error: validateSchemaError, value } =
+						gpWebservicePaymentStatusSchema.validate(parsedBody)
 					if (validateSchemaError) {
 						logger.info(`Error validating GP response: ${validateSchemaError}`)
 					} else {
