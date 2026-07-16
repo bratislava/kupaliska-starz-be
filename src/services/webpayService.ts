@@ -2,6 +2,7 @@ import formurlencoded from 'form-urlencoded'
 import fs from 'fs'
 import config from 'config'
 import Joi from 'joi'
+import { z } from 'zod'
 import xml2js from 'xml2js'
 import { models } from '../db/models'
 import { PaymentResponseModel } from '../db/models/paymentResponse'
@@ -18,12 +19,13 @@ import { logger } from '../utils/logger'
 import ErrorBuilder from '../utils/ErrorBuilder'
 import { httpErrorStatusString } from '../utils/helpers'
 
-const appConfig: IAppConfig = config.get('app')
-const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
+interface GpWebpayProcessingStrategy {
+	shouldAlert: boolean
+}
 
-const gpPaymentServiceURL = `${webpayConfig.httpApi}/pay-ws/v1/PaymentService`
+const gpPaymentArraySchema = Joi.array().required().items(Joi.string())
 
-export const gpWebservicePaymentStatusErrorSchema = Joi.object({
+const gpWebservicePaymentStatusSchema = Joi.object({
 	'soapenv:Envelope': Joi.object().keys({
 		$: Joi.object().keys({
 			'xmlns:soapenv': Joi.string(),
@@ -32,36 +34,79 @@ export const gpWebservicePaymentStatusErrorSchema = Joi.object({
 			.required()
 			.min(1)
 			.items({
-				'soapenv:Fault': Joi.array()
+				'ns4:getPaymentStatusResponse': Joi.array()
 					.min(1)
 					.required()
 					.items({
-						faultcode: Joi.array().required().items(Joi.string()),
-						faultstring: Joi.array().required().items(Joi.string()),
-						detail: Joi.array()
+						$: Joi.object().keys({
+							'xmlns:ns4': Joi.string(),
+							xmlns: Joi.string(),
+							'xmlns:ns5': Joi.string(),
+							'xmlns:ns3': Joi.string(),
+							'xmlns:ns2': Joi.string(),
+						}),
+						'ns4:paymentStatusResponse': Joi.array()
 							.min(1)
 							.required()
 							.items({
-								'ns4:serviceException': Joi.array()
-									.min(1)
-									.required()
-									.items({
-										$: Joi.object()
-											.keys({
-												'xmlns:ns4': Joi.string(),
-												'xmlns:ns5': Joi.string(),
-												'xmlns:ns3': Joi.string(),
-												'xmlns:ns2': Joi.string(),
-											})
-											.unknown(true),
-										'ns3:messageId': Joi.array().required().items(Joi.string()),
-										'ns3:primaryReturnCode': Joi.array().required().items(Joi.string()),
-										'ns3:secondaryReturnCode': Joi.array().required().items(Joi.string()),
-										'ns3:signature': Joi.array().required().items(Joi.string()),
-									}),
+								'ns3:messageId': gpPaymentArraySchema,
+								'ns3:state': gpPaymentArraySchema,
+								'ns3:status': Joi.array().min(1).required().items(Joi.string()),
+								'ns3:subStatus': gpPaymentArraySchema,
+								'ns3:signature': gpPaymentArraySchema,
 							}),
 					}),
 			}),
+	}),
+})
+
+const appConfig: IAppConfig = config.get('app')
+const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
+
+const gpPaymentServiceURL = `${webpayConfig.httpApi}/pay-ws/v1/PaymentService`
+
+const gpStringArray = z.array(z.string())
+
+const gpServiceExceptionSchema = z.object({
+	$: z.looseObject({
+		'xmlns:ns4': z.string(),
+		'xmlns:ns5': z.string(),
+		'xmlns:ns2': z.string(),
+		'xmlns:ns3': z.string(),
+	}),
+	'ns3:messageId': gpStringArray,
+	'ns3:primaryReturnCode': gpStringArray,
+	'ns3:secondaryReturnCode': gpStringArray,
+	'ns3:signature': gpStringArray,
+})
+
+const gpFaultSchema = z.object({
+	faultcode: gpStringArray,
+	faultstring: gpStringArray,
+	detail: z
+		.array(
+			z.object({
+				'ns4:serviceException': z.array(gpServiceExceptionSchema).min(1),
+			})
+		)
+		.min(1),
+})
+
+// xml2js wraps every element in an array and puts XML attributes under `$`.
+export const gpWebservicePaymentStatusErrorSchema = z.object({
+	'soapenv:Envelope': z.object({
+		$: z
+			.looseObject({
+				'xmlns:soapenv': z.string(),
+			})
+			.optional(),
+		'soapenv:Body': z
+			.array(
+				z.object({
+					'soapenv:Fault': z.array(gpFaultSchema).min(1),
+				})
+			)
+			.min(1),
 	}),
 })
 
@@ -298,34 +343,46 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 		body: requestBody,
 		headers: { 'Content-Type': 'text/xml' },
 	})
-
-	if (response.ok) {
-		return response
-	}
 	const data = await response.text()
 
-	// GP is returning for valid request (example is when sending request has OrderNumber that is not visited and therefore not yet consumed by GP),
-	// response 500, we need to act as it is fine and return undefined.
+	try {
+		const parser = new xml2js.Parser()
+		const parsedBody = await parser.parseStringPromise(data)
 
-	// TODO we should use axios
-	if (response.status === 500) {
-		try {
-			const parser = new xml2js.Parser()
-			const parsedBody = await parser.parseStringPromise(data)
-			const { error: validateErrorSchemaError } =
-				gpWebservicePaymentStatusErrorSchema.validate(parsedBody)
-
-			// this is 500 from GP but request was possibly valid and response should not be 500
-			if (!validateErrorSchemaError) {
-				// all return codes can be found in https://portal.gpwebpay.com/portal/tools/GP_webpay_WS_API.pdf part 5.2
-				logger.warn(`GP Response that shouldn't be 500 but it is: ${data}`)
-				return undefined
+		if (response.ok) {
+			const { error: validateSchemaError, value } =
+				gpWebservicePaymentStatusSchema.validate(parsedBody)
+			if (validateSchemaError) {
+				logger.info(`Error validating GP response: ${validateSchemaError}`)
 			}
-		} catch (error) {
-			logger.warn(
-				`Error occurred while parsing XML and validating paymentService from "${gpPaymentServiceURL}"`
-			)
+			return value
 		}
+
+		// GP is returning, for valid request (example is when sending request has OrderNumber that is not visited and therefore not yet consumed by GP),
+		// response 500, we need to act as it is fine and return undefined.
+
+		// TODO we should use axios
+		if (response.status === 500) {
+			const parsed = gpWebservicePaymentStatusErrorSchema.safeParse(parsedBody)
+			if (!parsed.success) {
+				logger.warn(`Error while parsing ${parsed.error}`)
+			} else {
+				logger.warn(`GP Response that shouldn't be 500 but it is: ${parsed.data}`)
+				const serviceException =
+					parsed.data['soapenv:Envelope']['soapenv:Body'][0]['soapenv:Fault'][0]['detail'][0][
+						'ns4:serviceException'
+					][0]
+				const prCode = serviceException['ns3:primaryReturnCode'][0]
+				const process = getProcessingStrategy(prCode)
+				if (!process.shouldAlert) {
+					logger.warn(`Handled PR code: ${prCode}`)
+					return undefined
+				}
+				logger.warn(`Error unhandled PR code: ${prCode}`)
+			}
+		}
+	} catch (error) {
+		logger.warn(`Error occurred while parsing XML and validating: ${error}`)
 	}
 	logger.error(httpErrorStatusString(response))
 
@@ -334,4 +391,21 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 		500,
 		`Error occurred while fetching paymentService from "${gpPaymentServiceURL}"`
 	)
+}
+
+// inspired by https://github.com/bratislava/konto.bratislava.sk/blob/6da01b27184da17dede4146eba6c9142ffd7c96b/nest-tax-backend/src/payment/payment.service.ts#L363
+export const getProcessingStrategy = (prCode: string): GpWebpayProcessingStrategy => {
+	const pr = Number(prCode)
+
+	// https://www.gpwebpay.cz/downloads/GP_webpay_HTTP_EN.pdf
+
+	// PR 15: Object not found
+	if (pr === 15) {
+		return {
+			shouldAlert: false,
+		}
+	}
+	return {
+		shouldAlert: true,
+	}
 }
