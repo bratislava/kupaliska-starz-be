@@ -294,10 +294,7 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 
 	const now = new Date()
 
-	// TODO add "orderNumber" to messageId so we can trace back to what order this requests belongs
-	// now we are dependent on synchronicity of this process and when requesting then we
-	// are await-ing for response that way it works for now
-	const messageId = `${now.getTime()}${provider}${merchantNumber}getPaymentStatus`
+	const messageId = `${orderNumber}${now.getTime()}${provider}${merchantNumber}getPaymentStatus`
 
 	const requestObject = {
 		messageId,
