@@ -274,7 +274,25 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 		paymentNumber: orderNumber,
 		signature,
 	}
-	const requestBody = `<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:v1='http://gpe.cz/pay/pay-ws/proc/v1' xmlns:type='http://gpe.cz/pay/pay-ws/proc/v1/type'><soapenv:Header/><soapenv:Body><v1:getPaymentStatus><v1:paymentStatusRequest><type:messageId>${paymentStatusRequestObject.messageId}</type:messageId><type:provider>${paymentStatusRequestObject.provider}</type:provider><type:merchantNumber>${paymentStatusRequestObject.merchantNumber}</type:merchantNumber><type:paymentNumber>${paymentStatusRequestObject.paymentNumber}</type:paymentNumber><type:signature>${paymentStatusRequestObject.signature}</type:signature></v1:paymentStatusRequest></v1:getPaymentStatus></soapenv:Body></soapenv:Envelope>`
+	const requestBody = `
+		<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:v1='http://gpe.cz/pay/pay-ws/proc/v1' xmlns:type='http://gpe.cz/pay/pay-ws/proc/v1/type'>
+			<soapenv:Header/>
+			<soapenv:Body>
+				<v1:getPaymentStatus>
+					<v1:paymentStatusRequest>
+						<type:messageId>${paymentStatusRequestObject.messageId}</type:messageId>
+						<type:provider>${paymentStatusRequestObject.provider}</type:provider>
+						<type:merchantNumber>${paymentStatusRequestObject.merchantNumber}</type:merchantNumber>
+						<type:paymentNumber>${paymentStatusRequestObject.paymentNumber}</type:paymentNumber>
+						<type:signature>${paymentStatusRequestObject.signature}</type:signature>
+					</v1:paymentStatusRequest>
+				</v1:getPaymentStatus>
+			</soapenv:Body>
+		</soapenv:Envelope>
+	`
+		// string adjustment to keep formatting in code but send it as one line
+		.replace(/>\s+</g, '><')
+		.trim()
 	const response = await fetch(gpPaymentServiceURL, {
 		method: 'post',
 		body: requestBody,
