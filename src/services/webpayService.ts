@@ -60,11 +60,6 @@ const gpWebservicePaymentStatusSchema = Joi.object({
 	}),
 })
 
-const appConfig: IAppConfig = config.get('app')
-const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
-
-const gpPaymentServiceURL = `${webpayConfig.httpApi}/pay-ws/v1/PaymentService`
-
 const gpStringArray = z.array(z.string())
 
 const gpServiceExceptionSchema = z.object({
@@ -109,6 +104,11 @@ export const gpWebservicePaymentStatusErrorSchema = z.object({
 			.min(1),
 	}),
 })
+
+const appConfig: IAppConfig = config.get('app')
+const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
+
+const gpPaymentServiceURL = `${webpayConfig.httpApi}/pay-ws/v1/PaymentService`
 
 export const checkPaymentKeys = () => {
 	try {
