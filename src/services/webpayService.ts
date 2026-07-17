@@ -1,7 +1,6 @@
 import formurlencoded from 'form-urlencoded'
 import fs from 'fs'
 import config from 'config'
-import Joi from 'joi'
 import { z } from 'zod'
 import xml2js from 'xml2js'
 import { models } from '../db/models'
@@ -23,44 +22,43 @@ interface GpWebpayProcessingStrategy {
 	shouldAlert: boolean
 }
 
-const gpPaymentArraySchema = Joi.array().required().items(Joi.string())
+const gpStringArray = z.array(z.string())
 
-const gpWebservicePaymentStatusSchema = Joi.object({
-	'soapenv:Envelope': Joi.object().keys({
-		$: Joi.object().keys({
-			'xmlns:soapenv': Joi.string(),
-		}),
-		'soapenv:Body': Joi.array()
-			.required()
-			.min(1)
-			.items({
-				'ns4:getPaymentStatusResponse': Joi.array()
-					.min(1)
-					.required()
-					.items({
-						$: Joi.object().keys({
-							'xmlns:ns4': Joi.string(),
-							xmlns: Joi.string(),
-							'xmlns:ns5': Joi.string(),
-							'xmlns:ns3': Joi.string(),
-							'xmlns:ns2': Joi.string(),
-						}),
-						'ns4:paymentStatusResponse': Joi.array()
-							.min(1)
-							.required()
-							.items({
-								'ns3:messageId': gpPaymentArraySchema,
-								'ns3:state': gpPaymentArraySchema,
-								'ns3:status': Joi.array().min(1).required().items(Joi.string()),
-								'ns3:subStatus': gpPaymentArraySchema,
-								'ns3:signature': gpPaymentArraySchema,
-							}),
-					}),
-			}),
-	}),
+const gpWebservicePaymentStatusResponseSchema = z.object({
+	'ns3:messageId': gpStringArray,
+	'ns3:state': gpStringArray,
+	'ns3:status': z.array(z.string()).min(1),
+	'ns3:subStatus': gpStringArray,
+	'ns3:signature': gpStringArray,
 })
 
-const gpStringArray = z.array(z.string())
+const gpGetPaymentStatusResponseSchema = z.object({
+	$: z.looseObject({
+		'xmlns:ns4': z.string(),
+		xmlns: z.string(),
+		'xmlns:ns5': z.string(),
+		'xmlns:ns3': z.string(),
+		'xmlns:ns2': z.string(),
+	}),
+	'ns4:paymentStatusResponse': z.array(gpWebservicePaymentStatusResponseSchema).min(1),
+})
+
+const gpWebservicePaymentStatusSchema = z.object({
+	'soapenv:Envelope': z.object({
+		$: z
+			.looseObject({
+				'xmlns:soapenv': z.string(),
+			})
+			.optional(),
+		'soapenv:Body': z
+			.array(
+				z.object({
+					'ns4:getPaymentStatusResponse': z.array(gpGetPaymentStatusResponseSchema).min(1),
+				})
+			)
+			.min(1),
+	}),
+})
 
 const gpServiceExceptionSchema = z.object({
 	$: z.looseObject({
@@ -347,12 +345,11 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 		const parsedBody = await parser.parseStringPromise(data)
 
 		if (response.ok) {
-			const { error: validateSchemaError, value } =
-				gpWebservicePaymentStatusSchema.validate(parsedBody)
-			if (validateSchemaError) {
-				logger.info(`Error validating GP response: ${validateSchemaError}`)
+			const parsed = gpWebservicePaymentStatusSchema.safeParse(parsedBody)
+			if (!parsed.success) {
+				logger.info(`Error validating GP response: ${parsed.error}`)
 			}
-			return value
+			return parsed.data
 		}
 
 		// GP returns HTTP 500 for some valid requests — e.g. when the OrderNumber
