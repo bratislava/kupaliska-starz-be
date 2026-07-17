@@ -394,6 +394,7 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 export const getProcessingStrategy = (prCode: string): GpWebpayProcessingStrategy => {
 	const pr = Number(prCode)
 
+	// TODO handle other cases
 	// https://www.gpwebpay.cz/downloads/GP_webpay_HTTP_EN.pdf
 
 	// PR 15: Object not found
