@@ -362,9 +362,9 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 		if (response.status === 500) {
 			const parsed = gpWebservicePaymentStatusErrorSchema.safeParse(parsedBody)
 			if (!parsed.success) {
-				logger.warn(`Error while parsing ${parsed.error}`)
+				logger.warn(`Error while parsing GP response: ${parsed.error}`)
 			} else {
-				logger.warn(`GP Response that shouldn't be 500 but it is: ${parsed.data}`)
+				logger.warn(`GP Response that shouldn't be 500 but it is: ${JSON.stringify(parsed.data)}`)
 				const serviceException =
 					parsed.data['soapenv:Envelope']['soapenv:Body'][0]['soapenv:Fault'][0]['detail'][0][
 						'ns4:serviceException'
@@ -372,10 +372,10 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 				const prCode = serviceException['ns3:primaryReturnCode'][0]
 				const process = getProcessingStrategy(prCode)
 				if (!process.shouldAlert) {
-					logger.warn(`Handled PR code: ${prCode}`)
+					logger.warn(`GP response handled PR code: ${prCode}`)
 					return undefined
 				}
-				logger.warn(`Error unhandled PR code: ${prCode}`)
+				logger.warn(`GP response error, unhandled PR code: ${prCode}`)
 			}
 		}
 	} catch (error) {

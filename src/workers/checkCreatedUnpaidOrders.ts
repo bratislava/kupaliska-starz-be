@@ -45,15 +45,17 @@ process.on('message', async () => {
 			order: [['createdAt', 'DESC']],
 		})
 
+		const skippedOrders: { orderNumber: number; reason: string }[] = []
+
 		for (const order of orders) {
 			try {
 				const orderNumber = order.orderNumber
 				logger.info(`Found CREATED order - id: ${orderNumber} checking against GP`)
 				const parsedXmlBodyFromGP = await getPaymentStatusWebServiceRequest(orderNumber)
 				if (!parsedXmlBodyFromGP) {
-					logger.info(
-						`Skipping validating order.orderNumber: ${order.orderNumber}, didn't receive proper data.`
-					)
+					const reason = 'Did not receive proper data from GP webservice for processing.'
+					logger.info(`Skipping validating order.orderNumber: ${order.orderNumber}, ${reason}`)
+					skippedOrders.push({ orderNumber: order.orderNumber, reason })
 					continue
 				}
 				try {
@@ -93,6 +95,9 @@ process.on('message', async () => {
 			}
 		}
 
+		if (skippedOrders.length > 0) {
+			return process.send({ type: 'partial_success', skippedOrders })
+		}
 		return process.send({ type: 'success' })
 	} catch (err) {
 		logger.info(JSON.stringify(err))
