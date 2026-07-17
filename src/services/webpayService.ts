@@ -355,8 +355,11 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 			return value
 		}
 
-		// GP is returning, for valid request (example is when sending request has OrderNumber that is not visited and therefore not yet consumed by GP),
-		// response 500, we need to act as it is fine and return undefined.
+		// GP returns HTTP 500 for some valid requests — e.g. when the OrderNumber
+		// hasn't been visited at GP site yet from user so GP doesn't know it.
+		// This isn't a real error coming from bad request,
+		// so we treat it regular 200 response process this response
+		// and in this case return undefined.
 
 		// TODO we should use axios
 		if (response.status === 500) {
