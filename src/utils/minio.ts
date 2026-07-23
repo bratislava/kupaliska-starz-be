@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { Client } from 'minio'
+import { Stream } from 'node:stream'
 import { logger } from './logger'
 import { IMinioConfig } from '../types/interfaces'
 
@@ -11,37 +12,37 @@ export const minioClient = new Client({
 	endPoint: minioConfig.endPoint,
 	port: Number(minioConfig.port),
 	useSSL: true,
-	accessKey: process.env.MINIO_ACCESS_KEY,
-	secretKey: process.env.MINIO_SECRET_KEY,
+	accessKey: minioConfig.accessKey,
+	secretKey: minioConfig.secretKey,
 	pathStyle: false,
 })
 
-// uploads a file stored on filesystem
-// path in bucket matches path on drive
-export const uploadFileToBucket = (fullPath: string) => {
-	return new Promise((resolve, reject) => {
-		minioClient.fPutObject(process.env.MINIO_BUCKET, fullPath, fullPath, {}, function (e) {
-			if (e) {
-				logger.error(e)
-				reject(e)
-			}
-			resolve(fullPath)
-		})
-	})
+export const uploadFileToBucket = async (fullPath: string, buffer: Buffer) => {
+	try {
+		return await minioClient.putObject(minioConfig.bucket, fullPath, buffer)
+	} catch (error) {
+		if (error instanceof Error) {
+			logger.error(error.message)
+		} else {
+			logger.error(`uploadFileToBucket is throwing non Error: ${String(error)}`)
+		}
+		throw error
+	}
 }
 
-// uploads a file to the filesystem
-// path in bucket matches path on drive
-export const downloadFileFromBucket = (fullPath: string) =>
-	new Promise((resolve, reject) => {
-		minioClient.fGetObject(process.env.MINIO_BUCKET, fullPath, fullPath, function (e) {
-			if (e) {
-				logger.error(e)
-				reject(e)
-			}
-			resolve(fullPath)
-		})
-	})
+export const downloadFileFromBucket = async (fullPath: string): Promise<Stream> => {
+	try {
+		return await minioClient.getObject(minioConfig.bucket, fullPath)
+	} catch (error) {
+		if (error instanceof Error) {
+			logger.error(error.message)
+		} else {
+			logger.error(`downloadFileFromBucket is throwing non Error: ${String(error)}`)
+		}
+
+		throw error
+	}
+}
 
 // serve minio directory (path) on a given url -
 // i.e. app.use('/files/public', staticServeMiddleware('/hello/world')) serve content of sub-directory 'world' on url '/files/public'
@@ -49,7 +50,7 @@ export const downloadFileFromBucket = (fullPath: string) =>
 // path assumes no trailing / !
 export const minioStaticServeMiddleware = (path: string) => async (req: Request, res: Response) => {
 	await new Promise((resolve, reject) =>
-		minioClient.getObject(process.env.MINIO_BUCKET, `${path}${req.url}`, (err, stream) => {
+		minioClient.getObject(minioConfig.bucket, `${path}${req.url}`, (err, stream) => {
 			if (err) {
 				logger.error(err)
 				return reject(err)
