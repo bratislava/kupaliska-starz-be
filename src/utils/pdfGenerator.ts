@@ -121,11 +121,7 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 			align: 'center',
 		})
 
-		const name = ticket.isChildren
-			? getChildrenTicketName()
-			: isSeniorOrDisabledTicket
-				? i18next.t('translation:seniorOrDisabledTicket')
-				: ticket.ticketType.name
+		const name = ticket.isChildren ? getChildrenTicketName() : ticket.ticketType.name
 
 		doc
 			.fontSize(18)
@@ -185,13 +181,6 @@ export const generatePdf = async (tickets: TicketModel[]): Promise<string> => {
 					{ align: 'center' }
 				)
 
-			doc.moveDown(1)
-			doc
-				.fontSize(12)
-				.font('resources/fonts/WorkSans-Medium.ttf')
-				.text(i18next.t('translation:seniorOrDisabledText'), {
-					align: 'center',
-				})
 			startPadding += qrCodeHeight + rowPadding
 		} else {
 			startPadding += qrCodeHeight + rowPadding

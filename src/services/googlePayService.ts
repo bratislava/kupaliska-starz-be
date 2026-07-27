@@ -24,12 +24,15 @@ try {
 	logger.error('Error Google pay credentials file not found')
 	logger.error(err)
 }
+
 export const getPassUrl = async (ticket: TicketModel) => {
 	const objectId = `${issuerId}.${ticket.id}`
+
 	const ticketName = getWalletPassTicketName(ticket)
 	const ticketDescription = getWalletPassTicketDescription(ticket)
 	const ownerName = ticket.ticketType.isDisposable ? undefined : ticket.profile.name
 
+	// DOCS: https://developers.google.com/wallet/reference/rest/v1/genericobject#GenericObject
 	// TODO we can probably change the language to sk, but it might require tweaking the class as well - check in google pay console & test before trying in the wild
 	// presently, no harm doen when this is presented as "en" and english being the only language in which the pass is available
 	let genericObject = {
