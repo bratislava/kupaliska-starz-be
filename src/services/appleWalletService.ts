@@ -1,11 +1,7 @@
 import { Template } from '@walletpass/pass-js'
 import logger from '../utils/logger'
 import { TICKET_CATEGORY, textColorsMap } from '../utils/enums'
-import {
-	getWalletPassTicketDescription,
-	getWalletPassTicketName,
-	hexToRgbString,
-} from '../utils/helpers'
+import { getWalletPassTicketDescription, hexToRgbString } from '../utils/helpers'
 import { TicketModel } from '../db/models/ticket'
 import config from 'config'
 import { IAppleWalletConfig } from '../types/interfaces'
@@ -89,7 +85,9 @@ template.images.add('logo', './files/public/wallet-pass/logo-starz-small.png').c
 
 export const createPass = async (ticket: TicketModel) => {
 	const ticketId = ticket.id
-	const ticketName = getWalletPassTicketName(ticket)
+
+	// wallets have very limited space and could be easy to miss when the text changes in the future
+	const ticketName = ticket.ticketType.name
 	const ticketDescription = getWalletPassTicketDescription(ticket)
 	const ownerName = ticket.ticketType.isDisposable ? undefined : ticket.profile.name
 	const year = new Date().getFullYear()

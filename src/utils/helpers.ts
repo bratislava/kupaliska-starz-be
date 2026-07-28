@@ -72,10 +72,6 @@ export const hexToRgbString = (hex: string) => {
 	return `rgb(${arr[0]},${arr[1]},${arr[2]})`
 }
 
-// separate walletPass translation keys even for reused strings
-// wallets have very limited space and could be easy to miss when the text changes in the future
-export const getWalletPassTicketName = (ticket: TicketModel) => ticket.ticketType.name
-
 export const getWalletPassTicketDescription = (ticket: TicketModel) =>
 	ticket.isChildren
 		? ticket.withAdult()
