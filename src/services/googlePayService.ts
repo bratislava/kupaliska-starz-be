@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken'
 import fs from 'fs'
 import { textColorsMap } from '../utils/enums'
 import { TicketModel } from '../db/models/ticket'
-import { getWalletPassTicketDescription, getWalletPassTicketName } from '../utils/helpers'
+import { getWalletPassTicketDescription } from '../utils/helpers'
 import logger from '../utils/logger'
 
 // the pass was created using this guide: https://codelabs.developers.google.com/add-to-wallet-web
@@ -24,12 +24,16 @@ try {
 	logger.error('Error Google pay credentials file not found')
 	logger.error(err)
 }
+
 export const getPassUrl = async (ticket: TicketModel) => {
 	const objectId = `${issuerId}.${ticket.id}`
-	const ticketName = getWalletPassTicketName(ticket)
+
+	// wallets have very limited space and could be easy to miss when the text changes in the future
+	const ticketName = ticket.ticketType.name
 	const ticketDescription = getWalletPassTicketDescription(ticket)
 	const ownerName = ticket.ticketType.isDisposable ? undefined : ticket.profile.name
 
+	// DOCS: https://developers.google.com/wallet/reference/rest/v1/genericobject#GenericObject
 	// TODO we can probably change the language to sk, but it might require tweaking the class as well - check in google pay console & test before trying in the wild
 	// presently, no harm doen when this is presented as "en" and english being the only language in which the pass is available
 	let genericObject = {

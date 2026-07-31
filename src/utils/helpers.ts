@@ -3,7 +3,7 @@ import { QueryInterface } from 'sequelize'
 import dayjs from 'dayjs'
 import { CityAccountUser } from './cityAccountDto'
 import i18next from 'i18next'
-import { ORDER_STATE, TICKET_CATEGORY } from './enums'
+import { ORDER_STATE } from './enums'
 import { TicketModel } from '../db/models/ticket'
 import sequelize, { models } from '../db/models'
 import { OrderModel } from '../db/models/order'
@@ -72,24 +72,14 @@ export const hexToRgbString = (hex: string) => {
 	return `rgb(${arr[0]},${arr[1]},${arr[2]})`
 }
 
-// separate walletPass translation keys even for reused strings
-// wallets have very limited space and could be easy to miss when the text changes in the future
-export const getWalletPassTicketName = (ticket: TicketModel) =>
-	ticket.isChildren
-		? i18next.t('translation:walletPass.childrenSeasonTicket')
-		: ticket.getCategory() === TICKET_CATEGORY.SENIOR_OR_DISABLED
-			? i18next.t('translation:walletPass.seniorOrDisabledTicket')
-			: ticket.ticketType.name
-
 export const getWalletPassTicketDescription = (ticket: TicketModel) =>
 	ticket.isChildren
 		? ticket.withAdult()
 			? i18next.t('translation:walletPass.childrenWithAdultText')
 			: i18next.t('translation:walletPass.childrenWithoutAdultText')
-		: ticket.getCategory() === TICKET_CATEGORY.SENIOR_OR_DISABLED
-			? i18next.t('translation:walletPass.seniorOrDisabledText')
-			: // no description text for adult ticket
-				''
+		: // no description text for adult ticket
+			''
+
 export function isDefined<T>(value: T | undefined | null): value is T {
 	return value !== undefined && value !== null
 }
