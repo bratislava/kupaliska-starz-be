@@ -15,7 +15,7 @@ const { GeneralSettings } = models
 export const workflow = async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const general = await GeneralSettings.findOne({
-			attributes: ['alertText', 'showAlert', 'isOffSeason'],
+			attributes: ['alertText', 'showAlert', 'isSeasonActive'],
 		})
 
 		if (!general) {

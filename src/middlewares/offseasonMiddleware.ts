@@ -8,17 +8,15 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 		const { GeneralSettings } = models
 
 		const general = await GeneralSettings.findOne({
-			attributes: ['isOffSeason'],
+			attributes: ['isSeasonActive'],
 		})
 
-		if (!general || general?.isOffSeason === undefined) {
-			logger.error(
-				`GeneralSettings not found. general: ${JSON.stringify(general)}`
-			)
-			return next(new ErrorBuilder(400, req.t('error:offseason')))
+		if (!general || general?.isSeasonActive === undefined) {
+			logger.error(`GeneralSettings not found. general: ${JSON.stringify(general)}`)
+			return next(new ErrorBuilder(400, req.t('error:seasonIsNotActive')))
 		}
-		if (general.isOffSeason) {
-			return next(new ErrorBuilder(400, req.t('error:offseason')))
+		if (!general.isSeasonActive) {
+			return next(new ErrorBuilder(400, req.t('error:seasonIsNotActive')))
 		}
 
 		next()

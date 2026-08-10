@@ -1,8 +1,5 @@
 import { QueryInterface } from 'sequelize'
-import { v4 as uuidv4 } from 'uuid'
-import DB, { models } from '../../models'
-
-const { GeneralSettings } = models
+import DB from '../models'
 
 export async function up(queryInterface: QueryInterface) {
 	const transaction = await DB.transaction()
@@ -16,27 +13,18 @@ export async function up(queryInterface: QueryInterface) {
 			await transaction.rollback()
 			return
 		}
+		const table = await queryInterface.describeTable('generalSettings')
 
-		const generalSettings = await GeneralSettings.findAll()
-		if (generalSettings.length > 0) {
-			await transaction.rollback()
-			return
+		if ('isOffSeason' in table) {
+			await queryInterface.renameColumn('generalSettings', 'isOffSeason', 'isSeasonActive', {
+				transaction,
+			})
 		}
 
-		await queryInterface.bulkInsert('generalSettings', [
-			{
-				id: uuidv4(),
-				alertText: 'test',
-				alertTextColor: '#000000',
-				alertColor: '#000000',
-				seasonTitle: 'test',
-				seasonSubtitle: 'test',
-				isSeasonActive: false,
-				offSeasonTitle: 'test',
-				offSeasonSubtitle: 'test',
-				showAlert: false,
-			},
-		])
+		await queryInterface.sequelize.query(
+			`UPDATE "generalSettings" SET "isSeasonActive" = NOT "isSeasonActive";`,
+			{ transaction }
+		)
 
 		await transaction.commit()
 	} catch (err) {
@@ -58,9 +46,19 @@ export async function down(queryInterface: QueryInterface) {
 			return
 		}
 
-		await queryInterface.bulkDelete('generalSettings', null, {
-			transaction,
-		})
+		const table = await queryInterface.describeTable('generalSettings')
+
+		if ('isSeasonActive' in table) {
+			await queryInterface.renameColumn('generalSettings', 'isSeasonActive', 'isOffSeason', {
+				transaction,
+			})
+		}
+
+		await queryInterface.sequelize.query(
+			`UPDATE "generalSettings" SET "isOffSeason" = NOT "isOffSeason";`,
+			{ transaction }
+		)
+
 		await transaction.commit()
 	} catch (err) {
 		await transaction.rollback()
