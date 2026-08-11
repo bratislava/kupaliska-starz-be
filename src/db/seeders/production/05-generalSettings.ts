@@ -31,7 +31,7 @@ export async function up(queryInterface: QueryInterface) {
 				alertColor: '#000000',
 				seasonTitle: 'test',
 				seasonSubtitle: 'test',
-				isOffSeason: false,
+				isSeasonActive: true,
 				offSeasonTitle: 'test',
 				offSeasonSubtitle: 'test',
 				showAlert: false,

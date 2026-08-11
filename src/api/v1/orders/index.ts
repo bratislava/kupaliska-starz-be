@@ -11,7 +11,7 @@ import * as GetGooglePay from './get.googlePay'
 import passport from 'passport'
 import schemaMiddleware from '../../../middlewares/schemaMiddleware'
 import recaptchaMiddleware from '../../../middlewares/recaptchaMiddleware'
-import offseasonMiddleware from '../../../middlewares/offseasonMiddleware'
+import activeSeasonMiddleware from '../../../middlewares/activeSeasonMiddleware'
 import schemaZodMiddleware from '../../../middlewares/schemaZodMiddleware'
 
 const router = Router()
@@ -26,7 +26,7 @@ export default () => {
 
 	router.post(
 		'/',
-		offseasonMiddleware,
+		activeSeasonMiddleware,
 		passport.authenticate('jwt-cognito'),
 		recaptchaMiddleware,
 		schemaZodMiddleware(PostOrder.postOrderBodySchema),
@@ -38,7 +38,7 @@ export default () => {
 	// TODO: remove this route after FE removes it's usage
 	router.post(
 		'/unauthenticated',
-		offseasonMiddleware,
+		activeSeasonMiddleware,
 		recaptchaMiddleware,
 		schemaZodMiddleware(PostOrder.postOrderBodySchema),
 		(req: RequestPostOrder, res: Response, next: NextFunction) => {
@@ -50,7 +50,7 @@ export default () => {
 
 	router.post(
 		'/getPrice',
-		offseasonMiddleware,
+		activeSeasonMiddleware,
 		passport.authenticate('jwt-cognito'),
 		schemaZodMiddleware(PostOrder.postOrderDryRunBodySchema),
 		(req: RequestPostOrderDryRun, res: Response, next: NextFunction) => {
@@ -61,7 +61,7 @@ export default () => {
 	// TODO: remove this route after FE removes it's usage
 	router.post(
 		'/getPrice/unauthenticated',
-		offseasonMiddleware,
+		activeSeasonMiddleware,
 		schemaZodMiddleware(PostOrder.postOrderDryRunBodySchema),
 		(req: RequestPostOrderDryRun, res: Response, next: NextFunction) => {
 			PostOrder.workflowDryRun(req, res, next)

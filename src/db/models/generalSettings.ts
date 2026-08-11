@@ -11,7 +11,7 @@ export class GeneralSettingsModel extends DatabaseModel {
 	alertColor: string
 	seasonTitle: string
 	seasonSubtitle: string
-	isOffSeason: boolean
+	isSeasonActive: boolean
 	offSeasonTitle: string
 	offSeasonSubtitle: string
 	createdAt: Date
@@ -51,8 +51,7 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.TEXT,
 				allowNull: false,
 			},
-			// TODO: rename to isSeasonActive
-			isOffSeason: {
+			isSeasonActive: {
 				type: DataTypes.BOOLEAN,
 				allowNull: false,
 			},
