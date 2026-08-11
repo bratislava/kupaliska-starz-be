@@ -15,7 +15,7 @@ export async function up(queryInterface: QueryInterface) {
 		}
 
 		await queryInterface.sequelize.query(
-			`SELECT pg_advisory_xact_lock(hashtext('migration-0059-rename-is-off-season'))`,
+			`SELECT pg_advisory_xact_lock(hashtext('migration-general-settings'))`,
 			{
 				transaction,
 			}
@@ -54,7 +54,7 @@ export async function down(queryInterface: QueryInterface) {
 		}
 
 		await queryInterface.sequelize.query(
-			`SELECT pg_advisory_xact_lock(hashtext('migration-0059-rename-is-off-season'))`,
+			`SELECT pg_advisory_xact_lock(hashtext('migration-general-settings'))`,
 			{
 				transaction,
 			}
