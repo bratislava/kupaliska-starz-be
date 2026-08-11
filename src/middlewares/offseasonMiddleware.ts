@@ -13,10 +13,10 @@ export default async (req: Request, _res: Response, next: NextFunction) => {
 
 		if (!general || general?.isSeasonActive === undefined) {
 			logger.error(`GeneralSettings not found. general: ${JSON.stringify(general)}`)
-			return next(new ErrorBuilder(400, req.t('error:seasonIsNotActive')))
+			return next(new ErrorBuilder(400, req.t('error:seasonNotActive')))
 		}
 		if (!general.isSeasonActive) {
-			return next(new ErrorBuilder(400, req.t('error:seasonIsNotActive')))
+			return next(new ErrorBuilder(400, req.t('error:seasonNotActive')))
 		}
 
 		next()

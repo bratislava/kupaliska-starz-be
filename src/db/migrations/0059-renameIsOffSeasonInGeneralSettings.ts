@@ -19,12 +19,11 @@ export async function up(queryInterface: QueryInterface) {
 			await queryInterface.renameColumn('generalSettings', 'isOffSeason', 'isSeasonActive', {
 				transaction,
 			})
+			await queryInterface.sequelize.query(
+				`UPDATE "generalSettings" SET "isSeasonActive" = NOT "isSeasonActive";`,
+				{ transaction }
+			)
 		}
-
-		await queryInterface.sequelize.query(
-			`UPDATE "generalSettings" SET "isSeasonActive" = NOT "isSeasonActive";`,
-			{ transaction }
-		)
 
 		await transaction.commit()
 	} catch (err) {
@@ -52,12 +51,11 @@ export async function down(queryInterface: QueryInterface) {
 			await queryInterface.renameColumn('generalSettings', 'isSeasonActive', 'isOffSeason', {
 				transaction,
 			})
+			await queryInterface.sequelize.query(
+				`UPDATE "generalSettings" SET "isOffSeason" = NOT "isOffSeason";`,
+				{ transaction }
+			)
 		}
-
-		await queryInterface.sequelize.query(
-			`UPDATE "generalSettings" SET "isOffSeason" = NOT "isOffSeason";`,
-			{ transaction }
-		)
 
 		await transaction.commit()
 	} catch (err) {
