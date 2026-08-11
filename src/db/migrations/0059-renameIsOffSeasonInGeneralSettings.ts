@@ -53,6 +53,13 @@ export async function down(queryInterface: QueryInterface) {
 			return
 		}
 
+		await queryInterface.sequelize.query(
+			`SELECT pg_advisory_xact_lock(hashtext('migration-0059-rename-is-off-season'))`,
+			{
+				transaction,
+			}
+		)
+
 		const table = await queryInterface.describeTable('generalSettings')
 
 		if ('isSeasonActive' in table) {
