@@ -15,11 +15,10 @@ import {
 import { OrderModel } from '../db/models/order'
 import { PAYMENT_OPERATION, ORDER_PAYMENT_METHOD_STATE } from '../utils/enums'
 import { logger } from '../utils/logger'
-import ErrorBuilder from '../utils/ErrorBuilder'
 import { httpErrorStatusString } from '../utils/helpers'
 
 interface GpWebpayProcessingStrategy {
-	shouldAlert: boolean
+	isPrCodeAlerting: boolean
 }
 
 const gpStringArray = z.array(z.string())
@@ -340,6 +339,12 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 	})
 	const data = await response.text()
 
+	const commonErrorData = `Error occurred while fetching paymentService from "${gpPaymentServiceURL}" Error body: ${data} - response is: ${httpErrorStatusString(response)}`
+
+	if (!response.ok && response.status !== 500) {
+		throw new Error(`Unknown status of GP response. ${commonErrorData}`)
+	}
+
 	try {
 		const parser = new xml2js.Parser()
 		const parsedBody = await parser.parseStringPromise(data)
@@ -347,7 +352,9 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 		if (response.ok) {
 			const parsed = gpWebservicePaymentStatusSchema.safeParse(parsedBody)
 			if (!parsed.success) {
-				logger.info(`Error validating GP response: ${parsed.error}`)
+				throw new Error(
+					`Unknown data shape when parsing GP response using "gpWebservicePaymentStatusSchema": ${parsed.error}`
+				)
 			}
 			return parsed.data
 		}
@@ -355,39 +362,29 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 		// GP returns HTTP 500 for some valid requests — e.g. when the OrderNumber
 		// hasn't been visited at GP site yet from user so GP doesn't know it.
 		// This isn't a real error coming from bad request,
-		// so we treat it regular 200 response process this response
-		// and in this case return undefined.
+		// so we treat it as known response and in this case return undefined.
 
-		// TODO we should use axios
-		if (response.status === 500) {
-			const parsed = gpWebservicePaymentStatusErrorSchema.safeParse(parsedBody)
-			if (!parsed.success) {
-				logger.warn(`Error while parsing GP response: ${parsed.error}`)
-			} else {
-				logger.warn(`GP Response that shouldn't be 500 but it is: ${JSON.stringify(parsed.data)}`)
-				const serviceException =
-					parsed.data['soapenv:Envelope']['soapenv:Body'][0]['soapenv:Fault'][0]['detail'][0][
-						'ns4:serviceException'
-					][0]
-				const prCode = serviceException['ns3:primaryReturnCode'][0]
-				const process = getProcessingStrategy(prCode)
-				if (!process.shouldAlert) {
-					logger.warn(`GP response handled PR code: ${prCode}`)
-					return undefined
-				}
-				logger.warn(`GP response error, unhandled PR code: ${prCode}`)
-			}
+		const parsed = gpWebservicePaymentStatusErrorSchema.safeParse(parsedBody)
+		if (!parsed.success) {
+			throw new Error(
+				`Unknown data shape when parsing GP response using "gpWebservicePaymentStatusErrorSchema": ${parsed.error.issues}`
+			)
 		}
+		const serviceException =
+			parsed.data['soapenv:Envelope']['soapenv:Body'][0]['soapenv:Fault'][0]['detail'][0][
+				'ns4:serviceException'
+			][0]
+		const prCode = serviceException['ns3:primaryReturnCode'][0]
+		const processingStrategy = getProcessingStrategy(prCode)
+		if (!processingStrategy.isPrCodeAlerting) {
+			return undefined
+		}
+		throw new Error(`GP response error, unhandled PR code: ${prCode}`)
 	} catch (error) {
-		logger.warn(`Error occurred while parsing XML and validating: ${error}`)
+		throw new Error(
+			`Error occurred while parsing XML and validating: ${JSON.stringify(error.message)} ${commonErrorData}`
+		)
 	}
-	logger.error(httpErrorStatusString(response))
-
-	logger.error(`Error body: ${data}`)
-	throw new ErrorBuilder(
-		500,
-		`Error occurred while fetching paymentService from "${gpPaymentServiceURL}"`
-	)
 }
 
 // inspired by https://github.com/bratislava/konto.bratislava.sk/blob/6da01b27184da17dede4146eba6c9142ffd7c96b/nest-tax-backend/src/payment/payment.service.ts#L363
@@ -400,10 +397,10 @@ export const getProcessingStrategy = (prCode: string): GpWebpayProcessingStrateg
 	// PR 15: Object not found
 	if (pr === 15) {
 		return {
-			shouldAlert: false,
+			isPrCodeAlerting: false,
 		}
 	}
 	return {
-		shouldAlert: true,
+		isPrCodeAlerting: true,
 	}
 }
