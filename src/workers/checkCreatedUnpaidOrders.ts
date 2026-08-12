@@ -11,7 +11,6 @@ process.on('message', async () => {
 	const { Order } = models
 
 	try {
-		// TODO we should lock this, in case when user visits response endpoint at a same time as this process is running
 		const orders = await Order.findAll({
 			where: {
 				state: ORDER_STATE.CREATED,
@@ -52,46 +51,49 @@ process.on('message', async () => {
 				const orderNumber = order.orderNumber
 				logger.info(`Found CREATED order - id: ${orderNumber} checking against GP`)
 				const parsedXmlBodyFromGP = await getPaymentStatusWebServiceRequest(orderNumber)
+				// received known PR code from GP webservice error response, for now nothing more to do
 				if (!parsedXmlBodyFromGP) {
-					const reason = 'Did not receive proper data from GP webservice for processing.'
-					logger.info(`Skipping validating order.orderNumber: ${order.orderNumber}, ${reason}`)
-					skippedOrders.push({ orderNumber: order.orderNumber, reason })
 					continue
 				}
-				try {
-					const realData =
-						parsedXmlBodyFromGP['soapenv:Envelope']['soapenv:Body'][0][
-							'ns4:getPaymentStatusResponse'
-						][0]['ns4:paymentStatusResponse'][0]
-					const messageId = realData['ns3:messageId'][0]
-					const status = realData['ns3:status'][0]
-					const state = realData['ns3:state'][0]
-					const subStatus = realData['ns3:subStatus'][0]
-					const signature = realData['ns3:signature'][0]
-					// should be used to verify if needed
-					// await verifyDataGetPaymentStatusWebserviceResponse(
-					// 	[messageId, state, status, subStatus],
-					// 	signature
-					// )
-
-					if (status === ORDER_STATE_GPWEBPAY.CAPTURED) {
-						logger.info(
-							`Found PAID order without proper status in order - id: ${orderNumber} changing status to PAID and sending email`
-						)
-						const paidNow = await markOrderPaid(order)
-
-						// only send the email if this call actually paid the order
-						if (paidNow) {
-							await sendOrderEmail(undefined, order.id)
-						}
-					}
-				} catch (error) {
-					logger.info(error)
-					logger.info(`Error parsing GP response: ${JSON.stringify(error)}`)
+				const realData =
+					parsedXmlBodyFromGP['soapenv:Envelope']['soapenv:Body'][0][
+						'ns4:getPaymentStatusResponse'
+					][0]['ns4:paymentStatusResponse'][0]
+				const messageId = realData['ns3:messageId'][0]
+				const status = realData['ns3:status'][0]
+				const state = realData['ns3:state'][0]
+				const subStatus = realData['ns3:subStatus'][0]
+				const signature = realData['ns3:signature'][0]
+				// should be used to verify if needed
+				// await verifyDataGetPaymentStatusWebserviceResponse(
+				// 	[messageId, state, status, subStatus],
+				// 	signature
+				// )
+				if (status !== ORDER_STATE_GPWEBPAY.CAPTURED) {
+					logger.debug(
+						`Order ${orderNumber} not having "${ORDER_STATE_GPWEBPAY.CAPTURED}" status, status is: ${status}`
+					)
+					continue
 				}
-			} catch (err) {
-				logger.info(err)
-				logger.info(`ERROR - Check created unpaid orders - ERROR: ${JSON.stringify(err)}`)
+
+				logger.info(
+					`Found PAID order without proper status in order - id: ${orderNumber} changing status to PAID and sending email`
+				)
+				const paidNow = await markOrderPaid(order)
+
+				if (!paidNow) {
+					logger.info(`Order ${orderNumber} already marked as paid or is missing in DB.`)
+					continue
+				}
+
+				// only send the email if this call actually paid the order
+				await sendOrderEmail(undefined, order.id)
+			} catch (error) {
+				skippedOrders.push({
+					orderNumber: order.orderNumber,
+					reason: `Error when processing GP response: ${error instanceof Error ? JSON.stringify(error.message) : JSON.stringify(error)}`,
+				})
+				continue
 			}
 		}
 
@@ -100,8 +102,7 @@ process.on('message', async () => {
 		}
 		return process.send({ type: 'success' })
 	} catch (err) {
-		logger.info(JSON.stringify(err))
-		logger.info(`ERROR - Check created unpaid orders - ERROR: ${JSON.stringify(err)}`)
+		logger.error(`${JSON.stringify(err)}`)
 		return process.send({ type: 'error', err })
 	}
 })
