@@ -442,9 +442,7 @@ const basicChecks = async (
 		}
 
 		const ticketType =
-			ticketsWithSameTicketType.length > 0
-				? ticketsWithSameTicketType[0].ticketType
-				: null
+			ticketsWithSameTicketType.length > 0 ? ticketsWithSameTicketType[0].ticketType : null
 		if (!ticketType) {
 			throw new ErrorBuilder(404, i18next.t('error:ticketTypeNotFound'))
 		}
@@ -497,14 +495,9 @@ const mapPropertiesToTickets = async (
 
 	const ticketsWithTicketType = await Promise.all(
 		tickets.map(async (ticket) => {
-			const ticketType = ticketTypes.find(
-				(ticketType) => ticketType.id === ticket.ticketTypeId
-			)
+			const ticketType = ticketTypes.find((ticketType) => ticketType.id === ticket.ticketTypeId)
 			if (!ticketType) {
-				throw new ErrorBuilder(
-					404,
-					i18next.t('error:ticketTypeNotFound')
-				)
+				throw new ErrorBuilder(404, i18next.t('error:ticketTypeNotFound'))
 			}
 
 			// earlier we sorted discount codes by amount in descending order

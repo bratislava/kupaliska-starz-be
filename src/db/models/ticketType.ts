@@ -222,8 +222,7 @@ export default (sequelize: Sequelize) => {
 					// This is not going to be an issue, since the reorder is
 					// not going to happen more than twice each season, if the
 					// problem does happen, we can talk about fixing this.
-					const ticketTypesCount =
-						await TicketTypeModel.count(options)
+					const ticketTypesCount = await TicketTypeModel.count(options)
 
 					// if ticketType.displayOrder === 0, it's displayOrder is
 					// set after every other active ticketType in displayOrder
@@ -245,8 +244,7 @@ export default (sequelize: Sequelize) => {
 
 					await TicketTypeModel.update(
 						{
-							displayOrder:
-								Sequelize.literal('"displayOrder" +1'),
+							displayOrder: Sequelize.literal('"displayOrder" +1'),
 						},
 						{
 							where: {
@@ -260,13 +258,9 @@ export default (sequelize: Sequelize) => {
 					)
 				},
 				beforeUpdate: async (ticketType, options) => {
-					const previousDisplayOrder =
-						ticketType.previous('displayOrder')
+					const previousDisplayOrder = ticketType.previous('displayOrder')
 
-					if (
-						ticketType.displayOrder === 0 ||
-						previousDisplayOrder === ticketType.displayOrder
-					) {
+					if (ticketType.displayOrder === 0 || previousDisplayOrder === ticketType.displayOrder) {
 						ticketType.displayOrder = previousDisplayOrder
 						return
 					}
@@ -279,8 +273,7 @@ export default (sequelize: Sequelize) => {
 					// This is not going to be an issue, since the reorder is
 					// not going to happen more than twice each season, if the
 					// problem does happen, we can talk about fixing this.
-					const ticketTypesCount =
-						await TicketTypeModel.count(options)
+					const ticketTypesCount = await TicketTypeModel.count(options)
 					if (ticketType.displayOrder > ticketTypesCount) {
 						throw new ErrorBuilder(
 							400,
@@ -292,27 +285,22 @@ export default (sequelize: Sequelize) => {
 						)
 					}
 
-					const movingUp =
-						ticketType.displayOrder < previousDisplayOrder
+					const movingUp = ticketType.displayOrder < previousDisplayOrder
 					const direction = movingUp ? '+1' : '-1'
 					const displayOrder = {
 						[Op.and]: [
 							{
-								[movingUp ? Op.gte : Op.lte]:
-									ticketType.displayOrder,
+								[movingUp ? Op.gte : Op.lte]: ticketType.displayOrder,
 							},
 							{
-								[movingUp ? Op.lte : Op.gt]:
-									previousDisplayOrder,
+								[movingUp ? Op.lte : Op.gt]: previousDisplayOrder,
 							},
 						],
 					}
 
 					await TicketTypeModel.update(
 						{
-							displayOrder: Sequelize.literal(
-								`"displayOrder" ${direction}`
-							),
+							displayOrder: Sequelize.literal(`"displayOrder" ${direction}`),
 						},
 						{
 							where: {
@@ -329,8 +317,7 @@ export default (sequelize: Sequelize) => {
 				beforeDestroy: async (ticketType, options) => {
 					await TicketTypeModel.update(
 						{
-							displayOrder:
-								Sequelize.literal('"displayOrder" -1'),
+							displayOrder: Sequelize.literal('"displayOrder" -1'),
 						},
 						{
 							where: {
