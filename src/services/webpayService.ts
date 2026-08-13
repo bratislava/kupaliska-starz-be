@@ -345,20 +345,17 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 		throw new Error(`Unknown status of GP response. ${commonErrorData}`)
 	}
 
+	const parser = new xml2js.Parser()
+	let parsedBody
 	try {
-		const parser = new xml2js.Parser()
-		const parsedBody = await parser.parseStringPromise(data)
+		parsedBody = await parser.parseStringPromise(data)
+	} catch (error) {
+		throw new Error(
+			`Error occurred while parsing XML: ${JSON.stringify(error.message)}, ${commonErrorData}`
+		)
+	}
 
-		if (response.ok) {
-			const parsed = gpWebservicePaymentStatusSchema.safeParse(parsedBody)
-			if (!parsed.success) {
-				throw new Error(
-					`Unknown data shape when parsing GP response using "gpWebservicePaymentStatusSchema": ${parsed.error}`
-				)
-			}
-			return parsed.data
-		}
-
+	if (!response.ok) {
 		// GP returns HTTP 500 for some valid requests — e.g. when the OrderNumber
 		// hasn't been visited at GP site yet from user so GP doesn't know it.
 		// This isn't a real error coming from bad request,
@@ -367,7 +364,7 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 		const parsed = gpWebservicePaymentStatusErrorSchema.safeParse(parsedBody)
 		if (!parsed.success) {
 			throw new Error(
-				`Unknown data shape when parsing GP response using "gpWebservicePaymentStatusErrorSchema": ${parsed.error.issues}`
+				`Unknown data shape when parsing GP response using "gpWebservicePaymentStatusErrorSchema": ${parsed.error.issues} ${commonErrorData}`
 			)
 		}
 		const serviceException =
@@ -376,18 +373,21 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 			][0]
 		const prCode = serviceException['ns3:primaryReturnCode'][0]
 		const processingStrategy = getProcessingStrategy(prCode)
-		if (!processingStrategy.isPrCodeAlerting) {
-			return undefined
+		if (processingStrategy.isPrCodeAlerting) {
+			throw new Error(`GP response error, unhandled PR code: ${prCode}, ${commonErrorData}`)
 		}
-		throw new Error(`GP response error, unhandled PR code: ${prCode}`)
-	} catch (error) {
+		return undefined
+	}
+
+	const parsed = gpWebservicePaymentStatusSchema.safeParse(parsedBody)
+	if (!parsed.success) {
 		throw new Error(
-			`Error occurred while parsing XML and validating: ${JSON.stringify(error.message)} ${commonErrorData}`
+			`Unknown data shape when parsing GP response using "gpWebservicePaymentStatusSchema": ${parsed.error}, ${commonErrorData}`
 		)
 	}
+	return parsed.data
 }
 
-// inspired by https://github.com/bratislava/konto.bratislava.sk/blob/6da01b27184da17dede4146eba6c9142ffd7c96b/nest-tax-backend/src/payment/payment.service.ts#L363
 export const getProcessingStrategy = (prCode: string): GpWebpayProcessingStrategy => {
 	const pr = Number(prCode)
 
