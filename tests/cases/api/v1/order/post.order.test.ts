@@ -27,6 +27,7 @@ import { IAppConfig } from '../../../../../src/types/interfaces'
 import {
 	ticketTypeEntriesId,
 	ticketTypeExpired,
+	ticketTypeNotSelling,
 	ticketTypeSeasonal,
 	ticketTypeSeasonalWithChildren,
 	ticketTypeSeasonNameRequired,
@@ -480,6 +481,29 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 					i18next.t('error:ticket.ticketHasExpired')
 				)
 			})
+
+			it('throws ticketNotSelling for selling ticket type outside of sellFrom to sellTo window', async () => {
+				const { next } = await callWorkflow(
+					{
+						tickets: [
+							{
+								ticketTypeId: ticketTypeNotSelling,
+								age: 30,
+								zip: '81101',
+							},
+						],
+						agreement: true,
+						paymentMethod: ORDER_PAYMENT_METHOD_STATE.CARD,
+					},
+					{ authorization: 'Bearer t' }
+				)
+				expectErrorNext(next, 400)
+				expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
+					i18next.t('error:ticket.ticketNotSelling')
+				)
+			})
+
+			// add test for outside of selling window
 
 			it('throws userNotAllowedTicketType for non-FO account on nameRequired ticket', async () => {
 				const logged = await SwimmingLoggedUser.create({

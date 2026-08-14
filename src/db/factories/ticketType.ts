@@ -16,4 +16,6 @@ export const createTicketType = (ticketTypeId = uuidv4()) => ({
 	validTo: '2025-07-12',
 	hasTicketDuration: false,
 	hasEntranceConstraints: false,
+	sellFrom: '2021-04-12',
+	sellTo: '2025-07-12',
 })

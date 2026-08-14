@@ -19,7 +19,9 @@ export const schema = Joi.object().keys({
 				'vatPercentage',
 				'type',
 				'createdAt',
-				'displayOrder'
+				'displayOrder',
+				'sellFrom',
+				'sellTo'
 			)
 			.empty(['', null])
 			.default('displayOrder'),
@@ -70,6 +72,8 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				'createdAt',
 				'deletedAt',
 				'displayOrder',
+				'sellFrom',
+				'sellTo',
 			],
 			include: { association: 'swimmingPools' },
 			where,

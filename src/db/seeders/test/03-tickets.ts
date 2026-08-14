@@ -50,6 +50,8 @@ export async function up(queryInterface: QueryInterface) {
 					hasTicketDuration: false,
 					hasEntranceConstraints: false,
 					swimmingPools: [createSwimmingPool(), createSwimmingPool(ticketAllowedSwimmingPoolId)],
+					sellFrom: '2021-04-12',
+					sellTo: '2021-07-12',
 				},
 			},
 			{
@@ -82,6 +84,8 @@ export async function up(queryInterface: QueryInterface) {
 					entranceTo: '15:00',
 					entriesNumber: 10,
 					swimmingPools: [createSwimmingPool(), createSwimmingPool(ticket2AllowedSwimmingPoolId)],
+					sellFrom: '2021-04-12',
+					sellTo: '2021-07-12',
 				},
 				entries: [
 					{
@@ -172,6 +176,8 @@ export async function up(queryInterface: QueryInterface) {
 					entranceTo: '15:00',
 					entriesNumber: 5,
 					swimmingPools: [createSwimmingPool(), createSwimmingPool(ticketTypeIdEntries)],
+					sellFrom: '2021-04-12',
+					sellTo: '2021-07-12',
 				},
 			},
 		],

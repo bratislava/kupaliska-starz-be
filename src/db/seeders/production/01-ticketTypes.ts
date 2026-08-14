@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from 'uuid'
 export async function up(queryInterface: QueryInterface) {
 	const validFrom = '2021-06-05'
 	const validTo = '2021-09-30'
+	const sellFrom = '2021-05-12'
+	const sellTo = '2021-11-12'
 	return queryInterface.bulkInsert('ticketTypes', [
 		{
 			id: uuidv4(),
@@ -29,6 +31,8 @@ export async function up(queryInterface: QueryInterface) {
 			validTo: validTo,
 			hasTicketDuration: false,
 			hasEntranceConstraints: false,
+			sellFrom,
+			sellTo,
 		},
 		{
 			id: uuidv4(),
@@ -45,6 +49,8 @@ export async function up(queryInterface: QueryInterface) {
 			validTo: validTo,
 			hasTicketDuration: false,
 			hasEntranceConstraints: false,
+			sellFrom,
+			sellTo,
 		},
 		{
 			id: uuidv4(),
@@ -62,6 +68,8 @@ export async function up(queryInterface: QueryInterface) {
 			validTo: validTo,
 			hasTicketDuration: false,
 			hasEntranceConstraints: false,
+			sellFrom,
+			sellTo,
 		},
 		{
 			id: uuidv4(),
@@ -81,6 +89,8 @@ export async function up(queryInterface: QueryInterface) {
 			entranceTo: '23:59',
 			validFrom: validFrom,
 			validTo: validTo,
+			sellFrom,
+			sellTo,
 		},
 	])
 }

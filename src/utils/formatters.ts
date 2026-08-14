@@ -145,6 +145,8 @@ export const formatTicketType = (ticketType: TicketTypeModel) => {
 			: undefined,
 		createdAt: ticketType.createdAt,
 		deletedAt: ticketType.deletedAt,
+		sellFrom: ticketType.sellFrom,
+		sellTo: ticketType.sellTo,
 	}
 }
 

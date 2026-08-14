@@ -105,6 +105,8 @@ export const ticketTypeAddSchema = {
 	// TicketType model hooks will automatically set it after every other active ticketType
 	// which is bit counterintuitive, that's why we have min requirement set to 1
 	displayOrder: Joi.number().integer().min(1).default(0),
+	sellFrom: Joi.date().required(),
+	sellTo: Joi.date().min(Joi.ref('sellFrom')).required(),
 }
 
 export const schema = Joi.object().keys({

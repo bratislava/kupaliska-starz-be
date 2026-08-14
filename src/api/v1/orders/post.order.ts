@@ -415,6 +415,14 @@ const basicChecks = async (
 			i18next.t('error:ticket.ticketHasExpired'),
 			'ticketHasExpired'
 		)
+		const now = new Date()
+		const sellFrom = new Date(ticketType.sellFrom)
+		// sellTo is inclusive of its whole day.
+		const sellTo = new Date(ticketType.sellTo)
+		sellTo.setHours(24, 0, 0, 0)
+		if (now < sellFrom || now >= sellTo) {
+			throw new ErrorBuilder(400, i18next.t('error:ticket.ticketNotSelling'))
+		}
 	}
 
 	if (ticketsWithTicketType.some(({ ticketType }) => ticketType.nameRequired && !userLogged)) {

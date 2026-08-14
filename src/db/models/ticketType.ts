@@ -34,6 +34,8 @@ export class TicketTypeModel extends DatabaseModel {
 	hasTicketDuration: boolean
 	ticketDuration: string
 	displayOrder: number
+	sellFrom: Date
+	sellTo: Date
 	// entrances ticket
 	entriesNumber: number
 	// meta
@@ -194,6 +196,14 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.DATE,
 				allowNull: false,
 				defaultValue: literal('NOW()'),
+			},
+			sellFrom: {
+				type: DataTypes.DATEONLY,
+				allowNull: false,
+			},
+			sellTo: {
+				type: DataTypes.DATEONLY,
+				allowNull: false,
 			},
 		},
 		{
