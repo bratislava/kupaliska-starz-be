@@ -26,7 +26,7 @@ interface GetTicket {
 	vatPercentage: number
 	ticketColor: TicketColors | null
 	age: null | number
-	validTo: Date | null
+	validTo: string | null
 }
 
 interface TicketColors {
