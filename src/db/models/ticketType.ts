@@ -53,6 +53,15 @@ export class TicketTypeModel extends DatabaseModel {
 		validTo.setHours(24, 0, 0, 0)
 		return validTo.getTime() - now.getTime()
 	}
+	isBetweenDateOfSale() {
+		const now = new Date()
+		const validFrom = new Date(this.sellFrom)
+		validFrom.setHours(0, 0, 0, 0)
+		const validTo = new Date(this.sellTo)
+		validTo.setHours(24, 0, 0, 0)
+
+		return now >= validFrom && now <= validTo
+	}
 }
 
 export default (sequelize: Sequelize) => {
@@ -132,6 +141,7 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.BOOLEAN,
 				allowNull: true,
 			},
+			// TODO this returns string not js Date, check how sellFrom and sellTo is implemented
 			validFrom: {
 				type: DataTypes.DATEONLY,
 				allowNull: false,
@@ -200,10 +210,18 @@ export default (sequelize: Sequelize) => {
 			sellFrom: {
 				type: DataTypes.DATEONLY,
 				allowNull: false,
+				get() {
+					const rawValue = this.getDataValue('sellFrom')
+					return rawValue ? new Date(rawValue) : null
+				},
 			},
 			sellTo: {
 				type: DataTypes.DATEONLY,
 				allowNull: false,
+				get() {
+					const rawValue = this.getDataValue('sellTo')
+					return rawValue ? new Date(rawValue) : null
+				},
 			},
 		},
 		{
