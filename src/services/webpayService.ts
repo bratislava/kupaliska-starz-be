@@ -1,6 +1,8 @@
 import formurlencoded from 'form-urlencoded'
 import fs from 'fs'
 import config from 'config'
+import { z } from 'zod'
+import xml2js from 'xml2js'
 import { models } from '../db/models'
 import { PaymentResponseModel } from '../db/models/paymentResponse'
 import { createSignature, verifySignature } from '../utils/webpay'
@@ -13,8 +15,92 @@ import {
 import { OrderModel } from '../db/models/order'
 import { PAYMENT_OPERATION, ORDER_PAYMENT_METHOD_STATE } from '../utils/enums'
 import { logger } from '../utils/logger'
-import ErrorBuilder from '../utils/ErrorBuilder'
 import { httpErrorStatusString } from '../utils/helpers'
+
+interface GpWebpayProcessingStrategy {
+	isPrCodeAlerting: boolean
+}
+
+const gpStringArray = z.array(z.string())
+
+const gpWebservicePaymentStatusResponseSchema = z.object({
+	'ns3:messageId': gpStringArray,
+	'ns3:state': gpStringArray,
+	'ns3:status': z.array(z.string()).min(1),
+	'ns3:subStatus': gpStringArray,
+	'ns3:signature': gpStringArray,
+})
+
+const gpGetPaymentStatusResponseSchema = z.object({
+	$: z.looseObject({
+		'xmlns:ns4': z.string(),
+		xmlns: z.string(),
+		'xmlns:ns5': z.string(),
+		'xmlns:ns3': z.string(),
+		'xmlns:ns2': z.string(),
+	}),
+	'ns4:paymentStatusResponse': z.array(gpWebservicePaymentStatusResponseSchema).min(1),
+})
+
+const gpWebservicePaymentStatusSchema = z.object({
+	'soapenv:Envelope': z.object({
+		$: z
+			.looseObject({
+				'xmlns:soapenv': z.string(),
+			})
+			.optional(),
+		'soapenv:Body': z
+			.array(
+				z.object({
+					'ns4:getPaymentStatusResponse': z.array(gpGetPaymentStatusResponseSchema).min(1),
+				})
+			)
+			.min(1),
+	}),
+})
+
+const gpServiceExceptionSchema = z.object({
+	$: z.looseObject({
+		'xmlns:ns4': z.string(),
+		'xmlns:ns5': z.string(),
+		'xmlns:ns2': z.string(),
+		'xmlns:ns3': z.string(),
+	}),
+	'ns3:messageId': gpStringArray,
+	'ns3:primaryReturnCode': gpStringArray,
+	'ns3:secondaryReturnCode': gpStringArray,
+	'ns3:signature': gpStringArray,
+})
+
+const gpFaultSchema = z.object({
+	faultcode: gpStringArray,
+	faultstring: gpStringArray,
+	detail: z
+		.array(
+			z.object({
+				'ns4:serviceException': z.array(gpServiceExceptionSchema).min(1),
+			})
+		)
+		.min(1),
+})
+
+// xml2js wraps every element in an array and puts XML attributes under `$`.
+export const gpWebservicePaymentStatusErrorSchema = z.object({
+	'soapenv:Envelope': z.object({
+		$: z
+			.looseObject({
+				'xmlns:soapenv': z.string(),
+			})
+			.optional(),
+		'soapenv:Body': z
+			.array(
+				z.object({
+					'soapenv:Fault': z.array(gpFaultSchema).min(1),
+				})
+			)
+			.min(1),
+	}),
+})
 
 const appConfig: IAppConfig = config.get('app')
 const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
@@ -205,7 +291,7 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 
 	const now = new Date()
 
-	const messageId = `${now.getTime()}${provider}${merchantNumber}getPaymentStatus`
+	const messageId = `${orderNumber}${now.getTime()}${provider}${merchantNumber}getPaymentStatus`
 
 	const requestObject = {
 		messageId,
@@ -227,24 +313,94 @@ export const getPaymentStatusWebServiceRequest = async (orderNumber: number) => 
 		paymentNumber: orderNumber,
 		signature,
 	}
-
-	const requestBody = `<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:v1='http://gpe.cz/pay/pay-ws/proc/v1' xmlns:type='http://gpe.cz/pay/pay-ws/proc/v1/type'><soapenv:Header/><soapenv:Body><v1:getPaymentStatus><v1:paymentStatusRequest><type:messageId>${paymentStatusRequestObject.messageId}</type:messageId><type:provider>${paymentStatusRequestObject.provider}</type:provider><type:merchantNumber>${paymentStatusRequestObject.merchantNumber}</type:merchantNumber><type:paymentNumber>${paymentStatusRequestObject.paymentNumber}</type:paymentNumber><type:signature>${paymentStatusRequestObject.signature}</type:signature></v1:paymentStatusRequest></v1:getPaymentStatus></soapenv:Body></soapenv:Envelope>`
+	const requestBody = `
+		<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:v1='http://gpe.cz/pay/pay-ws/proc/v1' xmlns:type='http://gpe.cz/pay/pay-ws/proc/v1/type'>
+			<soapenv:Header/>
+			<soapenv:Body>
+				<v1:getPaymentStatus>
+					<v1:paymentStatusRequest>
+						<type:messageId>${paymentStatusRequestObject.messageId}</type:messageId>
+						<type:provider>${paymentStatusRequestObject.provider}</type:provider>
+						<type:merchantNumber>${paymentStatusRequestObject.merchantNumber}</type:merchantNumber>
+						<type:paymentNumber>${paymentStatusRequestObject.paymentNumber}</type:paymentNumber>
+						<type:signature>${paymentStatusRequestObject.signature}</type:signature>
+					</v1:paymentStatusRequest>
+				</v1:getPaymentStatus>
+			</soapenv:Body>
+		</soapenv:Envelope>
+	`
+		// string adjustment to keep formatting in code but send it as one line
+		.replace(/>\s+</g, '><')
+		.trim()
 	const response = await fetch(gpPaymentServiceURL, {
 		method: 'post',
 		body: requestBody,
 		headers: { 'Content-Type': 'text/xml' },
 	})
+	const data = await response.text()
 
-	if (!response.ok) {
-		logger.error(httpErrorStatusString(response))
+	const commonErrorData = `Error occurred while fetching paymentService from "${gpPaymentServiceURL}" Error body: ${data} - response is: ${httpErrorStatusString(response)}`
 
-		logger.error(`Error body: ${await response.text()}`)
+	if (!response.ok && response.status !== 500) {
+		throw new Error(`Unknown status of GP response. ${commonErrorData}`)
+	}
 
-		throw new ErrorBuilder(
-			500,
-			`Error occurred while fetching paymentService from "${gpPaymentServiceURL}"`
+	const parser = new xml2js.Parser()
+	let parsedBody
+	try {
+		parsedBody = await parser.parseStringPromise(data)
+	} catch (error) {
+		throw new Error(
+			`Error occurred while parsing XML: ${JSON.stringify(error.message)}, ${commonErrorData}`
 		)
 	}
 
-	return response
+	if (!response.ok) {
+		// GP returns HTTP 500 for some valid requests — e.g. when the OrderNumber
+		// hasn't been visited at GP site yet from user so GP doesn't know it.
+		// This isn't a real error coming from bad request,
+		// so we treat it as known response and in this case return undefined.
+
+		const parsed = gpWebservicePaymentStatusErrorSchema.safeParse(parsedBody)
+		if (!parsed.success) {
+			throw new Error(
+				`Unknown data shape when parsing GP response using "gpWebservicePaymentStatusErrorSchema": ${parsed.error.issues} ${commonErrorData}`
+			)
+		}
+		const serviceException =
+			parsed.data['soapenv:Envelope']['soapenv:Body'][0]['soapenv:Fault'][0]['detail'][0][
+				'ns4:serviceException'
+			][0]
+		const prCode = serviceException['ns3:primaryReturnCode'][0]
+		const processingStrategy = getProcessingStrategy(prCode)
+		if (processingStrategy.isPrCodeAlerting) {
+			throw new Error(`GP response error, unhandled PR code: ${prCode}, ${commonErrorData}`)
+		}
+		return undefined
+	}
+
+	const parsed = gpWebservicePaymentStatusSchema.safeParse(parsedBody)
+	if (!parsed.success) {
+		throw new Error(
+			`Unknown data shape when parsing GP response using "gpWebservicePaymentStatusSchema": ${parsed.error}, ${commonErrorData}`
+		)
+	}
+	return parsed.data
+}
+
+export const getProcessingStrategy = (prCode: string): GpWebpayProcessingStrategy => {
+	const pr = Number(prCode)
+
+	// TODO handle other cases
+	// https://www.gpwebpay.cz/downloads/GP_webpay_HTTP_EN.pdf
+
+	// PR 15: Object not found
+	if (pr === 15) {
+		return {
+			isPrCodeAlerting: false,
+		}
+	}
+	return {
+		isPrCodeAlerting: true,
+	}
 }
