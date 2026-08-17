@@ -421,7 +421,7 @@ const basicChecks = async (
 		const sellTo = new Date(ticketType.sellTo)
 		sellTo.setHours(24, 0, 0, 0)
 		if (now < sellFrom || now >= sellTo) {
-			throw new ErrorBuilder(400, i18next.t('error:ticket.ticketNotSelling'))
+			throw new ErrorBuilder(400, i18next.t('error:ticket.ticketNotForSale'))
 		}
 	}
 

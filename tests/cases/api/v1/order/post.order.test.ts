@@ -482,7 +482,7 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				)
 			})
 
-			it('throws ticketNotSelling for selling ticket type outside of sellFrom to sellTo window', async () => {
+			it('throws ticketNotForSale for selling ticket type outside of sellFrom to sellTo window', async () => {
 				const { next } = await callWorkflow(
 					{
 						tickets: [
@@ -499,7 +499,7 @@ describe('POST /api/v1/orders and POST /api/v1/orders/getPrice', () => {
 				)
 				expectErrorNext(next, 400)
 				expect((next.mock.calls[0][0] as ErrorBuilder).items[0].message).toBe(
-					i18next.t('error:ticket.ticketNotSelling')
+					i18next.t('error:ticket.ticketNotForSale')
 				)
 			})
 

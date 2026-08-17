@@ -45,7 +45,7 @@
 		"seasonTicketMustHaveOneQuantity": "Pre zvolený typ lístka nie je možné kúpiť viac kusov",
 		"ticketDurationExpired": "Vyčerpaný čas pobytu na dnešný deň",
 		"ticketHasExpired": "Lístok nie je možné kúpiť po jeho expirácii",
-		"ticketNotSelling": "Predaj zvoleného typu lístka je ukončený",
+		"ticketNotForSale": "Predaj zvoleného typu lístka je ukončený",
 		"maxtTicketsPerOrder": "Maximálny počet lístkov na objednávke je {{maxTicketsPerOrder}}",
 		"notLoggedUserForTicket": "Pre kúpu tohoto lístku musíte byť prihlásený",
 		"minimumIsOneAdult": "Súčasťou lístka musí byť aspoň 1 dospelý",
