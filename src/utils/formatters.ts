@@ -147,6 +147,7 @@ export const formatTicketType = (ticketType: TicketTypeModel) => {
 		deletedAt: ticketType.deletedAt,
 		sellFrom: ticketType.sellFrom,
 		sellTo: ticketType.sellTo,
+		sellingAllowed: ticketType.isBetweenDateOfSale(),
 	}
 }
 
