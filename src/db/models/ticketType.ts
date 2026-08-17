@@ -34,6 +34,8 @@ export class TicketTypeModel extends DatabaseModel {
 	hasTicketDuration: boolean
 	ticketDuration: string
 	displayOrder: number
+	sellFrom: Date
+	sellTo: Date
 	// entrances ticket
 	entriesNumber: number
 	// meta
@@ -50,6 +52,15 @@ export class TicketTypeModel extends DatabaseModel {
 		const validTo = new Date(this.validTo)
 		validTo.setHours(24, 0, 0, 0)
 		return validTo.getTime() - now.getTime()
+	}
+	isBetweenDateOfSale() {
+		const now = new Date()
+		const validFrom = new Date(this.sellFrom)
+		validFrom.setHours(0, 0, 0, 0)
+		const validTo = new Date(this.sellTo)
+		validTo.setHours(24, 0, 0, 0)
+
+		return now >= validFrom && now <= validTo
 	}
 }
 
@@ -130,6 +141,7 @@ export default (sequelize: Sequelize) => {
 				type: DataTypes.BOOLEAN,
 				allowNull: true,
 			},
+			// TODO this returns string not js Date, check how sellFrom and sellTo is implemented
 			validFrom: {
 				type: DataTypes.DATEONLY,
 				allowNull: false,
@@ -195,6 +207,22 @@ export default (sequelize: Sequelize) => {
 				allowNull: false,
 				defaultValue: literal('NOW()'),
 			},
+			sellFrom: {
+				type: DataTypes.DATEONLY,
+				allowNull: false,
+				get() {
+					const rawValue = this.getDataValue('sellFrom')
+					return rawValue ? new Date(rawValue) : null
+				},
+			},
+			sellTo: {
+				type: DataTypes.DATEONLY,
+				allowNull: false,
+				get() {
+					const rawValue = this.getDataValue('sellTo')
+					return rawValue ? new Date(rawValue) : null
+				},
+			},
 		},
 		{
 			paranoid: true,
@@ -222,8 +250,7 @@ export default (sequelize: Sequelize) => {
 					// This is not going to be an issue, since the reorder is
 					// not going to happen more than twice each season, if the
 					// problem does happen, we can talk about fixing this.
-					const ticketTypesCount =
-						await TicketTypeModel.count(options)
+					const ticketTypesCount = await TicketTypeModel.count(options)
 
 					// if ticketType.displayOrder === 0, it's displayOrder is
 					// set after every other active ticketType in displayOrder
@@ -245,8 +272,7 @@ export default (sequelize: Sequelize) => {
 
 					await TicketTypeModel.update(
 						{
-							displayOrder:
-								Sequelize.literal('"displayOrder" +1'),
+							displayOrder: Sequelize.literal('"displayOrder" +1'),
 						},
 						{
 							where: {
@@ -260,13 +286,9 @@ export default (sequelize: Sequelize) => {
 					)
 				},
 				beforeUpdate: async (ticketType, options) => {
-					const previousDisplayOrder =
-						ticketType.previous('displayOrder')
+					const previousDisplayOrder = ticketType.previous('displayOrder')
 
-					if (
-						ticketType.displayOrder === 0 ||
-						previousDisplayOrder === ticketType.displayOrder
-					) {
+					if (ticketType.displayOrder === 0 || previousDisplayOrder === ticketType.displayOrder) {
 						ticketType.displayOrder = previousDisplayOrder
 						return
 					}
@@ -279,8 +301,7 @@ export default (sequelize: Sequelize) => {
 					// This is not going to be an issue, since the reorder is
 					// not going to happen more than twice each season, if the
 					// problem does happen, we can talk about fixing this.
-					const ticketTypesCount =
-						await TicketTypeModel.count(options)
+					const ticketTypesCount = await TicketTypeModel.count(options)
 					if (ticketType.displayOrder > ticketTypesCount) {
 						throw new ErrorBuilder(
 							400,
@@ -292,27 +313,22 @@ export default (sequelize: Sequelize) => {
 						)
 					}
 
-					const movingUp =
-						ticketType.displayOrder < previousDisplayOrder
+					const movingUp = ticketType.displayOrder < previousDisplayOrder
 					const direction = movingUp ? '+1' : '-1'
 					const displayOrder = {
 						[Op.and]: [
 							{
-								[movingUp ? Op.gte : Op.lte]:
-									ticketType.displayOrder,
+								[movingUp ? Op.gte : Op.lte]: ticketType.displayOrder,
 							},
 							{
-								[movingUp ? Op.lte : Op.gt]:
-									previousDisplayOrder,
+								[movingUp ? Op.lte : Op.gt]: previousDisplayOrder,
 							},
 						],
 					}
 
 					await TicketTypeModel.update(
 						{
-							displayOrder: Sequelize.literal(
-								`"displayOrder" ${direction}`
-							),
+							displayOrder: Sequelize.literal(`"displayOrder" ${direction}`),
 						},
 						{
 							where: {
@@ -329,8 +345,7 @@ export default (sequelize: Sequelize) => {
 				beforeDestroy: async (ticketType, options) => {
 					await TicketTypeModel.update(
 						{
-							displayOrder:
-								Sequelize.literal('"displayOrder" -1'),
+							displayOrder: Sequelize.literal('"displayOrder" -1'),
 						},
 						{
 							where: {

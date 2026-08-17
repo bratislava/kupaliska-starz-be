@@ -5,6 +5,7 @@ export const ticketId = 'c70954c7-970d-4f1a-acf4-12b91acabe01'
 export const ticketTypeSeasonalWithChildren = 'c70954c7-970d-4f1a-acf4-12b91acabe04'
 export const ticketTypeSeasonalWithChildren2 = 'c70954c7-970d-4f1a-acf4-12b91acabe08'
 export const ticketTypeExpired = 'c70954c7-970d-4f1a-acf4-12b91acabe05'
+export const ticketTypeNotSelling = 'c70954c7-970d-4f1a-acf4-12b91acabe09'
 export const ticketTypeSeasonNameRequired = 'c70954c7-970d-4f1a-acf4-12b91acabe02'
 export const ticketTypePhotoRequiredId = 'c70954c7-970d-4f1a-acf4-12b91acabe07'
 export const ticketTypeSeasonal = 'c70954c7-970d-4f1a-acf4-12b91acabe03'
@@ -27,6 +28,8 @@ export async function up(queryInterface: QueryInterface) {
 			validTo: '2025-07-12',
 			hasTicketDuration: false,
 			hasEntranceConstraints: false,
+			sellFrom: '2021-04-12',
+			sellTo: '2025-07-12',
 		},
 		// SEASONAL, DONT REQUIRE NAME, CHILDREN ARE FORBIDDEN
 		{
@@ -43,6 +46,8 @@ export async function up(queryInterface: QueryInterface) {
 			validTo: '2025-07-12',
 			hasTicketDuration: false,
 			hasEntranceConstraints: false,
+			sellFrom: '2021-04-12',
+			sellTo: '2025-07-12',
 		},
 		// SEASONAL WITH CHILDREN
 		{
@@ -66,6 +71,8 @@ export async function up(queryInterface: QueryInterface) {
 			validTo: '2025-07-12',
 			hasTicketDuration: false,
 			hasEntranceConstraints: false,
+			sellFrom: '2021-04-12',
+			sellTo: '2025-07-12',
 		},
 		// SEASONAL WITH CHILDREN
 		{
@@ -89,6 +96,8 @@ export async function up(queryInterface: QueryInterface) {
 			validTo: '2025-07-12',
 			hasTicketDuration: false,
 			hasEntranceConstraints: false,
+			sellFrom: '2021-04-12',
+			sellTo: '2025-07-12',
 		},
 		// EXPIRED TICKET
 		{
@@ -105,6 +114,26 @@ export async function up(queryInterface: QueryInterface) {
 			validTo: '2021-03-03',
 			hasTicketDuration: false,
 			hasEntranceConstraints: false,
+			sellFrom: '2021-04-12',
+			sellTo: '2025-07-12',
+		},
+		// NOT SELLING TICKET
+		{
+			id: ticketTypeNotSelling,
+			name: 'Sezónny tiket',
+			description: faker.lorem.paragraph(15),
+			priceWithVat: 20,
+			vatPercentage: 23,
+			type: 'SEASONAL',
+			nameRequired: false,
+			photoRequired: false,
+			childrenAllowed: false,
+			validFrom: '2021-05-12',
+			validTo: '2021-11-12',
+			hasTicketDuration: false,
+			hasEntranceConstraints: false,
+			sellFrom: '2021-02-02',
+			sellTo: '2021-03-03',
 		},
 		// ENTRIES TICKET
 		{
@@ -122,6 +151,8 @@ export async function up(queryInterface: QueryInterface) {
 			validTo: '2021-11-12',
 			hasTicketDuration: false,
 			hasEntranceConstraints: false,
+			sellFrom: '2021-04-12',
+			sellTo: '2025-07-12',
 		},
 		// PHOTO TESTS
 		{
@@ -146,6 +177,8 @@ export async function up(queryInterface: QueryInterface) {
 			validTo: '2021-11-12',
 			hasTicketDuration: false,
 			hasEntranceConstraints: false,
+			sellFrom: '2021-04-12',
+			sellTo: '2025-07-12',
 		},
 	])
 }

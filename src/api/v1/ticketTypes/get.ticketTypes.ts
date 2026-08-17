@@ -19,7 +19,10 @@ export const schema = Joi.object().keys({
 				'vatPercentage',
 				'type',
 				'createdAt',
-				'displayOrder'
+				'displayOrder',
+				'sellFrom',
+				'sellTo'
+				// add sell from - sell to
 			)
 			.empty(['', null])
 			.default('displayOrder'),
@@ -71,6 +74,8 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				'validTo',
 				'isSeniorIsDisabled',
 				'displayOrder',
+				'sellFrom',
+				'sellTo',
 			],
 			where,
 			limit,
