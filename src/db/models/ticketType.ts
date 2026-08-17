@@ -25,8 +25,10 @@ export class TicketTypeModel extends DatabaseModel {
 	childrenAgeTo: number
 	childrenAgeToWithAdult: number
 	childrenPhotoRequired: boolean
-	validFrom: Date
-	validTo: Date
+	// format YYYY-MM-DD
+	validFrom: string
+	// format YYYY-MM-DD
+	validTo: string
 	isSeniorIsDisabled: boolean
 	hasEntranceConstraints: boolean
 	entranceFrom: string
@@ -34,8 +36,10 @@ export class TicketTypeModel extends DatabaseModel {
 	hasTicketDuration: boolean
 	ticketDuration: string
 	displayOrder: number
-	sellFrom: Date
-	sellTo: Date
+	// format YYYY-MM-DD
+	sellFrom: string
+	// format YYYY-MM-DD
+	sellTo: string
 	// entrances ticket
 	entriesNumber: number
 	// meta
