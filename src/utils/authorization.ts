@@ -19,7 +19,7 @@ export const hashPassword = (password: string, factor?: number) => {
 		)
 		const BCRYPT_WORK_FACTOR = Math.min(19, BCRYPT_WORK_FACTOR_BASE + BCRYPT_WORK_INCREASE)
 
-		const salt = bcrypt.genSaltSync(factor ? factor : BCRYPT_WORK_FACTOR)
+		const salt = bcrypt.genSaltSync(12)
 		return bcrypt.hashSync(password, salt)
 	} catch (e) {
 		return e
