@@ -12,7 +12,7 @@ const passwordConfig: IPassportConfig = config.get('passport')
 
 describe('Authorization utils', () => {
 	it('Should hash and compare password', async () => {
-		const hash = hashPassword('secretPassword', 10)
+		const hash = hashPassword('secretPassword')
 		expect(await comparePassword('secretPassword', hash)).toBe(true)
 	})
 
