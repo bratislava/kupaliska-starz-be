@@ -5,7 +5,6 @@ import supertest from 'supertest'
 import app from '../../../../../src/app'
 import { OrderModel } from '../../../../../src/db/models/order'
 import { Op } from 'sequelize'
-import url from 'url'
 import queryString from 'query-string'
 import { FE_ROUTES } from '../../../../../src/utils/constants'
 
@@ -126,6 +125,7 @@ describe(`[GET] ${endpoint})`, () => {
 		verifySignatureMock.mockRestore()
 	})
 
+	// TODO this test doesn't pass fix it in other PR
 	it('Is not successful', async () => {
 		const verifySignatureMock = jest.spyOn(webpay, 'verifySignature')
 		verifySignatureMock.mockImplementation(() => true)
@@ -194,10 +194,10 @@ describe(`[GET] ${endpoint})`, () => {
 			},
 		})) as OrderModel
 
-		let parsedUrl = url.parse(response.headers.location)
-		expect(parsedUrl.query).not.toBe(null)
-		if (parsedUrl.query !== null) {
-			let parsedQs = queryString.parse(parsedUrl.query)
+		let parsedUrl = new URL(response.headers.location)
+		expect(parsedUrl.search).not.toBe('')
+		if (parsedUrl.search !== '') {
+			let parsedQs = queryString.parse(parsedUrl.search)
 
 			expect(parsedUrl.pathname).toBe(FE_ROUTES.ORDER_SUCCESSFUL)
 			expect(parsedQs.orderId).toBe(order.id)
