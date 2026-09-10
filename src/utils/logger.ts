@@ -20,7 +20,12 @@ export const httpLogger = pino({
 			return req
 		},
 	},
-	redact: ['req.headers.authorization'],
+	redact: [
+		'req.headers.authorization',
+		'req.body.password',
+		'req.body.passwordConfirmation',
+		'req.body.oldPassword',
+	],
 })
 
 export const logger = httpLogger.logger
