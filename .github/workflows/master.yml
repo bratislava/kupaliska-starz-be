@@ -1,0 +1,30 @@
+name: Build and deploy staging from master
+
+# Every merge to master goes to staging. Tag-driven deploys live in deploy.yml.
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  # _build reuses an existing commit image (re-tagging it for the cluster) or
+  # builds and pushes when it is missing.
+  build:
+    name: Build
+    uses: ./.github/workflows/_build.yml
+    secrets: inherit
+    with:
+      push: true
+      cluster: staging
+
+  deploy-staging:
+    name: Deploy to staging
+    needs: build
+    uses: bratislava/github-actions/.github/workflows/trigger-infra-deploy.yml@v3.0.0
+    secrets: inherit
+    with:
+      cluster: staging
+      app: kupaliska_starz/backend
+      dispatch_ref: mpinter/kupaliska-starz-apps

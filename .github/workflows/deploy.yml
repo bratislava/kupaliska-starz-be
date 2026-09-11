@@ -1,59 +1,44 @@
-name: Strapi/Next deploy pipeline
+name: Deploy
+
+# Tags only. The master -> staging path lives in master.yml.
 on:
   push:
     tags:
-      - 'dev**'
-      - 'staging**'
-      - 'prod**'
-    branches:
-      - master
+      - "dev**"
+      - "staging**"
+      - "prod**"
+
+permissions:
+  contents: read
 
 jobs:
-  conditions:
-    name: Check for cluster conditions
-    uses: bratislava/github-actions/.github/workflows/cluster-deploy-conditions-inhouse.yml@stable
+  resolve-environment:
+    name: Resolve Environment
+    runs-on: bratislava
+    outputs:
+      environment: ${{ steps.resolve.outputs.environment }}
+    steps:
+      - name: Map tag to environment
+        id: resolve
+        uses: bratislava/github-actions/.github/actions/resolve-environment@v3.0.0
 
-  deploy-dev:
-    name: Deploy 'kupaliska' to DEV
-    if: needs.conditions.outputs.dev == 'true'
-    needs: [conditions]
-    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli-inhouse.yml@stable
+  # _build reuses an existing commit image (re-tagging it for the cluster) or
+  # builds and pushes when it is missing.
+  build:
+    name: Build
+    needs: resolve-environment
+    uses: ./.github/workflows/_build.yml
+    secrets: inherit
     with:
-      directory: '.'
-      cluster: development
-      url: https://dev.tkgis.bratislava.sk:6443
-      debug: --debug
-      version: beta
-    secrets:
-      service-account: ${{ secrets.DEV_STANDALONE_TOKEN }}
-      registry-pass: ${{ secrets.HARBOR_REGISTRY_PASSWORD }}
+      push: true
+      cluster: ${{ needs.resolve-environment.outputs.environment }}
 
-  deploy-staging:
-    name: Deploy 'kupaliska' to STAGING
-    if: needs.conditions.outputs.staging == 'true'
-    needs: [conditions]
-    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli-inhouse.yml@stable
+  trigger-deploy:
+    name: Trigger Infrastructure Deploy (${{ needs.resolve-environment.outputs.environment }})
+    needs: [resolve-environment, build]
+    uses: bratislava/github-actions/.github/workflows/trigger-infra-deploy.yml@v3.0.0
+    secrets: inherit
     with:
-      directory: '.'
-      cluster: staging
-      url: https://stage.tkgis.bratislava.sk:6443
-      debug: --debug
-      flag: --staging
-    secrets:
-      service-account: ${{ secrets.STAGING_STANDALONE_TOKEN }}
-      registry-pass: ${{ secrets.HARBOR_REGISTRY_PASSWORD }}
-
-  deploy-prod:
-    name: Deploy 'kupaliska' to PROD
-    if: needs.conditions.outputs.prod == 'true'
-    needs: [conditions]
-    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli-inhouse.yml@stable
-    with:
-      directory: '.'
-      cluster: production
-      url: https://prod.tkgis.bratislava.sk:6443
-      flag: --production
-      debug: --debug
-    secrets:
-      service-account: ${{ secrets.PROD_STANDALONE_TOKEN }}
-      registry-pass: ${{ secrets.HARBOR_REGISTRY_PASSWORD }}
+      cluster: ${{ needs.resolve-environment.outputs.environment }}
+      app: kupaliska_starz/backend
+      dispatch_ref: mpinter/kupaliska-starz-apps
