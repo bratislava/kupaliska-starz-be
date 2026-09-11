@@ -39,7 +39,7 @@ npm install
 
 #### Environment
 
-Copy the `.env.example` file as `.env`.
+Copy the `.env.development` file as `.env`.
 
 Then fill these variables:
 
@@ -108,7 +108,31 @@ npm run debug
 
 ## Deployment
 
-The app can be deployed by standard means through [bratiska-cli](https://github.com/bratislava/bratiska-cli).
+The app runs on three clusters - `development`, `staging` and `production` - and is deployed by GitHub pipelines. The overall pipeline and release rules are described in [Deployment & releases](https://magistratba.sharepoint.com/:fl:/r/contentstorage/CSP_e7fd7f53-9abe-456a-b0e1-7cc0c63e3f1a/Document%20Library/LoopAppData/Deployment%20%26%20releases.loop?d=we29942dcbfe34648a857e7d3bfb196cf&csf=1&web=1&e=MLf6C9&nav=cz0lMkZjb250ZW50c3RvcmFnZSUyRkNTUF9lN2ZkN2Y1My05YWJlLTQ1NmEtYjBlMS03Y2MwYzYzZTNmMWEmZD1iJTIxVTNfOTU3NmFha1d3NFh6QXhqNF9Hc3RnWmNMRlhXQkR2Z2F4bHUxdEdsNGZsSnk2d2ZCeFRvWi00aXZqZ0o4ayZmPTAxWVJNMktXRzRJS002Rlk1N0pCREtRVjdIMk83M0RGV1AmYz0lMkYmYT1Mb29wQXBwJnA9JTQwZmx1aWR4JTJGbG9vcC1wYWdlLWNvbnRhaW5lciZ4PSU3QiUyMnclMjIlM0ElMjJUMFJUVUh4dFlXZHBjM1J5WVhSaVlTNXphR0Z5WlhCdmFXNTBMbU52Ylh4aUlWVXpYemsxTnpaaFlXdFhkelJZZWtGNGFqUmZSM04wWjFwalRFWllWMEpFZG1kaGVHeDFNWFJIYkRSbWJFcDVObmRtUW5oVWIxb3ROR2wyYW1kS09HdDhNREZaVWsweVMxZERRMUUyTTB4Qk5VODBOMFpHVEVVMFIwNVFTbGRLUlVoYVVRJTNEJTNEJTIyJTJDJTIyaSUyMiUzQSUyMjU1NzQyNmM4LTBmYjMtNDVhYi1iYTg1LWQ0MzZkYzMyODU1MCUyMiU3RA%3D%3D); the `.env.deploy.*` format, Passbolt naming and secret sync are described in [Environment variables & Secrets](https://magistratba.sharepoint.com/:fl:/r/contentstorage/CSP_e7fd7f53-9abe-456a-b0e1-7cc0c63e3f1a/Document%20Library/LoopAppData/Environment%20variables%20%26%20Secrets.loop?d=w77387c85f8b94b50a848ccc19d3c0972&csf=1&web=1&e=C9nE81&nav=cz0lMkZjb250ZW50c3RvcmFnZSUyRkNTUF9lN2ZkN2Y1My05YWJlLTQ1NmEtYjBlMS03Y2MwYzYzZTNmMWEmZD1iJTIxVTNfOTU3NmFha1d3NFh6QXhqNF9Hc3RnWmNMRlhXQkR2Z2F4bHUxdEdsNGZsSnk2d2ZCeFRvWi00aXZqZ0o4ayZmPTAxWVJNMktXRUZQUTRIUE9QWUtCRjJRU0dNWUdPVFlDTFMmYz0lMkYmYT1Mb29wQXBwJnA9JTQwZmx1aWR4JTJGbG9vcC1wYWdlLWNvbnRhaW5lciZ4PSU3QiUyMnclMjIlM0ElMjJUMFJUVUh4dFlXZHBjM1J5WVhSaVlTNXphR0Z5WlhCdmFXNTBMbU52Ylh4aUlWVXpYemsxTnpaaFlXdFhkelJZZWtGNGFqUmZSM04wWjFwalRFWllWMEpFZG1kaGVHeDFNWFJIYkRSbWJFcDVObmRtUW5oVWIxb3ROR2wyYW1kS09HdDhNREZaVWsweVMxZERRMUUyTTB4Qk5VODBOMFpHVEVVMFIwNVFTbGRLUlVoYVVRJTNEJTNEJTIyJTJDJTIyaSUyMiUzQSUyMmEzYTI0MjIxLTBkMmUtNGUyYi1iZWEyLTQ4OTBjZGUwYTdkYiUyMiU3RA%3D%3D). This section covers what is specific to this repo.
+
+### How deploys work
+
+Deploys are triggered by pushing a git tag whose name starts with a cluster prefix, handled by [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) via the shared `resolve-environment` action:
+
+| Tag | Cluster |
+|---|---|
+| `dev*` (e.g. `dev1.0.0`) | `development` |
+| `staging*` | `staging` |
+| `prod*` | `production` |
+
+Every push to `master` deploys to `staging` through [`.github/workflows/master.yml`](.github/workflows/master.yml). Pull requests only build the image without pushing it ([`.github/workflows/pr.yml`](.github/workflows/pr.yml)).
+
+Build and deploy share [`.github/workflows/_build.yml`](.github/workflows/_build.yml): the image `harbor.bratislava.sk/standalone/kupaliska-starz-backend` is environment-agnostic, so a single per-commit build is reused across clusters and tagged `<cluster>-<short-sha>`. The deploy job then dispatches [infrastructure-deployment-configuration](https://github.com/bratislava/infrastructure-deployment-configuration), which applies the Terragrunt unit `clusters/<cluster>/applications/kupaliska_starz/backend` (namespace `starz`) and waits for the rollout. The shared actions come from [bratislava/github-actions](https://github.com/bratislava/github-actions).
+
+### Environment variables and secrets
+
+- **Non-secret env vars** live in `.env.deploy.<cluster>` at the root of this repo (e.g. `.env.deploy.staging`). On deploy the infrastructure repo reads the file from the exact commit being deployed and turns it into the `kupaliska-starz-backend-env` config map. `GP_WEBPAY_KEYS_PATH` is `resources/keys` on every cluster; the keys mounted there are the GP webpay test keys on `development`/`staging` and the live keys on `production`.
+- **Secrets** live in [Passbolt](https://passbolt.bratislava.sk) in the `/kubernetes/kupaliska-starz-backend/` folder and are synced by External Secrets Operator:
+  - env vars named `<cluster>/kupaliska-starz-backend/<ENV_VAR_NAME>` sync into the `kupaliska-starz-backend-secret` Kubernetes Secret: `JWT_SECRET`, `MAILGUN_API_KEY`, `TURNSTILE_SECRET_KEY`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `GP_WEBPAY_PRIV_KEY_PASS`, `APPLE_WALLET_CERTIFICATE_PASSWORD`;
+  - files the app reads from disk are separate entries named after the file, mounted read-only under `resources/`: `<cluster>/kupaliska-starz-backend-apple-wallet/apple-wallet-cert.pem` → `resources/apple-wallet`, `<cluster>/kupaliska-starz-backend-google-wallet/credentials.json` → `resources/google-pay`, `<cluster>/kupaliska-starz-backend-gpwebpay-keys/{gpe.signing.pem,merchant-pvk.key}` → `resources/keys`.
+- **Database credentials** (`POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`) are generated by the CNPG operator in the cluster and wired in from the operator-managed Secret; `POSTGRES_HOST` is set by the infrastructure unit. They are mirrored into Passbolt as `read-only/<cluster>/kupaliska-starz-backend/*` for lookup only.
+
+If you don't have Passbolt access, ask the team.
 
 ## Apidoc
 

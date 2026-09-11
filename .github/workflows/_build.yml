@@ -1,0 +1,92 @@
+name: Build Container (Reusable)
+
+# Two modes, selected by the `cluster` input:
+#   - CI (cluster == ''): build the image, do not push.
+#   - Deploy (cluster != ''): reuse the existing per-commit image (re-tag it
+#     for the cluster) or build+push it. The image is environment-agnostic, so
+#     one build per commit is promoted across clusters.
+on:
+  workflow_call:
+    inputs:
+      push:
+        description: "Whether to push the built image"
+        required: true
+        type: boolean
+      cluster:
+        description: "Target cluster (development, staging, production). Empty = unprefixed commit tag, CI build only."
+        required: false
+        type: string
+        default: ""
+    secrets:
+      DOCKER_REGISTRY_USERNAME:
+        required: true
+      DOCKER_REGISTRY_PASSWORD:
+        required: true
+      HARBOR_REGISTRY_PASSWORD:
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: harbor.bratislava.sk
+  REGISTRY_USERNAME: robot$github_actions
+  IMAGE: harbor.bratislava.sk/standalone/kupaliska-starz-backend
+
+jobs:
+  build:
+    name: Build
+    runs-on: bratislava
+    env:
+      CLUSTER_PREFIX: ${{ inputs.cluster != '' && format('{0}-', inputs.cluster) || '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Resolve short SHA
+        id: sha
+        run: echo "short_sha=${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+
+      # Sets up Buildx and logs in to Docker Hub + Harbor.
+      - name: Set up Docker build
+        uses: bratislava/github-actions/.github/actions/setup-docker-build@v3.0.0
+        with:
+          docker_registry_username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
+          docker_registry_password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
+          harbor_registry: ${{ env.REGISTRY }}
+          harbor_registry_username: ${{ env.REGISTRY_USERNAME }}
+          harbor_registry_password: ${{ secrets.HARBOR_REGISTRY_PASSWORD }}
+
+      - name: Docker metadata
+        id: meta
+        uses: bratislava/github-actions/.github/actions/docker-metadata@v3.0.0
+        with:
+          image: ${{ env.IMAGE }}
+          prefix: ${{ env.CLUSTER_PREFIX }}
+
+      # Deploy mode only: if the commit image already exists, re-tag it for
+      # this cluster and skip the build below.
+      - name: Check for existing image
+        if: ${{ inputs.cluster != '' }}
+        id: existing
+        uses: bratislava/github-actions/.github/actions/check-existing-image@v3.0.0
+        with:
+          existing_tag: ${{ env.IMAGE }}:${{ steps.sha.outputs.short_sha }}
+          new_tag: ${{ env.IMAGE }}:${{ env.CLUSTER_PREFIX }}${{ steps.sha.outputs.short_sha }}
+
+      - name: Build and push
+        if: ${{ inputs.cluster == '' || steps.existing.outputs.found != 'true' }}
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          # The Dockerfile's final `prod` stage is the deployable image; name it
+          # explicitly so a stage appended later can't silently become the deployed one.
+          target: prod
+          push: ${{ inputs.push }}
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: ${{ steps.meta.outputs.cache_from }}
+          cache-to: ${{ steps.meta.outputs.cache_to }}
