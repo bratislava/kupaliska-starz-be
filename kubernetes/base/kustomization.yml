@@ -2,8 +2,6 @@ resources:
   - deployment.yml
   - service-app.yml
   - ingress.yml
-  - statefulSet.yml
-  - service-db.yml
 configurations:
   - configuration.yml
 namePrefix: ${BUILD_REPOSITORY_NAME}-
