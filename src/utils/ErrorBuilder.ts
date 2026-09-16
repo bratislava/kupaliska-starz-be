@@ -1,8 +1,10 @@
 import Joi from 'joi'
-import { map } from 'lodash'
+import map from 'lodash/map'
+import cloneDeep from 'lodash/cloneDeep'
 
 // utils
 import { MESSAGE_TYPE } from './enums'
+import { SENSITIVE_PASSWORD_FIELDS } from './constants'
 
 interface IErrorBuilderItem {
 	message: string
@@ -39,17 +41,26 @@ export default class ErrorBuilder extends Error {
 		name: string | Joi.ValidationErrorItem[],
 		key?: string
 	) {
-		// fix when base64 value is too long
-		if (typeof name !== 'string') {
-			name.forEach((record) => {
-				if (record.context && record.type.startsWith('base64.')) {
-					record.context.value = ''
+		let sensitiveDataStrippedName = name
+		if (typeof sensitiveDataStrippedName !== 'string') {
+			sensitiveDataStrippedName = sensitiveDataStrippedName.map((record) => {
+				// fix when base64 value is too long
+				// remove passwords from logs
+				if (
+					record.context &&
+					(record.type.startsWith('base64.') ||
+						SENSITIVE_PASSWORD_FIELDS.some((field) => record.path.includes(field)))
+				) {
+					const valueStrippedRecord = cloneDeep(record)
+					valueStrippedRecord.context.value = ''
+					return valueStrippedRecord
 				}
+				return record
 			})
 		}
-		super(JSON.stringify(name))
+		super(JSON.stringify(sensitiveDataStrippedName))
 		this.status = status
-		this.isJoi = typeof name !== 'string'
-		this.items = prepareErrorItems(name, key)
+		this.isJoi = typeof sensitiveDataStrippedName !== 'string'
+		this.items = prepareErrorItems(sensitiveDataStrippedName, key)
 	}
 }

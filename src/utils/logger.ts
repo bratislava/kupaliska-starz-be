@@ -1,6 +1,7 @@
 import pino from 'pino-http'
 import decode from 'jwt-decode'
 import { ICognitoAccessToken } from '../types/interfaces'
+import { SENSITIVE_PASSWORD_FIELDS } from './constants'
 
 export const httpLogger = pino({
 	// use the env var below to clear up logs in development if needed
@@ -22,9 +23,7 @@ export const httpLogger = pino({
 	},
 	redact: [
 		'req.headers.authorization',
-		'req.body.password',
-		'req.body.passwordConfirmation',
-		'req.body.oldPassword',
+		...SENSITIVE_PASSWORD_FIELDS.map((field) => `req.body.${field}`),
 	],
 })
 
