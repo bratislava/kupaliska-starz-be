@@ -8,13 +8,14 @@ import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { IPassportConfig } from '../../../types/interfaces'
 import { map } from 'lodash'
 import { USER_ROLE } from '../../../utils/enums'
+import { PASSWORD_FIELD_NAMES } from '../../../utils/constants'
 
 const passwordConfig: IPassportConfig = config.get('passport')
 
 export const schema = Joi.object().keys({
 	body: Joi.object().keys({
 		email: Joi.string().email().required(),
-		password: Joi.string().required(),
+		[PASSWORD_FIELD_NAMES.PASSWORD]: Joi.string().required(),
 	}),
 	query: Joi.object(),
 	params: Joi.object(),
