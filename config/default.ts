@@ -117,4 +117,8 @@ export = {
 	appleWallet: {
 		certificatePassword: process.env.APPLE_WALLET_CERTIFICATE_PASSWORD,
 	},
+	passwordHashing: {
+		pepperPrevious: process.env.PASSWORD_PEPPER_PREVIOUS,
+		pepperCurrent: process.env.PASSWORD_PEPPER_CURRENT,
+	},
 }

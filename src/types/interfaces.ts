@@ -80,6 +80,11 @@ export interface IPassportConfig {
 	}
 }
 
+export interface IPasswordHashingConfig {
+	pepperCurrent: string
+	pepperPrevious: string
+}
+
 export interface IJWTPassportConfig {
 	secretOrKey: string
 	user: JWTConfig
