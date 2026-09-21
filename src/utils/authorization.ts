@@ -18,14 +18,14 @@ export const comparePassword = async (password: string, hash: string) => {
 	})
 }
 
-// TODO remove after successful migration from bcrypt to argon,
-// remove test as well
 export const comparePasswordPreviousPepper = async (password: string, hash: string) => {
 	return argon2.verify(hash, password, {
 		secret: Buffer.from(passwordHashingConfig.pepperPrevious),
 	})
 }
 
+// TODO remove after successful migration from bcrypt to argon,
+// remove test as well
 export const comparePasswordBcrypt = async (password: string, hash: string) => {
 	return bcrypt.compare(password, hash)
 }
