@@ -1,9 +1,15 @@
 import config from 'config'
 import Joi from 'joi'
-import { Op, Transaction } from 'sequelize'
+import { Op } from 'sequelize'
 import { Request, Response, NextFunction } from 'express'
 import DB, { models } from '../../../db/models'
-import { comparePassword, createJwt } from '../../../utils/authorization'
+import {
+	comparePasswordPreviousPepper,
+	comparePassword,
+	createJwt,
+	hashPassword,
+	comparePasswordBcrypt,
+} from '../../../utils/authorization'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { IPassportConfig } from '../../../types/interfaces'
 import { map } from 'lodash'
@@ -23,7 +29,8 @@ export const schema = Joi.object().keys({
 })
 
 export const workflow = async (req: Request, res: Response, next: NextFunction) => {
-	let transaction: Transaction
+	const transaction = await DB.transaction()
+
 	try {
 		const { body } = req
 		const { User, SwimmingPool } = models
@@ -44,19 +51,27 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			throw new ErrorBuilder(401, req.t('error:incorrectUsernameOrPassword'))
 		}
 
-		const passwordVerified = await comparePassword(body.password, user.hash)
+		const isPasswordVerifiedHash = await comparePassword(body.password, user.hash)
+		let isPasswordVerifiedPreviousHash = false
+		let isPasswordVerifiedBcrypt = false
 
-		if (!passwordVerified) {
-			throw new ErrorBuilder(401, req.t('error:incorrectUsernameOrPassword'))
+		if (!isPasswordVerifiedHash) {
+			isPasswordVerifiedPreviousHash = await comparePasswordPreviousPepper(body.password, user.hash)
+			isPasswordVerifiedBcrypt = await comparePasswordBcrypt(body.password, user.hash)
+			if (!isPasswordVerifiedPreviousHash && !isPasswordVerifiedBcrypt) {
+				throw new ErrorBuilder(401, req.t('error:incorrectUsernameOrPassword'))
+			}
 		}
-
-		transaction = await DB.transaction()
 
 		const newIssuedTokens = user.issuedTokens + 1
 		await user.update(
 			{
 				lastLoginAt: new Date(),
 				issuedTokens: newIssuedTokens,
+				// lazily migrate previous hashes to current hash on successful login
+				...((isPasswordVerifiedPreviousHash || isPasswordVerifiedBcrypt) && {
+					hash: await hashPassword(body.password),
+				}),
 			},
 			{ transaction }
 		)
@@ -97,9 +112,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			messages: [],
 		})
 	} catch (err) {
-		if (transaction) {
-			await transaction.rollback()
-		}
+		await transaction.rollback()
 		return next(err)
 	}
 }

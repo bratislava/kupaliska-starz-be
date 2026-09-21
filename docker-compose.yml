@@ -40,6 +40,8 @@ services:
             - GP_WEBPAY_CLIENT_APP_URL
             - GP_WEBPAY_PROVIDER
             - APPLE_WALLET_CERTIFICATE_PASSWORD
+            - PASSWORD_PEPPER_PREVIOUS
+            - PASSWORD_PEPPER_CURRENT
 
     postgres:
         image: postgres:13-alpine
