@@ -46,6 +46,7 @@
 		"@js-joda/timezone": "2.18.0",
 		"@types/request": "2.48.5",
 		"@walletpass/pass-js": "6.9.1",
+		"argon2": "0.45.1",
 		"base64-img": "1.0.4",
 		"base64-stream": "1.0.0",
 		"bcryptjs": "3.0.3",

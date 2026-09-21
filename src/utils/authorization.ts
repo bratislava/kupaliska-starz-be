@@ -1,24 +1,34 @@
 import bcrypt from 'bcryptjs'
 import config from 'config'
+import * as argon2 from 'argon2'
 import { verify, sign, SignOptions } from 'jsonwebtoken'
 
-import { IPassportConfig } from '../types/interfaces'
+import { IPassportConfig, IPasswordHashingConfig } from '../types/interfaces'
 
 const passportConfig: IPassportConfig = config.get('passport')
-
-const BCRYPT_WORK_FACTOR_BASE = 12
+const passwordHashingConfig: IPasswordHashingConfig = config.get('passwordHashing')
 
 export const hashPassword = (password: string) => {
-	try {
-		const salt = bcrypt.genSaltSync(BCRYPT_WORK_FACTOR_BASE)
-		return bcrypt.hashSync(password, salt)
-	} catch (e) {
-		return e
-	}
+	return argon2.hash(password, { secret: Buffer.from(passwordHashingConfig.pepperCurrent) })
 }
 
-export const comparePassword = async (password: string, hash: string) =>
-	bcrypt.compare(password, hash)
+export const comparePassword = async (password: string, hash: string) => {
+	return argon2.verify(hash, password, {
+		secret: Buffer.from(passwordHashingConfig.pepperCurrent),
+	})
+}
+
+// TODO remove after successful migration from bcrypt to argon,
+// remove test as well
+export const comparePasswordPreviousPepper = async (password: string, hash: string) => {
+	return argon2.verify(hash, password, {
+		secret: Buffer.from(passwordHashingConfig.pepperPrevious),
+	})
+}
+
+export const comparePasswordBcrypt = async (password: string, hash: string) => {
+	return bcrypt.compare(password, hash)
+}
 
 // create access token for API protection
 export const createJwt = (payload: Object, options: SignOptions): Promise<string> =>
