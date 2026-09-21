@@ -80,6 +80,8 @@ export interface IPassportConfig {
 	}
 }
 
+// TODO rename all interfaces,
+// starting with `I` in every declared `interface` is not necessary
 export interface IPasswordHashingConfig {
 	pepperCurrent: string
 	pepperPrevious: string
