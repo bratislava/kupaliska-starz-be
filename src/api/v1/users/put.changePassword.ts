@@ -5,7 +5,13 @@ import { NextFunction, Request, Response } from 'express'
 import DB, { models } from '../../../db/models'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
-import { comparePassword, createJwt, hashPassword } from '../../../utils/authorization'
+import {
+	comparePassword,
+	comparePasswordPreviousPepper,
+	comparePasswordBcrypt,
+	createJwt,
+	hashPassword,
+} from '../../../utils/authorization'
 import { IPassportConfig } from '../../../types/interfaces'
 import { Transaction } from 'sequelize'
 import passwordComplexity, { ComplexityOptions } from 'joi-password-complexity'
@@ -56,10 +62,16 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			throw new ErrorBuilder(404, req.t('error:userNotFound'))
 		}
 
-		const passwordVerified = await comparePassword(body.oldPassword, user.hash)
+		const isPasswordVerifiedHash = await comparePassword(body.oldPassword, user.hash)
+		let isPasswordVerifiedPreviousHash = false
+		let isPasswordVerifiedBcrypt = false
 
-		if (!passwordVerified) {
-			throw new ErrorBuilder(400, req.t('error:incorrectPassword'), 'incorrectPassword')
+		if (!isPasswordVerifiedHash) {
+			isPasswordVerifiedPreviousHash = await comparePasswordPreviousPepper(body.oldPassword, user.hash)
+			isPasswordVerifiedBcrypt = await comparePasswordBcrypt(body.oldPassword, user.hash)
+			if (!isPasswordVerifiedPreviousHash && !isPasswordVerifiedBcrypt) {
+				throw new ErrorBuilder(400, req.t('error:incorrectPassword'), 'incorrectPassword')
+			}
 		}
 
 		const hashedPassword = await hashPassword(body.password)
