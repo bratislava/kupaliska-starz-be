@@ -30,6 +30,17 @@ export const comparePasswordBcrypt = async (password: string, hash: string) => {
 	return bcrypt.compare(password, hash)
 }
 
+export const verifyPasswordWithFallback = async (password: string, hash: string) => {
+	if (await comparePassword(password, hash)) {
+		return { isVerified: true, isVerifiedViaFallback: false }
+	}
+
+	const isVerifiedViaFallback =
+		(await comparePasswordPreviousPepper(password, hash)) || (await comparePasswordBcrypt(password, hash))
+
+	return { isVerified: isVerifiedViaFallback, isVerifiedViaFallback }
+}
+
 // create access token for API protection
 export const createJwt = (payload: Object, options: SignOptions): Promise<string> =>
 	new Promise((resolve, reject) => {

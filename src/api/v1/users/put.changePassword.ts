@@ -5,13 +5,7 @@ import { NextFunction, Request, Response } from 'express'
 import DB, { models } from '../../../db/models'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
-import {
-	comparePassword,
-	comparePasswordPreviousPepper,
-	comparePasswordBcrypt,
-	createJwt,
-	hashPassword,
-} from '../../../utils/authorization'
+import { createJwt, hashPassword, verifyPasswordWithFallback } from '../../../utils/authorization'
 import { IPassportConfig } from '../../../types/interfaces'
 import { Transaction } from 'sequelize'
 import passwordComplexity, { ComplexityOptions } from 'joi-password-complexity'
@@ -62,16 +56,9 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			throw new ErrorBuilder(404, req.t('error:userNotFound'))
 		}
 
-		const isPasswordVerifiedHash = await comparePassword(body.oldPassword, user.hash)
-		let isPasswordVerifiedFallback = false
+		const { isVerified } = await verifyPasswordWithFallback(body.oldPassword, user.hash)
 
-		if (!isPasswordVerifiedHash) {
-			isPasswordVerifiedFallback =
-				(await comparePasswordPreviousPepper(body.oldPassword, user.hash)) ||
-				(await comparePasswordBcrypt(body.oldPassword, user.hash))
-		}
-
-		if (!isPasswordVerifiedFallback) {
+		if (!isVerified) {
 			throw new ErrorBuilder(400, req.t('error:incorrectPassword'), 'incorrectPassword')
 		}
 		const hashedPassword = await hashPassword(body.password)
