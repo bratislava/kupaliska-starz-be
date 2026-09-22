@@ -8,6 +8,7 @@ resources:
   - secrets/apple-wallet.secret.yml
   - secrets/google-wallet.secret.yml
   - secrets/apple-wallet-password.secret.yml
+  - secrets/password-pepper.secret.yml
 
 configMapGenerator:
   - name: env

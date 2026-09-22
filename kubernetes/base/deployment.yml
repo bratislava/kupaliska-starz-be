@@ -68,6 +68,8 @@ spec:
                             name: apple-wallet
                       - secretRef:
                             name: apple-wallet-password
+                      - secretRef:
+                            name: password-pepper-secret
                       - configMapRef:
                             name: env
                   volumeMounts:
