@@ -9,7 +9,6 @@ import { comparePassword, createJwt, hashPassword } from '../../../utils/authori
 import { IPassportConfig } from '../../../types/interfaces'
 import { Transaction } from 'sequelize'
 import passwordComplexity, { ComplexityOptions } from 'joi-password-complexity'
-import { PASSWORD_FIELD_NAMES } from '../../../utils/constants'
 
 const passwordConfig: IPassportConfig = config.get('passport')
 const complexityOptions: ComplexityOptions = config.get('passwordComplexityOptions')
@@ -17,7 +16,9 @@ const complexityOptions: ComplexityOptions = config.get('passwordComplexityOptio
 const OLD_PASSWORD_PATTERN = /^[a-zA-Z0-9]{3,30}$/
 
 export const userPutSchema = {
-	[PASSWORD_FIELD_NAMES.OLD_PASSWORD]: Joi.string()
+	// name of this fields is directly related to redact mechanism
+	// in ErrorBuilder and in logger
+	oldPassword: Joi.string()
 		.required()
 		.pattern(OLD_PASSWORD_PATTERN)
 		// message has to be rewritten otherwise it will be logged if pattern does not met requirements
@@ -27,10 +28,12 @@ export const userPutSchema = {
 				'\\$&'
 			)}/`,
 		}),
-	[PASSWORD_FIELD_NAMES.PASSWORD]: passwordComplexity(complexityOptions).required(),
-	[PASSWORD_FIELD_NAMES.PASSWORD_CONFIRMATION]: Joi.string()
-		.valid(Joi.ref(PASSWORD_FIELD_NAMES.PASSWORD))
-		.required(),
+	// name of this field is directly related to redact mechanism
+	// in ErrorBuilder and in logger
+	password: passwordComplexity(complexityOptions).required(),
+	// name of this field is directly related to redact mechanism
+	// in ErrorBuilder and in logger
+	passwordConfirmation: Joi.string().valid(Joi.ref('password')).required(),
 }
 
 export const schema = Joi.object().keys({

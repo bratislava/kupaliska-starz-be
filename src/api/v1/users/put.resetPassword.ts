@@ -8,15 +8,16 @@ import { hashPassword } from '../../../utils/authorization'
 import { Transaction } from 'sequelize'
 import passwordComplexity, { ComplexityOptions } from 'joi-password-complexity'
 import config from 'config'
-import { PASSWORD_FIELD_NAMES } from '../../../utils/constants'
 
 const complexityOptions: ComplexityOptions = config.get('passwordComplexityOptions')
 
 export const userResetPasswordSchema = {
-	[PASSWORD_FIELD_NAMES.PASSWORD]: passwordComplexity(complexityOptions).required(),
-	[PASSWORD_FIELD_NAMES.PASSWORD_CONFIRMATION]: Joi.string()
-		.valid(Joi.ref(PASSWORD_FIELD_NAMES.PASSWORD))
-		.required(),
+	// name of this field is directly related to redact mechanism
+	// in ErrorBuilder and in logger
+	password: passwordComplexity(complexityOptions).required(),
+	// name of this field is directly related to redact mechanism
+	// in ErrorBuilder and in logger
+	passwordConfirmation: Joi.string().valid(Joi.ref('password')).required(),
 }
 
 export const schema = Joi.object().keys({

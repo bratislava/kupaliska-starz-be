@@ -4,7 +4,7 @@ import cloneDeep from 'lodash/cloneDeep'
 
 // utils
 import { MESSAGE_TYPE } from './enums'
-import { SENSITIVE_PASSWORD_FIELDS } from './constants'
+import { REDACTED_FIELDS } from './constants'
 
 interface IErrorBuilderItem {
 	message: string
@@ -49,7 +49,7 @@ export default class ErrorBuilder extends Error {
 				if (
 					record.context &&
 					(record.type.startsWith('base64.') ||
-						SENSITIVE_PASSWORD_FIELDS.some((field) => record.path.includes(field)))
+						REDACTED_FIELDS.some((field) => record.path.includes(field)))
 				) {
 					const valueStrippedRecord = cloneDeep(record)
 					valueStrippedRecord.context.value = ''
