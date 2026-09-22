@@ -52,15 +52,16 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		}
 
 		const isPasswordVerifiedHash = await comparePassword(body.password, user.hash)
-		let isPasswordVerifiedPreviousHash = false
-		let isPasswordVerifiedBcrypt = false
+		let isPasswordVerifiedFallback = false
 
 		if (!isPasswordVerifiedHash) {
-			isPasswordVerifiedPreviousHash = await comparePasswordPreviousPepper(body.password, user.hash)
-			isPasswordVerifiedBcrypt = await comparePasswordBcrypt(body.password, user.hash)
-			if (!isPasswordVerifiedPreviousHash && !isPasswordVerifiedBcrypt) {
-				throw new ErrorBuilder(401, req.t('error:incorrectUsernameOrPassword'))
-			}
+			isPasswordVerifiedFallback =
+				(await comparePasswordPreviousPepper(body.password, user.hash)) ||
+				(await comparePasswordBcrypt(body.password, user.hash))
+		}
+
+		if (!isPasswordVerifiedFallback) {
+			throw new ErrorBuilder(401, req.t('error:incorrectUsernameOrPassword'))
 		}
 
 		const newIssuedTokens = user.issuedTokens + 1
@@ -69,7 +70,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				lastLoginAt: new Date(),
 				issuedTokens: newIssuedTokens,
 				// lazily migrate previous hashes to current hash on successful login
-				...((isPasswordVerifiedPreviousHash || isPasswordVerifiedBcrypt) && {
+				...(isPasswordVerifiedFallback && {
 					hash: await hashPassword(body.password),
 				}),
 			},
