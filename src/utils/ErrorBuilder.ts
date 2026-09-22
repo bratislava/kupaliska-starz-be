@@ -1,8 +1,9 @@
 import Joi from 'joi'
-import { map } from 'lodash'
+import map from 'lodash/map'
 
 // utils
 import { MESSAGE_TYPE } from './enums'
+import { REDACTED_FIELDS } from './constants'
 
 interface IErrorBuilderItem {
 	message: string
@@ -39,17 +40,24 @@ export default class ErrorBuilder extends Error {
 		name: string | Joi.ValidationErrorItem[],
 		key?: string
 	) {
-		// fix when base64 value is too long
-		if (typeof name !== 'string') {
-			name.forEach((record) => {
-				if (record.context && record.type.startsWith('base64.')) {
-					record.context.value = ''
+		let sensitiveDataStrippedName = name
+		if (typeof sensitiveDataStrippedName !== 'string') {
+			sensitiveDataStrippedName = sensitiveDataStrippedName.map((record) => {
+				// fix when base64 value is too long
+				// remove passwords from logs
+				if (
+					record.context &&
+					(record.type.startsWith('base64.') ||
+						REDACTED_FIELDS.some((field) => record.path.includes(field)))
+				) {
+					return { ...record, context: { ...record.context, value: '' } }
 				}
+				return record
 			})
 		}
-		super(JSON.stringify(name))
+		super(JSON.stringify(sensitiveDataStrippedName))
 		this.status = status
-		this.isJoi = typeof name !== 'string'
-		this.items = prepareErrorItems(name, key)
+		this.isJoi = typeof sensitiveDataStrippedName !== 'string'
+		this.items = prepareErrorItems(sensitiveDataStrippedName, key)
 	}
 }

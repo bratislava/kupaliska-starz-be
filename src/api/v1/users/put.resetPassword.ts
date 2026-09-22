@@ -12,7 +12,11 @@ import config from 'config'
 const complexityOptions: ComplexityOptions = config.get('passwordComplexityOptions')
 
 export const userResetPasswordSchema = {
+	// name of this field is directly related to redact mechanism
+	// in ErrorBuilder and in logger
 	password: passwordComplexity(complexityOptions).required(),
+	// name of this field is directly related to redact mechanism
+	// in ErrorBuilder and in logger
 	passwordConfirmation: Joi.string().valid(Joi.ref('password')).required(),
 }
 
