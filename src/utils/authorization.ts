@@ -36,7 +36,8 @@ export const verifyPasswordWithFallback = async (password: string, hash: string)
 	}
 
 	const isVerifiedViaFallback =
-		(await comparePasswordPreviousPepper(password, hash)) || (await comparePasswordBcrypt(password, hash))
+		(await comparePasswordPreviousPepper(password, hash)) ||
+		(await comparePasswordBcrypt(password, hash))
 
 	return { isVerified: isVerifiedViaFallback, isVerifiedViaFallback }
 }
