@@ -1,6 +1,5 @@
 import Joi from 'joi'
 import map from 'lodash/map'
-import cloneDeep from 'lodash/cloneDeep'
 
 // utils
 import { MESSAGE_TYPE } from './enums'
@@ -51,9 +50,7 @@ export default class ErrorBuilder extends Error {
 					(record.type.startsWith('base64.') ||
 						REDACTED_FIELDS.some((field) => record.path.includes(field)))
 				) {
-					const valueStrippedRecord = cloneDeep(record)
-					valueStrippedRecord.context.value = ''
-					return valueStrippedRecord
+					return { ...record, context: { ...record.context, value: '' } }
 				}
 				return record
 			})
