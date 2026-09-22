@@ -63,17 +63,17 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		}
 
 		const isPasswordVerifiedHash = await comparePassword(body.oldPassword, user.hash)
-		let isPasswordVerifiedPreviousHash = false
-		let isPasswordVerifiedBcrypt = false
+		let isPasswordVerifiedFallback = false
 
 		if (!isPasswordVerifiedHash) {
-			isPasswordVerifiedPreviousHash = await comparePasswordPreviousPepper(body.oldPassword, user.hash)
-			isPasswordVerifiedBcrypt = await comparePasswordBcrypt(body.oldPassword, user.hash)
-			if (!isPasswordVerifiedPreviousHash && !isPasswordVerifiedBcrypt) {
-				throw new ErrorBuilder(400, req.t('error:incorrectPassword'), 'incorrectPassword')
-			}
+			isPasswordVerifiedFallback =
+				(await comparePasswordPreviousPepper(body.oldPassword, user.hash)) ||
+				(await comparePasswordBcrypt(body.oldPassword, user.hash))
 		}
 
+		if (!isPasswordVerifiedFallback) {
+			throw new ErrorBuilder(400, req.t('error:incorrectPassword'), 'incorrectPassword')
+		}
 		const hashedPassword = await hashPassword(body.password)
 
 		transaction = await DB.transaction()
