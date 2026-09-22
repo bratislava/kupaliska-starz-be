@@ -3,13 +3,7 @@ import Joi from 'joi'
 import { Op } from 'sequelize'
 import { Request, Response, NextFunction } from 'express'
 import DB, { models } from '../../../db/models'
-import {
-	comparePasswordPreviousPepper,
-	comparePassword,
-	createJwt,
-	hashPassword,
-	comparePasswordBcrypt,
-} from '../../../utils/authorization'
+import { createJwt, hashPassword, verifyPasswordWithFallback } from '../../../utils/authorization'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { IPassportConfig } from '../../../types/interfaces'
 import { map } from 'lodash'
@@ -51,16 +45,12 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			throw new ErrorBuilder(401, req.t('error:incorrectUsernameOrPassword'))
 		}
 
-		const isPasswordVerifiedHash = await comparePassword(body.password, user.hash)
-		let isPasswordVerifiedFallback = false
+		const { isVerified, isVerifiedViaFallback } = await verifyPasswordWithFallback(
+			body.password,
+			user.hash
+		)
 
-		if (!isPasswordVerifiedHash) {
-			isPasswordVerifiedFallback =
-				(await comparePasswordPreviousPepper(body.password, user.hash)) ||
-				(await comparePasswordBcrypt(body.password, user.hash))
-		}
-
-		if (!isPasswordVerifiedFallback) {
+		if (!isVerified) {
 			throw new ErrorBuilder(401, req.t('error:incorrectUsernameOrPassword'))
 		}
 
@@ -70,7 +60,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 				lastLoginAt: new Date(),
 				issuedTokens: newIssuedTokens,
 				// lazily migrate previous hashes to current hash on successful login
-				...(isPasswordVerifiedFallback && {
+				...(isVerifiedViaFallback && {
 					hash: await hashPassword(body.password),
 				}),
 			},
