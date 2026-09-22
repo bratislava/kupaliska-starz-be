@@ -23,7 +23,7 @@ export const userPutSchema = {
 		.pattern(OLD_PASSWORD_PATTERN)
 		// message has to be rewritten otherwise it will be logged if pattern does not met requirements
 		.messages({
-			'string.pattern.base': `"{{#label}}" fails to match the required pattern: /${OLD_PASSWORD_PATTERN.source.replace(
+			'string.pattern.base': `{{#label}} fails to match the required pattern: /${OLD_PASSWORD_PATTERN.source.replace(
 				/[{}]/g,
 				'\\$&'
 			)}/`,
