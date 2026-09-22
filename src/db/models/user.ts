@@ -11,7 +11,6 @@ export class UserModel extends DatabaseModel {
 	email: string
 	name: string
 	hash: string
-	salt: string
 	issuedTokens: number
 	tokenValidFromNumber: number
 	role: USER_ROLE
