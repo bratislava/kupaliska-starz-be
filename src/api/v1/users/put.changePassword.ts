@@ -5,7 +5,7 @@ import { NextFunction, Request, Response } from 'express'
 import DB, { models } from '../../../db/models'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
-import { createJwt, hashPassword, verifyPasswordWithFallback } from '../../../utils/authorization'
+import { createJwt, hashPassword, verifyPassword } from '../../../utils/authorization'
 import { IPassportConfig } from '../../../types/interfaces'
 import { Transaction } from 'sequelize'
 import passwordComplexity, { ComplexityOptions } from 'joi-password-complexity'
@@ -56,7 +56,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			throw new ErrorBuilder(404, req.t('error:userNotFound'))
 		}
 
-		const { isVerified } = await verifyPasswordWithFallback(body.oldPassword, user.hash)
+		const { isVerified } = await verifyPassword(body.oldPassword, user.hash, user.passwordPepperId)
 
 		if (!isVerified) {
 			throw new ErrorBuilder(400, req.t('error:incorrectPassword'), 'incorrectPassword')
@@ -68,7 +68,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 		const newIssuedTokens = user.issuedTokens + 1
 		await user.update(
 			{
-				hash: hashedPassword,
+				...hashedPassword,
 				tokenValidFromNumber: newIssuedTokens, // invalidate previous tokens
 				issuedTokens: newIssuedTokens,
 			},

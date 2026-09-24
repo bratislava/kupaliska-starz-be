@@ -3,7 +3,7 @@ import Joi from 'joi'
 import app from '../../../../../src/app'
 import { MESSAGE_TYPES } from '../../../../../src/utils/enums'
 import { UserModel } from '../../../../../src/db/models/user'
-import { comparePassword } from '../../../../../src/utils/authorization'
+import { verifyPassword } from '../../../../../src/utils/authorization'
 import each from 'jest-each'
 
 const endpoint = () => `/api/v1/users/resetPassword`
@@ -54,8 +54,10 @@ describe(`[PUT] RESET PASSWORD - ${endpoint})`, () => {
 		expect(response.type).toBe('application/json')
 		expect(schema.validate(response.body).error).toBeUndefined()
 
-		const user = await UserModel.findByPk(process.env.jwtResetPasswordUserId)
-		expect(await comparePassword('secretNew2', user.hash)).toBeTruthy()
+		const user = (await UserModel.findByPk(process.env.jwtResetPasswordUserId)) as UserModel
+		expect((await verifyPassword('secretNew2', user.hash, user.passwordPepperId)).isVerified).toBe(
+			true
+		)
 	})
 
 	each([['secretNew'], ['secretx'], ['secretx1'], ['11111111']]).it(

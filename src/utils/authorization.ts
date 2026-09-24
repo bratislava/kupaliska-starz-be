@@ -8,21 +8,28 @@ import { IPassportConfig, IPasswordHashingConfig } from '../types/interfaces'
 const passportConfig: IPassportConfig = config.get('passport')
 const passwordHashingConfig: IPasswordHashingConfig = config.get('passwordHashing')
 
-export const hashPassword = (password: string) => {
-	return argon2.hash(password, { secret: Buffer.from(passwordHashingConfig.pepperCurrent) })
+const peppers = new Map(
+	Object.entries(passwordHashingConfig.peppers).map(([id, pepper]) => [
+		Number(id),
+		Buffer.from(pepper),
+	])
+)
+const currentPepperId = Number(passwordHashingConfig.currentPepperId)
+
+if (!currentPepperId && currentPepperId !== 0) {
+	throw new Error(`PASSWORD_PEPPER_CURRENT_ID is not configured or is not a Number`)
 }
 
-export const comparePassword = async (password: string, hash: string) => {
-	return argon2.verify(hash, password, {
-		secret: Buffer.from(passwordHashingConfig.pepperCurrent),
-	})
+if (!peppers.has(currentPepperId)) {
+	throw new Error(
+		`Pepper PASSWORD_PEPPER_${passwordHashingConfig.currentPepperId} set by PASSWORD_PEPPER_CURRENT_ID is not configured`
+	)
 }
 
-export const comparePasswordPreviousPepper = async (password: string, hash: string) => {
-	return argon2.verify(hash, password, {
-		secret: Buffer.from(passwordHashingConfig.pepperPrevious),
-	})
-}
+export const hashPassword = async (password: string) => ({
+	hash: await argon2.hash(password, { secret: peppers.get(currentPepperId) }),
+	passwordPepperId: currentPepperId,
+})
 
 // TODO remove after successful migration from bcrypt to argon,
 // remove test as well
@@ -30,16 +37,25 @@ export const comparePasswordBcrypt = async (password: string, hash: string) => {
 	return bcrypt.compare(password, hash)
 }
 
-export const verifyPasswordWithFallback = async (password: string, hash: string) => {
-	if (await comparePassword(password, hash)) {
-		return { isVerified: true, isVerifiedViaFallback: false }
+export const verifyPassword = async (
+	password: string,
+	hash: string,
+	passwordPepperId: number | null
+) => {
+	// TODO remove after successful migration from bcrypt to argon
+	if (passwordPepperId === null) {
+		const isVerified = await comparePasswordBcrypt(password, hash)
+		return { isVerified, needsRehash: isVerified }
 	}
 
-	const isVerifiedViaFallback =
-		(await comparePasswordPreviousPepper(password, hash)) ||
-		(await comparePasswordBcrypt(password, hash))
+	const pepper = peppers.get(passwordPepperId)
+	// pepper was retired, user has to reset password
+	if (!pepper) {
+		return { isVerified: false, needsRehash: false }
+	}
 
-	return { isVerified: isVerifiedViaFallback, isVerifiedViaFallback }
+	const isVerified = await argon2.verify(hash, password, { secret: pepper })
+	return { isVerified, needsRehash: isVerified && passwordPepperId !== currentPepperId }
 }
 
 // create access token for API protection
