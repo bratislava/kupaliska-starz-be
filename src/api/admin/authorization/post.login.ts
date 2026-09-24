@@ -3,7 +3,7 @@ import Joi from 'joi'
 import { Op } from 'sequelize'
 import { Request, Response, NextFunction } from 'express'
 import DB, { models } from '../../../db/models'
-import { createJwt, hashPassword, verifyPasswordWithFallback } from '../../../utils/authorization'
+import { createJwt, hashPassword, verifyPassword } from '../../../utils/authorization'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { IPassportConfig } from '../../../types/interfaces'
 import { map } from 'lodash'
@@ -45,9 +45,10 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			throw new ErrorBuilder(401, req.t('error:incorrectUsernameOrPassword'))
 		}
 
-		const { isVerified, isVerifiedViaFallback } = await verifyPasswordWithFallback(
+		const { isVerified, needsRehash } = await verifyPassword(
 			body.password,
-			user.hash
+			user.hash,
+			user.passwordPepperId
 		)
 
 		if (!isVerified) {
@@ -59,10 +60,8 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 			{
 				lastLoginAt: new Date(),
 				issuedTokens: newIssuedTokens,
-				// lazily migrate previous hashes to current hash on successful login
-				...(isVerifiedViaFallback && {
-					hash: await hashPassword(body.password),
-				}),
+				// lazily migrate previous hashes to hash with current pepper on successful login
+				...(needsRehash && (await hashPassword(body.password))),
 			},
 			{ transaction }
 		)

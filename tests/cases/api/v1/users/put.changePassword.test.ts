@@ -8,15 +8,14 @@ import { v4 as uuidv4 } from 'uuid'
 import app from '../../../../../src/app'
 import { MESSAGE_TYPES, USER_ROLE } from '../../../../../src/utils/enums'
 import { UserModel } from '../../../../../src/db/models/user'
-import {
-	comparePassword,
-	comparePasswordBcrypt,
-	comparePasswordPreviousPepper,
-	createJwt,
-} from '../../../../../src/utils/authorization'
+import { verifyPassword, createJwt } from '../../../../../src/utils/authorization'
 import { IPasswordHashingConfig, IPassportConfig } from '../../../../../src/types/interfaces'
 
 const passwordHashingConfig: IPasswordHashingConfig = config.get('passwordHashing')
+const currentPepperId = Number(passwordHashingConfig.currentPepperId)
+const previousPepperId = Number(
+	Object.keys(passwordHashingConfig.peppers).find((id) => Number(id) !== currentPepperId)
+)
 const passportConfig: IPassportConfig = config.get('passport')
 
 const endpoint = () => `/api/v1/users/changePassword`
@@ -110,17 +109,19 @@ describe(`[PUT] CHANGE PASSWORD - ${endpoint})`, () => {
 		expect(schema.validate(response.body).error).toBeUndefined()
 
 		const user = (await UserModel.findByPk(bcryptUserId)) as UserModel
-		expect(await comparePasswordBcrypt('newPass132', user.hash)).toBe(false)
-		expect(await comparePassword('newPass132', user.hash)).toBe(true)
+		expect(user.passwordPepperId).toBe(currentPepperId)
+		expect((await verifyPassword('newPass132', user.hash, user.passwordPepperId)).isVerified).toBe(
+			true
+		)
 	})
 
-	it('Should allow password change and migrate legacy previous-pepper hash to current pepper', async () => {
+	it('Should allow password change and migrate previous pepper hash to current pepper', async () => {
 		const previousPepperUserId = uuidv4()
 		const previousPepperUserEmail = faker.internet.email()
 		const oldPassword = 'legacyPreviousPepperPass132'
 
 		const legacyHash = await argon2.hash(oldPassword, {
-			secret: Buffer.from(passwordHashingConfig.pepperPrevious),
+			secret: Buffer.from(passwordHashingConfig.peppers[previousPepperId]),
 		})
 
 		await UserModel.bulkCreate([
@@ -131,6 +132,7 @@ describe(`[PUT] CHANGE PASSWORD - ${endpoint})`, () => {
 				role: USER_ROLE.BASIC,
 				isConfirmed: true,
 				hash: legacyHash,
+				passwordPepperId: previousPepperId,
 				issuedTokens: 1,
 				tokenValidFromNumber: 0,
 			},
@@ -155,8 +157,10 @@ describe(`[PUT] CHANGE PASSWORD - ${endpoint})`, () => {
 		expect(schema.validate(response.body).error).toBeUndefined()
 
 		const user = (await UserModel.findByPk(previousPepperUserId)) as UserModel
-		expect(await comparePasswordPreviousPepper('newPass132', user.hash)).toBe(false)
-		expect(await comparePassword('newPass132', user.hash)).toBe(true)
+		expect(user.passwordPepperId).toBe(currentPepperId)
+		expect((await verifyPassword('newPass132', user.hash, user.passwordPepperId)).isVerified).toBe(
+			true
+		)
 	})
 
 	it('Response should return code 200', async () => {
@@ -173,7 +177,9 @@ describe(`[PUT] CHANGE PASSWORD - ${endpoint})`, () => {
 		expect(response.type).toBe('application/json')
 		expect(schema.validate(response.body).error).toBeUndefined()
 
-		const user = await UserModel.findByPk(response.body.data.id)
-		expect(await comparePassword('newPass132', user.hash)).toBeTruthy()
+		const user = (await UserModel.findByPk(response.body.data.id)) as UserModel
+		expect((await verifyPassword('newPass132', user.hash, user.passwordPepperId)).isVerified).toBe(
+			true
+		)
 	})
 })

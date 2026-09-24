@@ -44,12 +44,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 
 		transaction = await DB.transaction()
 
-		await user.update(
-			{
-				hash: hashedPassword,
-			},
-			{ transaction }
-		)
+		await user.update(hashedPassword, { transaction })
 
 		await transaction.commit()
 		return res.json({

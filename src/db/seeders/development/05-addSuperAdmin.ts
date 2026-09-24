@@ -13,7 +13,7 @@ export async function up(queryInterface: QueryInterface) {
 			email: 'super@admin.com',
 			role: USER_ROLE.SUPER_ADMIN,
 			isConfirmed: true,
-			hash: hashPassword('amcefPass132'),
+			...(await hashPassword('amcefPass132')),
 		},
 	])
 }
