@@ -11,6 +11,7 @@ export class UserModel extends DatabaseModel {
 	email: string
 	name: string
 	hash: string
+	passwordPepperId: number | null
 	issuedTokens: number
 	tokenValidFromNumber: number
 	role: USER_ROLE
@@ -53,6 +54,10 @@ export default (sequelize: Sequelize) => {
 			hash: {
 				type: DataTypes.TEXT,
 				allowNull: false,
+			},
+			passwordPepperId: {
+				type: DataTypes.INTEGER,
+				allowNull: true,
 			},
 			issuedTokens: {
 				type: DataTypes.INTEGER,

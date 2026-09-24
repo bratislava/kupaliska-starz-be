@@ -118,7 +118,14 @@ export = {
 		certificatePassword: process.env.APPLE_WALLET_CERTIFICATE_PASSWORD,
 	},
 	passwordHashing: {
-		pepperPrevious: process.env.PASSWORD_PEPPER_PREVIOUS,
-		pepperCurrent: process.env.PASSWORD_PEPPER_CURRENT,
+		// every `PASSWORD_PEPPER_<id>` env variable, keyed by id
+		peppers: Object.entries(process.env).reduce<Record<string, string>>((peppers, [key, value]) => {
+			const [, id] = key.match(/^PASSWORD_PEPPER_(\d+)$/) ?? []
+			if (id && value) {
+				peppers[id] = value
+			}
+			return peppers
+		}, {}),
+		currentPepperId: process.env.PASSWORD_PEPPER_CURRENT_ID,
 	},
 }
