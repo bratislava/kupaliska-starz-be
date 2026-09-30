@@ -13,10 +13,10 @@ import * as argon2 from 'argon2'
 
 const passwordConfig: IPassportConfig = config.get('passport')
 const passwordHashingConfig: IPasswordHashingConfig = config.get('passwordHashing')
-const currentPepperId = Number(passwordHashingConfig.currentPepperId)
-const previousPepperId = Number(
-	Object.keys(passwordHashingConfig.peppers).find((id) => Number(id) !== currentPepperId)
-)
+const { currentPepperId } = passwordHashingConfig
+const { id: previousPepperId, pepper: previousPepper } = passwordHashingConfig.peppers.find(
+	({ id }) => id !== currentPepperId
+)!
 
 describe('Authorization utils', () => {
 	it('Should hash password with current pepper and verify it', async () => {
@@ -34,7 +34,7 @@ describe('Authorization utils', () => {
 
 	it('Should verify hashes with previous pepper and request rehash', async () => {
 		const previousPepperHash = await argon2.hash('secretPassword', {
-			secret: Buffer.from(passwordHashingConfig.peppers[previousPepperId]),
+			secret: Buffer.from(previousPepper),
 		})
 		expect(await verifyPassword('secretPassword', previousPepperHash, previousPepperId)).toEqual({
 			isVerified: true,

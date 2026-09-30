@@ -8,14 +8,14 @@ import { v4 as uuidv4 } from 'uuid'
 import app from '../../../../../src/app'
 import { MESSAGE_TYPES, USER_ROLE } from '../../../../../src/utils/enums'
 import { UserModel } from '../../../../../src/db/models/user'
-import { verifyPassword } from '../../../../../src/utils/authorization'
+import { hashPassword, verifyPassword } from '../../../../../src/utils/authorization'
 import { IPasswordHashingConfig } from '../../../../../src/types/interfaces'
 
 const passwordHashingConfig: IPasswordHashingConfig = config.get('passwordHashing')
-const currentPepperId = Number(passwordHashingConfig.currentPepperId)
-const previousPepperId = Number(
-	Object.keys(passwordHashingConfig.peppers).find((id) => Number(id) !== currentPepperId)
-)
+const { currentPepperId } = passwordHashingConfig
+const { id: previousPepperId, pepper: previousPepper } = passwordHashingConfig.peppers.find(
+	({ id }) => id !== currentPepperId
+)!
 
 const endpoint = '/api/admin/authorization/login'
 
@@ -90,7 +90,7 @@ describe(`[POST] ${endpoint})`, () => {
 		const password = 'legacyPreviousPepperPass132'
 
 		const legacyHash = await argon2.hash(password, {
-			secret: Buffer.from(passwordHashingConfig.peppers[previousPepperId]),
+			secret: Buffer.from(previousPepper),
 		})
 
 		await UserModel.bulkCreate([
@@ -125,7 +125,7 @@ describe(`[POST] ${endpoint})`, () => {
 		const retiredPepperUserEmail = faker.internet.email()
 		const password = 'retiredPepperPass132'
 		// id which is not configured in any `PASSWORD_PEPPER_<id>` env variable
-		const retiredPepperId = Math.max(...Object.keys(passwordHashingConfig.peppers).map(Number)) + 1
+		const retiredPepperId = Math.max(...passwordHashingConfig.peppers.map(({ id }) => id)) + 1
 
 		const retiredHash = await argon2.hash(password, {
 			secret: Buffer.from('retiredPepper'),
@@ -164,5 +164,39 @@ describe(`[POST] ${endpoint})`, () => {
 		expect(response.type).toBe('application/json')
 		expect(response.status).toBe(200)
 		expect(schema.validate(response.body).error).toBeUndefined()
+	})
+
+	it('Should not change hash created with current pepper on successful login', async () => {
+		const currentPepperUserId = uuidv4()
+		const currentPepperUserEmail = faker.internet.email()
+		const password = 'currentPepperPass132'
+
+		const { hash: currentHash, passwordPepperId } = await hashPassword(password)
+
+		await UserModel.bulkCreate([
+			{
+				id: currentPepperUserId,
+				email: currentPepperUserEmail,
+				name: 'Current pepper user',
+				role: USER_ROLE.OPERATOR,
+				isConfirmed: true,
+				hash: currentHash,
+				passwordPepperId,
+				issuedTokens: 1,
+				tokenValidFromNumber: 0,
+			},
+		])
+
+		const response = await request.post(endpoint).set('Content-Type', 'application/json').send({
+			email: currentPepperUserEmail,
+			password,
+		})
+
+		expect(response.status).toBe(200)
+		expect(schema.validate(response.body).error).toBeUndefined()
+
+		const user = (await UserModel.findByPk(currentPepperUserId)) as UserModel
+		expect(user.hash).toBe(currentHash)
+		expect(user.passwordPepperId).toBe(currentPepperId)
 	})
 })

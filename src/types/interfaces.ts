@@ -83,9 +83,9 @@ export interface IPassportConfig {
 // TODO rename all interfaces,
 // starting with `I` in every declared `interface` is not necessary
 export interface IPasswordHashingConfig {
-	// pepper id -> pepper, loaded from `PASSWORD_PEPPER_<id>` env variables
-	peppers: Record<string, string>
-	currentPepperId: string
+	// loaded from `PASSWORD_PEPPER_<id>` env variables
+	peppers: { id: number; pepper: string }[]
+	currentPepperId: number | undefined
 }
 
 export interface IJWTPassportConfig {

@@ -9,20 +9,17 @@ const passportConfig: IPassportConfig = config.get('passport')
 const passwordHashingConfig: IPasswordHashingConfig = config.get('passwordHashing')
 
 const peppers = new Map(
-	Object.entries(passwordHashingConfig.peppers).map(([id, pepper]) => [
-		Number(id),
-		Buffer.from(pepper),
-	])
+	passwordHashingConfig.peppers.map(({ id, pepper }) => [id, Buffer.from(pepper)])
 )
-const currentPepperId = Number(passwordHashingConfig.currentPepperId)
+const { currentPepperId } = passwordHashingConfig
 
-if (!currentPepperId && currentPepperId !== 0) {
-	throw new Error(`PASSWORD_PEPPER_CURRENT_ID is not configured or is not a Number`)
+if (currentPepperId === undefined) {
+	throw new Error(`PASSWORD_PEPPER_CURRENT_ID is not configured correctly.`)
 }
 
 if (!peppers.has(currentPepperId)) {
 	throw new Error(
-		`Pepper PASSWORD_PEPPER_${passwordHashingConfig.currentPepperId} set by PASSWORD_PEPPER_CURRENT_ID is not configured`
+		`Pepper PASSWORD_PEPPER_${currentPepperId} set by PASSWORD_PEPPER_CURRENT_ID is not configured`
 	)
 }
 

@@ -12,10 +12,10 @@ import { verifyPassword, createJwt } from '../../../../../src/utils/authorizatio
 import { IPasswordHashingConfig, IPassportConfig } from '../../../../../src/types/interfaces'
 
 const passwordHashingConfig: IPasswordHashingConfig = config.get('passwordHashing')
-const currentPepperId = Number(passwordHashingConfig.currentPepperId)
-const previousPepperId = Number(
-	Object.keys(passwordHashingConfig.peppers).find((id) => Number(id) !== currentPepperId)
-)
+const { currentPepperId } = passwordHashingConfig
+const { id: previousPepperId, pepper: previousPepper } = passwordHashingConfig.peppers.find(
+	({ id }) => id !== currentPepperId
+)!
 const passportConfig: IPassportConfig = config.get('passport')
 
 const endpoint = () => `/api/v1/users/changePassword`
@@ -121,7 +121,7 @@ describe(`[PUT] CHANGE PASSWORD - ${endpoint})`, () => {
 		const oldPassword = 'legacyPreviousPepperPass132'
 
 		const legacyHash = await argon2.hash(oldPassword, {
-			secret: Buffer.from(passwordHashingConfig.peppers[previousPepperId]),
+			secret: Buffer.from(previousPepper),
 		})
 
 		await UserModel.bulkCreate([
