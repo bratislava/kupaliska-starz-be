@@ -173,3 +173,11 @@ export const getAdultsAndChildrenCountForTicketType = (
 
 	return { numberOfAdultsForTicketType, numberOfChildrenForTicketType }
 }
+
+export const parseIntValue = (value?: string) => {
+	const result = Number(value)
+	if (isNaN(result)) {
+		throw new Error(`Incoming 'value' is not Number`)
+	}
+	return result
+}

@@ -34,7 +34,7 @@ describe('Authorization utils', () => {
 
 	it('Should verify hashes with previous pepper and request rehash', async () => {
 		const previousPepperHash = await argon2.hash('secretPassword', {
-			secret: Buffer.from(previousPepper),
+			secret: previousPepper,
 		})
 		expect(await verifyPassword('secretPassword', previousPepperHash, previousPepperId)).toEqual({
 			isVerified: true,
