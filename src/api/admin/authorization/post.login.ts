@@ -14,6 +14,8 @@ const passwordConfig: IPassportConfig = config.get('passport')
 export const schema = Joi.object().keys({
 	body: Joi.object().keys({
 		email: Joi.string().email().required(),
+		// name of this field is directly related to redact mechanism
+		// in ErrorBuilder and in logger
 		password: Joi.string().required(),
 	}),
 	query: Joi.object(),

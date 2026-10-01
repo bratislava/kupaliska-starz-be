@@ -13,9 +13,26 @@ import passwordComplexity, { ComplexityOptions } from 'joi-password-complexity'
 const passwordConfig: IPassportConfig = config.get('passport')
 const complexityOptions: ComplexityOptions = config.get('passwordComplexityOptions')
 
+const OLD_PASSWORD_PATTERN = /^[a-zA-Z0-9]{3,30}$/
+
 export const userPutSchema = {
-	oldPassword: Joi.string().required().pattern(new RegExp('^[a-zA-Z0-9]{3,30}$')),
+	// name of this fields is directly related to redact mechanism
+	// in ErrorBuilder and in logger
+	oldPassword: Joi.string()
+		.required()
+		.pattern(OLD_PASSWORD_PATTERN)
+		// message has to be rewritten otherwise it will be logged if pattern does not met requirements
+		.messages({
+			'string.pattern.base': `{{#label}} fails to match the required pattern: /${OLD_PASSWORD_PATTERN.source.replace(
+				/[{}]/g,
+				'\\$&'
+			)}/`,
+		}),
+	// name of this field is directly related to redact mechanism
+	// in ErrorBuilder and in logger
 	password: passwordComplexity(complexityOptions).required(),
+	// name of this field is directly related to redact mechanism
+	// in ErrorBuilder and in logger
 	passwordConfirmation: Joi.string().valid(Joi.ref('password')).required(),
 }
 
@@ -30,6 +47,7 @@ export const workflow = async (req: Request, res: Response, next: NextFunction) 
 
 	let transaction: Transaction
 	try {
+		// TODO body should be typed
 		const { body } = req
 		const { id } = req.user as UserModel
 
