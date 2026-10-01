@@ -8,14 +8,10 @@ import { IPassportConfig, IPasswordHashingConfig } from '../types/interfaces'
 const passportConfig: IPassportConfig = config.get('passport')
 const passwordHashingConfig: IPasswordHashingConfig = config.get('passwordHashing')
 
-const peppers = new Map(
-	passwordHashingConfig.peppers.map(({ id, pepper }) => [id, Buffer.from(pepper)])
-)
+// moving 'new Map(...' to 'config/default' file will need creating 'tsconfig.json'
+// for folder '/tests' folder which is not really worth, so keeping it here is our best option for now
+const peppers = new Map(passwordHashingConfig.peppers.map(({ id, pepper }) => [id, pepper]))
 const { currentPepperId } = passwordHashingConfig
-
-if (currentPepperId === undefined) {
-	throw new Error(`PASSWORD_PEPPER_CURRENT_ID is not configured correctly.`)
-}
 
 if (!peppers.has(currentPepperId)) {
 	throw new Error(

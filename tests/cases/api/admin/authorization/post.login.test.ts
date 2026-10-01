@@ -90,7 +90,7 @@ describe(`[POST] ${endpoint})`, () => {
 		const password = 'legacyPreviousPepperPass132'
 
 		const legacyHash = await argon2.hash(password, {
-			secret: Buffer.from(previousPepper),
+			secret: previousPepper,
 		})
 
 		await UserModel.bulkCreate([
@@ -199,4 +199,7 @@ describe(`[POST] ${endpoint})`, () => {
 		expect(user.hash).toBe(currentHash)
 		expect(user.passwordPepperId).toBe(currentPepperId)
 	})
+
+	// add test for password not leaking when not within schema limit
+	// https://github.com/bratislava/kupaliska-starz-be/issues/281
 })

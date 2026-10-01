@@ -121,7 +121,7 @@ describe(`[PUT] CHANGE PASSWORD - ${endpoint})`, () => {
 		const oldPassword = 'legacyPreviousPepperPass132'
 
 		const legacyHash = await argon2.hash(oldPassword, {
-			secret: Buffer.from(previousPepper),
+			secret: previousPepper,
 		})
 
 		await UserModel.bulkCreate([
@@ -182,4 +182,7 @@ describe(`[PUT] CHANGE PASSWORD - ${endpoint})`, () => {
 			true
 		)
 	})
+
+	// add test for password not leaking when not within schema limit
+	// https://github.com/bratislava/kupaliska-starz-be/issues/281
 })

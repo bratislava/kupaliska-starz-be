@@ -75,4 +75,7 @@ describe(`[PUT] RESET PASSWORD - ${endpoint})`, () => {
 			expect(response.body.messages[0].path).toBe('body.password')
 		}
 	)
+
+	// add test for password not leaking when not within schema limit
+	// https://github.com/bratislava/kupaliska-starz-be/issues/281
 })
