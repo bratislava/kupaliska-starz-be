@@ -17,8 +17,40 @@ const { currentPepperId } = passwordHashingConfig
 const { id: previousPepperId, pepper: previousPepper } = passwordHashingConfig.peppers.find(
 	({ id }) => id !== currentPepperId
 )!
+// id which is not configured in any `PASSWORD_PEPPER_<id>` env variable
+const notConfiguredPepperId = Math.max(...passwordHashingConfig.peppers.map(({ id }) => id)) + 1
+
+const setPepperCurrentId = (pepperCurrentId: string | undefined) => {
+	if (pepperCurrentId === undefined) {
+		delete process.env.PASSWORD_PEPPER_CURRENT_ID
+	} else {
+		process.env.PASSWORD_PEPPER_CURRENT_ID = pepperCurrentId
+	}
+}
+
+// load `config` and `authorization` modules from scratch with given `PASSWORD_PEPPER_CURRENT_ID`
+const loadAuthorization = (pepperCurrentId: string) => {
+	setPepperCurrentId(pepperCurrentId)
+
+	let authorization: typeof import('../../../src/utils/authorization')
+	jest.isolateModules(() => {
+		authorization = require('../../../src/utils/authorization')
+	})
+	return authorization!
+}
 
 describe('Authorization utils', () => {
+	afterEach(() => {})
+
+	it('Should throw when pepper with given id is not configured', () => {
+		const originalPepperCurrentId = process.env.PASSWORD_PEPPER_CURRENT_ID
+
+		expect(() => loadAuthorization(String(notConfiguredPepperId))).toThrow(
+			`Pepper PASSWORD_PEPPER_${notConfiguredPepperId} set by PASSWORD_PEPPER_CURRENT_ID is not configured`
+		)
+		setPepperCurrentId(originalPepperCurrentId)
+	})
+
 	it('Should hash password with current pepper and verify it', async () => {
 		const { hash, passwordPepperId } = await hashPassword('secretPassword')
 		expect(passwordPepperId).toBe(currentPepperId)
