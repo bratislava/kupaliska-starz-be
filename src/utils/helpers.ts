@@ -3,6 +3,7 @@ import { QueryInterface } from 'sequelize'
 import dayjs from 'dayjs'
 import { CityAccountUser } from './cityAccountDto'
 import i18next from 'i18next'
+import z from 'zod'
 import { ORDER_STATE } from './enums'
 import { TicketModel } from '../db/models/ticket'
 import sequelize, { models } from '../db/models'
@@ -174,10 +175,13 @@ export const getAdultsAndChildrenCountForTicketType = (
 	return { numberOfAdultsForTicketType, numberOfChildrenForTicketType }
 }
 
+// non-negative integer without leading zeros, sign, whitespace or exponent
+export const NON_NEGATIVE_INTEGER_PATTERN = '0|[1-9]\\d*'
+
 export const parseIntValue = (value?: string) => {
-	const result = Number(value)
-	if (isNaN(result)) {
-		throw new Error(`Incoming 'value' is not Number`)
-	}
-	return result
+	const schema = z
+		.string()
+		.regex(new RegExp(`^(${NON_NEGATIVE_INTEGER_PATTERN})$`), 'must be a non-negative integer')
+		.transform(Number)
+	return schema.parse(value)
 }
