@@ -24,8 +24,9 @@ const loadCurrentPepperId = (pepperCurrentId: string | undefined) => {
 // evaluate `config/default` from scratch with additional `PASSWORD_PEPPER_<id>` env variables,
 // original env variables are restored afterwards
 const loadPeppers = (env: Record<string, string>) => {
-	const originalEnv = Object.fromEntries(Object.keys(env).map((key) => [key, process.env[key]]))
-	Object.assign(process.env, env)
+	const originalEnv = process.env
+
+	process.env = { ...originalEnv, ...env }
 	try {
 		let defaultConfig: typeof import('../../../config/default')
 		jest.isolateModules(() => {
@@ -33,13 +34,7 @@ const loadPeppers = (env: Record<string, string>) => {
 		})
 		return defaultConfig!.passwordHashing.peppers
 	} finally {
-		Object.entries(originalEnv).forEach(([key, value]) => {
-			if (value === undefined) {
-				delete process.env[key]
-			} else {
-				process.env[key] = value
-			}
-		})
+		process.env = originalEnv
 	}
 }
 
