@@ -1,17 +1,6 @@
-import config from 'config'
-import { IPasswordHashingConfig } from '../../../src/types/interfaces'
-
 // env is already loaded by `node -r dotenv/config`, prevent `config/default` from
 // reloading it, otherwise removed env variables would be restored from `.env` file
 jest.mock('dotenv/config', () => ({}))
-
-const passwordHashingConfig: IPasswordHashingConfig = config.get('passwordHashing')
-const { currentPepperId } = passwordHashingConfig
-const { id: previousPepperId } = passwordHashingConfig.peppers.find(
-	({ id }) => id !== currentPepperId
-)!
-// id which is not configured in any `PASSWORD_PEPPER_<id>` env variable
-const notConfiguredPepperId = Math.max(...passwordHashingConfig.peppers.map(({ id }) => id)) + 1
 
 const setPepperCurrentId = (pepperCurrentId: string | undefined) => {
 	if (pepperCurrentId === undefined) {
