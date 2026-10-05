@@ -32,23 +32,22 @@ const setPepperCurrentId = (pepperCurrentId: string | undefined) => {
 const loadAuthorization = (pepperCurrentId: string) => {
 	setPepperCurrentId(pepperCurrentId)
 
-	let authorization: typeof import('../../../src/utils/authorization')
 	jest.isolateModules(() => {
-		authorization = require('../../../src/utils/authorization')
+		require('../../../src/utils/authorization')
 	})
-	return authorization!
 }
 
 describe('Authorization utils', () => {
-	afterEach(() => {})
-
 	it('Should throw when pepper with given id is not configured', () => {
 		const originalPepperCurrentId = process.env.PASSWORD_PEPPER_CURRENT_ID
 
-		expect(() => loadAuthorization(String(notConfiguredPepperId))).toThrow(
-			`Pepper PASSWORD_PEPPER_${notConfiguredPepperId} set by PASSWORD_PEPPER_CURRENT_ID is not configured`
-		)
-		setPepperCurrentId(originalPepperCurrentId)
+		try {
+			expect(() => loadAuthorization(String(notConfiguredPepperId))).toThrow(
+				`Pepper PASSWORD_PEPPER_${notConfiguredPepperId} set by PASSWORD_PEPPER_CURRENT_ID is not configured`
+			)
+		} finally {
+			setPepperCurrentId(originalPepperCurrentId)
+		}
 	})
 
 	it('Should hash password with current pepper and verify it', async () => {
