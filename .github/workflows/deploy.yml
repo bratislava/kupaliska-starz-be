@@ -11,13 +11,13 @@ on:
 jobs:
   conditions:
     name: Check for cluster conditions
-    uses: bratislava/github-actions/.github/workflows/cluster-deploy-conditions-inhouse.yml@stable
+    uses: bratislava/github-actions/.github/workflows/cluster-deploy-conditions-inhouse.yml@v2.4.0
 
   deploy-dev:
     name: Deploy 'kupaliska' to DEV
     if: needs.conditions.outputs.dev == 'true'
     needs: [conditions]
-    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli-inhouse.yml@stable
+    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli-inhouse.yml@v2.4.0
     with:
       directory: '.'
       cluster: development
@@ -32,7 +32,7 @@ jobs:
     name: Deploy 'kupaliska' to STAGING
     if: needs.conditions.outputs.staging == 'true'
     needs: [conditions]
-    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli-inhouse.yml@stable
+    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli-inhouse.yml@v2.4.0
     with:
       directory: '.'
       cluster: staging
@@ -47,7 +47,7 @@ jobs:
     name: Deploy 'kupaliska' to PROD
     if: needs.conditions.outputs.prod == 'true'
     needs: [conditions]
-    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli-inhouse.yml@stable
+    uses: bratislava/github-actions/.github/workflows/deploy-with-bratiska-cli-inhouse.yml@v2.4.0
     with:
       directory: '.'
       cluster: production
