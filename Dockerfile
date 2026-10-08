@@ -34,8 +34,10 @@ COPY --chown=node:node files /home/node/app/files
 COPY --chown=node:node locales /home/node/app/locales
 COPY --chown=node:node --from=build-base /build/package.json ./
 COPY --chown=node:node --from=build-base /build/node_modules ./node_modules
-COPY --chown=node:node --from=build /build/dist/config /home/node/app/config
 COPY --chown=node:node --from=build /build/dist /home/node/app/dist
+# Load the compiled config from `dist/config` (the `config` package defaults to `./config`, which has only .ts sources).
+# It has to stay inside `dist/` so its relative imports into `dist/src` (e.g. `../src/utils/helpers`) resolve.
+ENV NODE_CONFIG_DIR=/home/node/app/dist/config
 EXPOSE 3000
 ARG GIT_COMMIT="undefined"
 ENV GIT_COMMIT=$GIT_COMMIT
