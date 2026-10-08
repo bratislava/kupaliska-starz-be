@@ -1,7 +1,21 @@
 import supertest from 'supertest'
 import Joi from 'joi'
+import bcrypt from 'bcryptjs'
+import * as argon2 from 'argon2'
+import config from 'config'
+import faker from 'faker'
+import { v4 as uuidv4 } from 'uuid'
 import app from '../../../../../src/app'
-import { MESSAGE_TYPES } from '../../../../../src/utils/enums'
+import { MESSAGE_TYPES, USER_ROLE } from '../../../../../src/utils/enums'
+import { UserModel } from '../../../../../src/db/models/user'
+import { hashPassword, verifyPassword } from '../../../../../src/utils/authorization'
+import { IPasswordHashingConfig } from '../../../../../src/types/interfaces'
+
+const passwordHashingConfig: IPasswordHashingConfig = config.get('passwordHashing')
+const { currentPepperId } = passwordHashingConfig
+const { id: previousPepperId, pepper: previousPepper } = passwordHashingConfig.peppers.find(
+	({ id }) => id !== currentPepperId
+)!
 
 const endpoint = '/api/admin/authorization/login'
 
@@ -39,6 +53,108 @@ describe(`[POST] ${endpoint})`, () => {
 		expect(response.status).toBe(401)
 	})
 
+	it('Should migrate legacy bcrypt hash to argon2 on successful login', async () => {
+		const bcryptUserId = uuidv4()
+		const bcryptUserEmail = faker.internet.email()
+		const password = 'legacyBcryptPass132'
+
+		await UserModel.bulkCreate([
+			{
+				id: bcryptUserId,
+				email: bcryptUserEmail,
+				name: 'Legacy bcrypt user',
+				role: USER_ROLE.OPERATOR,
+				isConfirmed: true,
+				hash: bcrypt.hashSync(password, bcrypt.genSaltSync(12)),
+				issuedTokens: 1,
+				tokenValidFromNumber: 0,
+			},
+		])
+
+		const response = await request.post(endpoint).set('Content-Type', 'application/json').send({
+			email: bcryptUserEmail,
+			password,
+		})
+
+		expect(response.status).toBe(200)
+		expect(schema.validate(response.body).error).toBeUndefined()
+
+		const user = (await UserModel.findByPk(bcryptUserId)) as UserModel
+		expect(user.passwordPepperId).toBe(currentPepperId)
+		expect((await verifyPassword(password, user.hash, user.passwordPepperId)).isVerified).toBe(true)
+	})
+
+	it('Should migrate previous pepper hash to current pepper on successful login', async () => {
+		const previousPepperUserId = uuidv4()
+		const previousPepperUserEmail = faker.internet.email()
+		const password = 'legacyPreviousPepperPass132'
+
+		const legacyHash = await argon2.hash(password, {
+			secret: previousPepper,
+		})
+
+		await UserModel.bulkCreate([
+			{
+				id: previousPepperUserId,
+				email: previousPepperUserEmail,
+				name: 'Legacy previous pepper user',
+				role: USER_ROLE.OPERATOR,
+				isConfirmed: true,
+				hash: legacyHash,
+				passwordPepperId: previousPepperId,
+				issuedTokens: 1,
+				tokenValidFromNumber: 0,
+			},
+		])
+
+		const response = await request.post(endpoint).set('Content-Type', 'application/json').send({
+			email: previousPepperUserEmail,
+			password,
+		})
+
+		expect(response.status).toBe(200)
+		expect(schema.validate(response.body).error).toBeUndefined()
+
+		const user = (await UserModel.findByPk(previousPepperUserId)) as UserModel
+		expect(user.passwordPepperId).toBe(currentPepperId)
+		expect((await verifyPassword(password, user.hash, user.passwordPepperId)).isVerified).toBe(true)
+	})
+
+	it('Should reject login when hash was created with retired pepper', async () => {
+		const retiredPepperUserId = uuidv4()
+		const retiredPepperUserEmail = faker.internet.email()
+		const password = 'retiredPepperPass132'
+		// id which is not configured in any `PASSWORD_PEPPER_<id>` env variable
+		const retiredPepperId = Math.max(...passwordHashingConfig.peppers.map(({ id }) => id)) + 1
+
+		const retiredHash = await argon2.hash(password, {
+			secret: Buffer.from('retiredPepper'),
+		})
+
+		await UserModel.bulkCreate([
+			{
+				id: retiredPepperUserId,
+				email: retiredPepperUserEmail,
+				name: 'Retired pepper user',
+				role: USER_ROLE.OPERATOR,
+				isConfirmed: true,
+				hash: retiredHash,
+				passwordPepperId: retiredPepperId,
+			},
+		])
+
+		const response = await request.post(endpoint).set('Content-Type', 'application/json').send({
+			email: retiredPepperUserEmail,
+			password,
+		})
+
+		expect(response.status).toBe(401)
+
+		const user = (await UserModel.findByPk(retiredPepperUserId)) as UserModel
+		expect(user.hash).toBe(retiredHash)
+		expect(user.passwordPepperId).toBe(retiredPepperId)
+	})
+
 	it('Response should return status code 200', async () => {
 		const response = await request.post(endpoint).set('Content-Type', 'application/json').send({
 			email: 'admin@amcef.com',
@@ -49,4 +165,41 @@ describe(`[POST] ${endpoint})`, () => {
 		expect(response.status).toBe(200)
 		expect(schema.validate(response.body).error).toBeUndefined()
 	})
+
+	it('Should not change hash created with current pepper on successful login', async () => {
+		const currentPepperUserId = uuidv4()
+		const currentPepperUserEmail = faker.internet.email()
+		const password = 'currentPepperPass132'
+
+		const { hash: currentHash, passwordPepperId } = await hashPassword(password)
+
+		await UserModel.bulkCreate([
+			{
+				id: currentPepperUserId,
+				email: currentPepperUserEmail,
+				name: 'Current pepper user',
+				role: USER_ROLE.OPERATOR,
+				isConfirmed: true,
+				hash: currentHash,
+				passwordPepperId,
+				issuedTokens: 1,
+				tokenValidFromNumber: 0,
+			},
+		])
+
+		const response = await request.post(endpoint).set('Content-Type', 'application/json').send({
+			email: currentPepperUserEmail,
+			password,
+		})
+
+		expect(response.status).toBe(200)
+		expect(schema.validate(response.body).error).toBeUndefined()
+
+		const user = (await UserModel.findByPk(currentPepperUserId)) as UserModel
+		expect(user.hash).toBe(currentHash)
+		expect(user.passwordPepperId).toBe(currentPepperId)
+	})
+
+	// add test for password not leaking when not within schema limit
+	// https://github.com/bratislava/kupaliska-starz-be/issues/281
 })

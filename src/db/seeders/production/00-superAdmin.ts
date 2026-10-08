@@ -7,13 +7,14 @@ const id = uuidv4()
 
 export async function up(queryInterface: QueryInterface) {
 	return queryInterface.bulkInsert('users', [
+		// TODO remove this user in other PR
 		{
 			id: id,
 			name: 'Adam Grund',
 			email: 'adam.grund@bratislava.sk',
 			role: USER_ROLE.SUPER_ADMIN,
 			isConfirmed: true,
-			hash: hashPassword('4yKTz1cu7Fjn0TEeZ4BjSS7eu'),
+			...(await hashPassword('4yKTz1cu7Fjn0TEeZ4BjSS7eu')),
 		},
 	])
 }

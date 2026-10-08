@@ -2,6 +2,7 @@ import 'dotenv/config'
 import path from 'path'
 import { InitOptions as I18nextOptions } from 'i18next'
 import { ExtractJwt } from 'passport-jwt'
+import { isDefined, NON_NEGATIVE_INTEGER_PATTERN, parseIntValue } from '../src/utils/helpers'
 
 export = {
 	app: {
@@ -116,5 +117,16 @@ export = {
 	},
 	appleWallet: {
 		certificatePassword: process.env.APPLE_WALLET_CERTIFICATE_PASSWORD,
+	},
+	passwordHashing: {
+		// every `PASSWORD_PEPPER_<id>` env variable, `<id>` accepts same values as `currentPepperId`
+		peppers: Object.entries(process.env)
+			.map(([key, value]) => {
+				const [, id] =
+					key.match(new RegExp(`^PASSWORD_PEPPER_(${NON_NEGATIVE_INTEGER_PATTERN})$`)) ?? []
+				return id && value ? { id: parseIntValue(id), pepper: Buffer.from(value) } : null
+			})
+			.filter(isDefined),
+		currentPepperId: parseIntValue(process.env.PASSWORD_PEPPER_CURRENT_ID),
 	},
 }

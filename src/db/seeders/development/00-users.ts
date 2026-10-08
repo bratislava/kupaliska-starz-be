@@ -11,7 +11,7 @@ export async function up(queryInterface: QueryInterface) {
 			email: 'admin@amcef.com',
 			role: USER_ROLE.OPERATOR,
 			isConfirmed: true,
-			hash: hashPassword('amcefPass132'),
+			...(await hashPassword('amcefPass132')),
 		},
 		{
 			id: uuidv4(),
@@ -19,7 +19,7 @@ export async function up(queryInterface: QueryInterface) {
 			email: 'admin@starz.com',
 			role: USER_ROLE.OPERATOR,
 			isConfirmed: true,
-			hash: hashPassword('amcefPass132'),
+			...(await hashPassword('amcefPass132')),
 		},
 		{
 			id: uuidv4(),
@@ -27,7 +27,7 @@ export async function up(queryInterface: QueryInterface) {
 			email: 'pool@operator.com',
 			role: USER_ROLE.SWIMMING_POOL_OPERATOR,
 			isConfirmed: true,
-			hash: hashPassword('amcefPass132'),
+			...(await hashPassword('amcefPass132')),
 		},
 		{
 			id: uuidv4(),
@@ -35,7 +35,7 @@ export async function up(queryInterface: QueryInterface) {
 			email: 'pool@employee.com',
 			role: USER_ROLE.SWIMMING_POOL_EMPLOYEE,
 			isConfirmed: true,
-			hash: hashPassword('amcefPass132'),
+			...(await hashPassword('amcefPass132')),
 		},
 		{
 			id: uuidv4(),
@@ -43,7 +43,7 @@ export async function up(queryInterface: QueryInterface) {
 			email: 'basic@basic.com',
 			role: USER_ROLE.BASIC,
 			isConfirmed: true,
-			hash: hashPassword('amcefPass132'),
+			...(await hashPassword('amcefPass132')),
 		},
 	])
 }
