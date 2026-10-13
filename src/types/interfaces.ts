@@ -165,7 +165,7 @@ export interface GPWebpayHttpRequest {
 	DIGEST?: string
 }
 
-export interface IGPWebpayHttpResponse {
+export interface GPWebpayHttpResponse {
 	OPERATION: string
 	ORDERNUMBER: number
 	MERORDERNUM?: number
