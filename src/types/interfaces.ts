@@ -64,7 +64,7 @@ interface JWTConfigExp {
 
 export interface PassportConfig {
 	local: IPassportStrategyOptions
-	jwt: IJWTPassportConfig
+	jwt: JWTPassportConfig
 	jwtExternalRegistration: {
 		secretOrKey: string
 		options: JWTConfig
@@ -80,7 +80,7 @@ export interface PasswordHashingConfig {
 	currentPepperId: number
 }
 
-export interface IJWTPassportConfig {
+export interface JWTPassportConfig {
 	secretOrKey: string
 	user: JWTConfig
 	qrCode: JWTConfig
