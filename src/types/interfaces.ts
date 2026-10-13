@@ -24,7 +24,7 @@ export interface AppConfig {
 	commissionCoefficient: number
 }
 
-export interface IWorkersConfig {
+export interface WorkersConfig {
 	schedule: {
 		visitsComputation: string
 		refreshCustomersView: string
