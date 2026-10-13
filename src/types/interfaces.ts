@@ -131,7 +131,7 @@ enum CognitoTokenType {
 }
 
 /* Services */
-export interface IMailguntemplatesConfig {
+export interface MailguntemplatesConfig {
 	resetPassword: string
 	order: string
 	setPassword: string
@@ -141,7 +141,7 @@ export interface IMailgunserviceConfig {
 	domain: string
 	host: string
 	fromEmail: string
-	templates: IMailguntemplatesConfig
+	templates: MailguntemplatesConfig
 }
 
 export interface IGPWebpayHttpRequest {
