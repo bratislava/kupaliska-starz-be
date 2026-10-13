@@ -8,7 +8,7 @@ import {
 	ICognitoAccessToken,
 	JwtPayload,
 	JwtQrCodePayload,
-	IJwtResetPasswordPayload,
+	JwtResetPasswordPayload,
 } from '../types/interfaces'
 import ErrorBuilder from '../utils/ErrorBuilder'
 
@@ -106,7 +106,7 @@ export const jwtOrderResponseVerify = async (
 }
 
 export const jwtResetPasswordVerify = async (
-	payload: IJwtResetPasswordPayload,
+	payload: JwtResetPasswordPayload,
 	done: VerifiedCallback
 ) => {
 	try {

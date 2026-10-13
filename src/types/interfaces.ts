@@ -103,7 +103,7 @@ export interface JwtQrCodePayload {
 	aud: string
 }
 
-export interface IJwtResetPasswordPayload {
+export interface JwtResetPasswordPayload {
 	uid: string
 	exp: number
 	aud: string
