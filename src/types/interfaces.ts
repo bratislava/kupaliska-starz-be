@@ -144,7 +144,7 @@ export interface MailgunserviceConfig {
 	templates: MailguntemplatesConfig
 }
 
-export interface IGPWebpayHttpRequest {
+export interface GPWebpayHttpRequest {
 	MERCHANTNUMBER: string
 	OPERATION: string
 	ORDERNUMBER: number
