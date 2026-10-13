@@ -8,15 +8,15 @@ import { registerPaymentResult } from '../../../services/webpayService'
 import { logger } from '../../../utils/logger'
 import { Op } from 'sequelize'
 import { createJwt } from '../../../utils/authorization'
-import { IPassportConfig, IGPWebpayConfig } from '../../../types/interfaces'
+import { PassportConfig, GPWebpayConfig } from '../../../types/interfaces'
 import { ORDER_STATE } from '../../../utils/enums'
 import { sendOrderEmail } from '../../../utils/emailSender'
 import { FE_ROUTES } from '../../../utils/constants'
 import { markOrderPaid } from '../../../utils/helpers'
 import { OrderModel } from '../../../db/models/order'
 
-const passwordConfig: IPassportConfig = config.get('passport')
-const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
+const passwordConfig: PassportConfig = config.get('passport')
+const webpayConfig: GPWebpayConfig = config.get('gpWebpayService')
 
 export const schema = Joi.object({
 	body: Joi.object(),

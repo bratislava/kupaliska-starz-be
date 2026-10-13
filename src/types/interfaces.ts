@@ -1,16 +1,7 @@
 import { IStrategyOptions as IPassportStrategyOptions } from 'passport-local'
 import { JwtFromRequestFunction } from 'passport-jwt'
 
-export interface IServerConfig {
-	port: number
-	filesPath: string
-	domain: string
-	adminDomain: string
-	externalServerURL: string
-	subdirs: string[]
-}
-
-export interface IAppConfig {
+export interface AppConfig {
 	port: string
 	host: string
 	subdirs: string[]
@@ -24,7 +15,7 @@ export interface IAppConfig {
 	commissionCoefficient: number
 }
 
-export interface IWorkersConfig {
+export interface WorkersConfig {
 	schedule: {
 		visitsComputation: string
 		refreshCustomersView: string
@@ -33,7 +24,7 @@ export interface IWorkersConfig {
 	}
 }
 
-export interface IGPWebpayConfig {
+export interface GPWebpayConfig {
 	httpApi: string
 	clientAppUrl: string
 	merchantNumber: string
@@ -48,7 +39,7 @@ export interface IGPWebpayConfig {
 // TODO this does not corresponds with values,
 // bucket, accessKey, secretKey can be undefined
 // we need to ensure env vars is available
-export interface IMinioConfig {
+export interface MinioConfig {
 	endPoint: string
 	bucket: string
 	port: number
@@ -56,7 +47,7 @@ export interface IMinioConfig {
 	secretKey: string
 }
 
-export interface IAppleWalletConfig {
+export interface AppleWalletConfig {
 	certificatePassword: string
 }
 
@@ -71,9 +62,9 @@ interface JWTConfigExp {
 	exp: string
 }
 
-export interface IPassportConfig {
+export interface PassportConfig {
 	local: IPassportStrategyOptions
-	jwt: IJWTPassportConfig
+	jwt: JWTPassportConfig
 	jwtExternalRegistration: {
 		secretOrKey: string
 		options: JWTConfig
@@ -83,13 +74,13 @@ export interface IPassportConfig {
 // TODO rename all interfaces,
 // starting with `I` in every declared `interface` is not necessary
 // https://github.com/bratislava/kupaliska-starz-be/issues/280
-export interface IPasswordHashingConfig {
+export interface PasswordHashingConfig {
 	// loaded from `PASSWORD_PEPPER_<id>` env variables
 	peppers: { id: number; pepper: Buffer }[]
 	currentPepperId: number
 }
 
-export interface IJWTPassportConfig {
+export interface JWTPassportConfig {
 	secretOrKey: string
 	user: JWTConfig
 	qrCode: JWTConfig
@@ -99,26 +90,26 @@ export interface IJWTPassportConfig {
 	forgottenPassword: JWTConfigExp
 }
 
-export interface IJwtPayload {
+export interface JwtPayload {
 	s: number
 	uid: string
 	exp: number
 	aud: string
 }
 
-export interface IJwtQrCodePayload {
+export interface JwtQrCodePayload {
 	tid: string
 	exp: number
 	aud: string
 }
 
-export interface IJwtResetPasswordPayload {
+export interface JwtResetPasswordPayload {
 	uid: string
 	exp: number
 	aud: string
 }
 
-export interface ICognitoAccessToken {
+export interface CognitoAccessToken {
 	sub: string
 	device_key: string
 	iss: string
@@ -140,20 +131,20 @@ enum CognitoTokenType {
 }
 
 /* Services */
-export interface IMailguntemplatesConfig {
+export interface MailguntemplatesConfig {
 	resetPassword: string
 	order: string
 	setPassword: string
 }
-export interface IMailgunserviceConfig {
+export interface MailgunserviceConfig {
 	apiKey: string
 	domain: string
 	host: string
 	fromEmail: string
-	templates: IMailguntemplatesConfig
+	templates: MailguntemplatesConfig
 }
 
-export interface IGPWebpayHttpRequest {
+export interface GPWebpayHttpRequest {
 	MERCHANTNUMBER: string
 	OPERATION: string
 	ORDERNUMBER: number
@@ -174,7 +165,7 @@ export interface IGPWebpayHttpRequest {
 	DIGEST?: string
 }
 
-export interface IGPWebpayHttpResponse {
+export interface GPWebpayHttpResponse {
 	OPERATION: string
 	ORDERNUMBER: number
 	MERORDERNUM?: number

@@ -3,10 +3,10 @@ import config from 'config'
 import * as argon2 from 'argon2'
 import { verify, sign, SignOptions } from 'jsonwebtoken'
 
-import { IPassportConfig, IPasswordHashingConfig } from '../types/interfaces'
+import { PassportConfig, PasswordHashingConfig } from '../types/interfaces'
 
-const passportConfig: IPassportConfig = config.get('passport')
-const passwordHashingConfig: IPasswordHashingConfig = config.get('passwordHashing')
+const passportConfig: PassportConfig = config.get('passport')
+const passwordHashingConfig: PasswordHashingConfig = config.get('passwordHashing')
 
 // moving 'new Map(...' to 'config/default' file will need creating 'tsconfig.json'
 // for folder '/tests' folder which is not really worth, so keeping it here is our best option for now

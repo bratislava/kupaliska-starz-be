@@ -4,9 +4,9 @@ import { CronJob } from 'cron'
 import { ChildProcess, fork } from 'child_process'
 import fs from 'fs'
 
-import { IWorkersConfig } from '../types/interfaces'
+import { WorkersConfig } from '../types/interfaces'
 
-const workersConfig: IWorkersConfig = config.get('workers')
+const workersConfig: WorkersConfig = config.get('workers')
 
 function workerCallback(workerName: string, data: any) {
 	const workerPath = path.join(process.cwd(), 'dist', 'src', 'workers', `${workerName}.js`)

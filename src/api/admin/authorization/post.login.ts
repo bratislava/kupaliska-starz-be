@@ -5,11 +5,11 @@ import { Request, Response, NextFunction } from 'express'
 import DB, { models } from '../../../db/models'
 import { createJwt, hashPassword, verifyPassword } from '../../../utils/authorization'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
-import { IPassportConfig } from '../../../types/interfaces'
+import { PassportConfig } from '../../../types/interfaces'
 import { map } from 'lodash'
 import { USER_ROLE } from '../../../utils/enums'
 
-const passwordConfig: IPassportConfig = config.get('passport')
+const passwordConfig: PassportConfig = config.get('passport')
 
 export const schema = Joi.object().keys({
 	body: Joi.object().keys({

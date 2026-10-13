@@ -3,7 +3,7 @@ import { SwimmingLoggedUserModel } from './../db/models/swimmingLoggedUser'
 import { TicketModel } from './../db/models/ticket'
 import { OrderModel } from './../db/models/order'
 import config from 'config'
-import { IAppConfig } from '../types/interfaces'
+import { AppConfig } from '../types/interfaces'
 import { FileModel } from '../db/models/file'
 import { Dictionary, filter, map, reduce } from 'lodash'
 import { UserModel } from '../db/models/user'
@@ -13,7 +13,7 @@ import { DiscountCodeModel } from '../db/models/discountCode'
 import i18next from 'i18next'
 import { AssociatedSwimmerModel } from '../db/models/associatedSwimmer'
 
-const appConfig: IAppConfig = config.get('app')
+const appConfig: AppConfig = config.get('app')
 
 export const formatFile = (file: FileModel) => {
 	if (!file) {

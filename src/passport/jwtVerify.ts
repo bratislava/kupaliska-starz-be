@@ -5,10 +5,10 @@ import { Request, Response, NextFunction } from 'express'
 
 import { models } from '../db/models'
 import {
-	ICognitoAccessToken,
-	IJwtPayload,
-	IJwtQrCodePayload,
-	IJwtResetPasswordPayload,
+	CognitoAccessToken,
+	JwtPayload,
+	JwtQrCodePayload,
+	JwtResetPasswordPayload,
 } from '../types/interfaces'
 import ErrorBuilder from '../utils/ErrorBuilder'
 
@@ -35,7 +35,7 @@ export const optionalAuthenticationMiddleware = (
 	})(req, res, next)
 }
 
-export const jwtAdminVerify = async (payload: IJwtPayload, done: VerifiedCallback) => {
+export const jwtAdminVerify = async (payload: JwtPayload, done: VerifiedCallback) => {
 	try {
 		const { User } = models
 		const user = await User.findOne({
@@ -83,7 +83,7 @@ export const jwtAdminVerify = async (payload: IJwtPayload, done: VerifiedCallbac
 
 export const jwtQrCodeVerify = async (
 	req: Request,
-	payload: IJwtQrCodePayload,
+	payload: JwtQrCodePayload,
 	done: VerifiedCallback
 ) => {
 	try {
@@ -95,7 +95,7 @@ export const jwtQrCodeVerify = async (
 
 export const jwtOrderResponseVerify = async (
 	req: Request,
-	payload: IJwtPayload,
+	payload: JwtPayload,
 	done: VerifiedCallback
 ) => {
 	try {
@@ -106,7 +106,7 @@ export const jwtOrderResponseVerify = async (
 }
 
 export const jwtResetPasswordVerify = async (
-	payload: IJwtResetPasswordPayload,
+	payload: JwtResetPasswordPayload,
 	done: VerifiedCallback
 ) => {
 	try {
@@ -142,10 +142,7 @@ export const jwtResetPasswordVerify = async (
 	}
 }
 
-export const jwtCognitoUserVerify = async (
-	payload: ICognitoAccessToken,
-	done: VerifiedCallback
-) => {
+export const jwtCognitoUserVerify = async (payload: CognitoAccessToken, done: VerifiedCallback) => {
 	try {
 		return done(null, payload)
 	} catch (e) {

@@ -8,9 +8,9 @@ import joiDate from '@joi/date'
 import { TicketModel } from '../../../db/models/ticket'
 import i18next from 'i18next'
 import config from 'config'
-import { IAppConfig } from '../../../types/interfaces'
+import { AppConfig } from '../../../types/interfaces'
 import { getAllAges } from '../../../utils/helpers'
-const appConfig: IAppConfig = config.get('app')
+const appConfig: AppConfig = config.get('app')
 
 const JoiDateExtension = Joi.extend(joiDate(Joi))
 

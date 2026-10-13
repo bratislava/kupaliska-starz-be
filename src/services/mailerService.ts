@@ -1,15 +1,14 @@
 import config from 'config'
-import { IMailgunserviceConfig } from '../types/interfaces'
+import { MailgunserviceConfig } from '../types/interfaces'
 import { Request } from 'express'
 import FormData from 'form-data'
 
 import Mailgun, { CustomFile } from 'mailgun.js'
 import ErrorBuilder from '../utils/ErrorBuilder'
 import i18next from 'i18next'
-import path from 'path'
 import logger from '../utils/logger'
 
-const mailgunConfig: IMailgunserviceConfig = config.get('mailgunService')
+const mailgunConfig: MailgunserviceConfig = config.get('mailgunService')
 
 const mailgun = new Mailgun(FormData)
 const mg = mailgun.client({

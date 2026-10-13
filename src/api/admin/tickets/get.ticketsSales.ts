@@ -6,9 +6,9 @@ import config from 'config'
 import sequelize, { models } from '../../../db/models'
 import { TICKET_TYPE } from '../../../utils/enums'
 import { getFilters } from '../../../utils/dbFilters'
-import { IAppConfig } from '../../../types/interfaces'
+import { AppConfig } from '../../../types/interfaces'
 
-const appConfig: IAppConfig = config.get('app')
+const appConfig: AppConfig = config.get('app')
 
 const { SwimmingPool } = models
 

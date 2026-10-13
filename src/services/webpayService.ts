@@ -7,10 +7,10 @@ import { models } from '../db/models'
 import { PaymentResponseModel } from '../db/models/paymentResponse'
 import { createSignature, verifySignature } from '../utils/webpay'
 import {
-	IAppConfig,
-	IGPWebpayConfig,
-	IGPWebpayHttpRequest,
-	IGPWebpayHttpResponse,
+	AppConfig,
+	GPWebpayConfig,
+	GPWebpayHttpRequest,
+	GPWebpayHttpResponse,
 } from '../types/interfaces'
 import { OrderModel } from '../db/models/order'
 import { PAYMENT_OPERATION, ORDER_PAYMENT_METHOD_STATE } from '../utils/enums'
@@ -102,8 +102,8 @@ export const gpWebservicePaymentStatusErrorSchema = z.object({
 	}),
 })
 
-const appConfig: IAppConfig = config.get('app')
-const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
+const appConfig: AppConfig = config.get('app')
+const webpayConfig: GPWebpayConfig = config.get('gpWebpayService')
 
 const gpPaymentServiceURL = `${webpayConfig.httpApi}/pay-ws/v1/PaymentService`
 
@@ -135,7 +135,7 @@ export const checkPaymentKeys = () => {
 	return true
 }
 
-const createRequestSignatureString = (paymentObject: IGPWebpayHttpRequest): string => {
+const createRequestSignatureString = (paymentObject: GPWebpayHttpRequest): string => {
 	// DO NOT CHANGE ORDER OF PARAMS
 	let data: string
 	data = `${paymentObject.MERCHANTNUMBER}|${paymentObject.OPERATION}|${paymentObject.ORDERNUMBER}|${paymentObject.AMOUNT}`
@@ -160,7 +160,7 @@ const createRequestSignatureStringSimplified = (paramsToSign: (number | string)[
 
 // In case of DIGEST1 verification use withMerchantNumber = true
 const createResponseSignatureString = (
-	responseObject: IGPWebpayHttpResponse,
+	responseObject: GPWebpayHttpResponse,
 	withMerchantNumber = false
 ): string => {
 	// DO NOT CHANGE ORDER OF PARAMS
@@ -189,7 +189,7 @@ const createResponseSignatureString = (
 	return data
 }
 
-const signData = async (paymentObject: IGPWebpayHttpRequest) => {
+const signData = async (paymentObject: GPWebpayHttpRequest) => {
 	const dataToSign = createRequestSignatureString(paymentObject)
 	// const publicKey = await fs.promises.readFile(webpayConfig.publicKeyPath)
 	const privateKey = await fs.promises.readFile(webpayConfig.privateKeyPath)
@@ -206,7 +206,7 @@ export const signDataSimplified = async (arrayToSign: (number | string)[]) => {
 	return createSignature(dataToSign, privateKey, webpayConfig.privateKeyPassword)
 }
 
-const verifyData = async (paymentResponse: IGPWebpayHttpResponse) => {
+const verifyData = async (paymentResponse: GPWebpayHttpResponse) => {
 	const data = createResponseSignatureString(paymentResponse)
 	const dataWithMerchantNumber = createResponseSignatureString(paymentResponse, true)
 	const publicKey = await fs.promises.readFile(webpayConfig.gpPublicKeyPath)
@@ -225,7 +225,7 @@ export const verifyDataGetPaymentStatusWebserviceResponse = async (
 	return verifySignature(data, signature, publicKey)
 }
 
-const verifyPayment = (paymentResponse: IGPWebpayHttpResponse) =>
+const verifyPayment = (paymentResponse: GPWebpayHttpResponse) =>
 	// AK PRCODE && SRCODE === 0 => PLATBA PREBEHLA V PORIADKU
 	parseInt(paymentResponse.PRCODE, 10) === 0 && parseInt(paymentResponse.SRCODE, 10) === 0
 
@@ -240,7 +240,7 @@ export const createPayment = async (
 		orderId: order.id,
 	})
 
-	const paymentObject: IGPWebpayHttpRequest = {
+	const paymentObject: GPWebpayHttpRequest = {
 		MERCHANTNUMBER: webpayConfig.merchantNumber,
 		OPERATION: PAYMENT_OPERATION.CREATE_ORDER,
 		ORDERNUMBER: order.orderNumber,
@@ -251,7 +251,7 @@ export const createPayment = async (
 		PAYMETHOD: orderPaymentMethod, // payment method
 	}
 
-	const signedObject: IGPWebpayHttpRequest = {
+	const signedObject: GPWebpayHttpRequest = {
 		...paymentObject,
 		DIGEST: await signData(paymentObject),
 	}
