@@ -1,15 +1,6 @@
 import { IStrategyOptions as IPassportStrategyOptions } from 'passport-local'
 import { JwtFromRequestFunction } from 'passport-jwt'
 
-export interface IServerConfig {
-	port: number
-	filesPath: string
-	domain: string
-	adminDomain: string
-	externalServerURL: string
-	subdirs: string[]
-}
-
 export interface AppConfig {
 	port: string
 	host: string
