@@ -5,12 +5,12 @@ import { models } from '../../../db/models'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { createJwt } from '../../../utils/authorization'
-import { AppConfig, IMailgunserviceConfig, IPassportConfig } from '../../../types/interfaces'
+import { AppConfig, IMailgunserviceConfig, PassportConfig } from '../../../types/interfaces'
 import { Op } from 'sequelize'
 import { sendEmail } from '../../../services/mailerService'
 
 const appConfig: AppConfig = config.get('app')
-const passwordConfig: IPassportConfig = config.get('passport')
+const passwordConfig: PassportConfig = config.get('passport')
 const mailgunConfig: IMailgunserviceConfig = config.get('mailgunService')
 const resetPasswordTemplate = mailgunConfig.templates.resetPassword
 

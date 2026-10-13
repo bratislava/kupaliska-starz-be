@@ -6,11 +6,11 @@ import DB, { models } from '../../../db/models'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import ErrorBuilder from '../../../utils/ErrorBuilder'
 import { createJwt, hashPassword, verifyPassword } from '../../../utils/authorization'
-import { IPassportConfig } from '../../../types/interfaces'
+import { PassportConfig } from '../../../types/interfaces'
 import { Transaction } from 'sequelize'
 import passwordComplexity, { ComplexityOptions } from 'joi-password-complexity'
 
-const passwordConfig: IPassportConfig = config.get('passport')
+const passwordConfig: PassportConfig = config.get('passport')
 const complexityOptions: ComplexityOptions = config.get('passwordComplexityOptions')
 
 const OLD_PASSWORD_PATTERN = /^[a-zA-Z0-9]{3,30}$/

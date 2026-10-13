@@ -26,7 +26,7 @@ import { ENV } from './utils/enums'
 
 // API endpoints
 import routerV1 from './api/v1'
-import { AppConfig, IPassportConfig } from './types/interfaces'
+import { AppConfig, PassportConfig } from './types/interfaces'
 
 // Payment keys
 import { checkPaymentKeys } from './services/webpayService'
@@ -36,7 +36,7 @@ import { minioStaticServeMiddleware } from './utils/minio'
 import { CognitoStrategy } from './types/models'
 import { httpLogger } from './utils/logger'
 
-const passportConfig: IPassportConfig = config.get('passport')
+const passportConfig: PassportConfig = config.get('passport')
 const i18NextConfig: InitOptions = config.get('i18next')
 const appConfig: AppConfig = config.get('app')
 

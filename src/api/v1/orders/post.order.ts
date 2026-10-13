@@ -7,7 +7,7 @@ import { Op, Sequelize, UniqueConstraintError } from 'sequelize'
 import formUrlEncoded from 'form-urlencoded'
 import { v4 as uuidv4 } from 'uuid'
 import { models } from '../../../db/models'
-import { AppConfig, IPassportConfig } from '../../../types/interfaces'
+import { AppConfig, PassportConfig } from '../../../types/interfaces'
 import {
 	AccountType,
 	MESSAGE_TYPE,
@@ -48,7 +48,7 @@ interface User {
 }
 
 const appConfig: AppConfig = config.get('app')
-const passportConfig: IPassportConfig = config.get('passport')
+const passportConfig: PassportConfig = config.get('passport')
 
 const postOrderTicketSchema = z.object({
 	personId: z.uuid().nullable().optional(),

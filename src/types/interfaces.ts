@@ -62,7 +62,7 @@ interface JWTConfigExp {
 	exp: string
 }
 
-export interface IPassportConfig {
+export interface PassportConfig {
 	local: IPassportStrategyOptions
 	jwt: IJWTPassportConfig
 	jwtExternalRegistration: {
