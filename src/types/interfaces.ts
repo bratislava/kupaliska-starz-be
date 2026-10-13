@@ -47,7 +47,7 @@ export interface MinioConfig {
 	secretKey: string
 }
 
-export interface IAppleWalletConfig {
+export interface AppleWalletConfig {
 	certificatePassword: string
 }
 

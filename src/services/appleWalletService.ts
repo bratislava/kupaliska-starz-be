@@ -4,9 +4,9 @@ import { TICKET_CATEGORY, textColorsMap } from '../utils/enums'
 import { getWalletPassTicketDescription, hexToRgbString } from '../utils/helpers'
 import { TicketModel } from '../db/models/ticket'
 import config from 'config'
-import { IAppleWalletConfig } from '../types/interfaces'
+import { AppleWalletConfig } from '../types/interfaces'
 
-const appleWalletConfig: IAppleWalletConfig = config.get('appleWallet')
+const appleWalletConfig: AppleWalletConfig = config.get('appleWallet')
 
 const template = new Template('generic', {
 	passTypeIdentifier: 'pass.sk.bratislava.kupaliska.v6',
