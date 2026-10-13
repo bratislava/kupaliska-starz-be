@@ -97,7 +97,7 @@ export interface JwtPayload {
 	aud: string
 }
 
-export interface IJwtQrCodePayload {
+export interface JwtQrCodePayload {
 	tid: string
 	exp: number
 	aud: string

@@ -7,7 +7,7 @@ import { models } from '../db/models'
 import {
 	ICognitoAccessToken,
 	JwtPayload,
-	IJwtQrCodePayload,
+	JwtQrCodePayload,
 	IJwtResetPasswordPayload,
 } from '../types/interfaces'
 import ErrorBuilder from '../utils/ErrorBuilder'
@@ -83,7 +83,7 @@ export const jwtAdminVerify = async (payload: JwtPayload, done: VerifiedCallback
 
 export const jwtQrCodeVerify = async (
 	req: Request,
-	payload: IJwtQrCodePayload,
+	payload: JwtQrCodePayload,
 	done: VerifiedCallback
 ) => {
 	try {
