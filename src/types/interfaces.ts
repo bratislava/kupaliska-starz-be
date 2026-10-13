@@ -74,7 +74,7 @@ export interface PassportConfig {
 // TODO rename all interfaces,
 // starting with `I` in every declared `interface` is not necessary
 // https://github.com/bratislava/kupaliska-starz-be/issues/280
-export interface IPasswordHashingConfig {
+export interface PasswordHashingConfig {
 	// loaded from `PASSWORD_PEPPER_<id>` env variables
 	peppers: { id: number; pepper: Buffer }[]
 	currentPepperId: number
