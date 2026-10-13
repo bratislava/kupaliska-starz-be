@@ -4,12 +4,12 @@ import path from 'path'
 import config from 'config'
 import i18next from 'i18next'
 
-import { IAppConfig } from '../types/interfaces'
+import { AppConfig } from '../types/interfaces'
 import { downloadFileFromBucket } from './minio'
 import ErrorBuilder from './ErrorBuilder'
 import logger from './logger'
 
-const appConfig: IAppConfig = config.get('app')
+const appConfig: AppConfig = config.get('app')
 
 const stream2buffer = (stream: Stream): Promise<Buffer> => {
 	return new Promise<Buffer>((resolve, reject) => {

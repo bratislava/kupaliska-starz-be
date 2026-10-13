@@ -10,7 +10,7 @@ export interface IServerConfig {
 	subdirs: string[]
 }
 
-export interface IAppConfig {
+export interface AppConfig {
 	port: string
 	host: string
 	subdirs: string[]

@@ -13,7 +13,7 @@ import { isEmpty, map } from 'lodash'
 import { UserModel } from '../../../db/models/user'
 import { sendEmail } from '../../../services/mailerService'
 import config from 'config'
-import { IAppConfig, IMailgunserviceConfig, IPassportConfig } from '../../../types/interfaces'
+import { AppConfig, IMailgunserviceConfig, IPassportConfig } from '../../../types/interfaces'
 
 export const userAddSchema = {
 	name: Joi.string().max(255).required(),
@@ -43,7 +43,7 @@ export const schema = Joi.object().keys({
 })
 
 const passwordConfig: IPassportConfig = config.get('passport')
-const appConfig: IAppConfig = config.get('app')
+const appConfig: AppConfig = config.get('app')
 const mailgunConfig: IMailgunserviceConfig = config.get('mailgunService')
 const setPasswordTemplate = mailgunConfig.templates.setPassword
 

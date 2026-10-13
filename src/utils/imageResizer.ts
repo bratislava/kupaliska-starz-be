@@ -1,8 +1,8 @@
 import path from 'path'
 import config from 'config'
-import { IAppConfig } from '../types/interfaces'
+import { AppConfig } from '../types/interfaces'
 
-const appConfig: IAppConfig = config.get('app')
+const appConfig: AppConfig = config.get('app')
 
 // eslint-disable-next-line
 export const normalizeFilePath = (filePath: string) => {

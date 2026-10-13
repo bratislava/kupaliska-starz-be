@@ -26,7 +26,7 @@ import { ENV } from './utils/enums'
 
 // API endpoints
 import routerV1 from './api/v1'
-import { IAppConfig, IPassportConfig } from './types/interfaces'
+import { AppConfig, IPassportConfig } from './types/interfaces'
 
 // Payment keys
 import { checkPaymentKeys } from './services/webpayService'
@@ -38,7 +38,7 @@ import { httpLogger } from './utils/logger'
 
 const passportConfig: IPassportConfig = config.get('passport')
 const i18NextConfig: InitOptions = config.get('i18next')
-const appConfig: IAppConfig = config.get('app')
+const appConfig: AppConfig = config.get('app')
 
 // Check payment keys in production
 if (process.env.NODE_ENV !== ENV.test) {

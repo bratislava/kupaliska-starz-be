@@ -8,10 +8,10 @@ import mime from 'mime-types'
 
 import ErrorBuilder from './ErrorBuilder'
 import logger from './logger'
-import { IAppConfig } from '../types/interfaces'
+import { AppConfig } from '../types/interfaces'
 import { uploadFileToBucket } from './minio'
 
-const appConfig: IAppConfig = config.get('app')
+const appConfig: AppConfig = config.get('app')
 
 async function checkDestinationAccess(req: Request, directory: string) {
 	const resultPath = path.join(appConfig.filesPath, directory)

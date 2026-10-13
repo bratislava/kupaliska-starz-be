@@ -4,10 +4,10 @@ import Joi from 'joi'
 import { NextFunction, Request, Response } from 'express'
 import { MESSAGE_TYPE } from '../../../utils/enums'
 import { sendRawEmail } from '../../../services/mailerService'
-import { IAppConfig } from '../../../types/interfaces'
+import { AppConfig } from '../../../types/interfaces'
 import config from 'config'
 
-const appConfig: IAppConfig = config.get('app')
+const appConfig: AppConfig = config.get('app')
 const JoiExtended = Joi.extend(joiCustomSanitizeRules())
 
 export const contactSchema = {
