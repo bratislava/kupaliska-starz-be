@@ -90,7 +90,7 @@ export interface JWTPassportConfig {
 	forgottenPassword: JWTConfigExp
 }
 
-export interface IJwtPayload {
+export interface JwtPayload {
 	s: number
 	uid: string
 	exp: number

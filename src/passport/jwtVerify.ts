@@ -6,7 +6,7 @@ import { Request, Response, NextFunction } from 'express'
 import { models } from '../db/models'
 import {
 	ICognitoAccessToken,
-	IJwtPayload,
+	JwtPayload,
 	IJwtQrCodePayload,
 	IJwtResetPasswordPayload,
 } from '../types/interfaces'
@@ -35,7 +35,7 @@ export const optionalAuthenticationMiddleware = (
 	})(req, res, next)
 }
 
-export const jwtAdminVerify = async (payload: IJwtPayload, done: VerifiedCallback) => {
+export const jwtAdminVerify = async (payload: JwtPayload, done: VerifiedCallback) => {
 	try {
 		const { User } = models
 		const user = await User.findOne({
@@ -95,7 +95,7 @@ export const jwtQrCodeVerify = async (
 
 export const jwtOrderResponseVerify = async (
 	req: Request,
-	payload: IJwtPayload,
+	payload: JwtPayload,
 	done: VerifiedCallback
 ) => {
 	try {
