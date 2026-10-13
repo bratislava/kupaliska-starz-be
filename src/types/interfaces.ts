@@ -109,7 +109,7 @@ export interface JwtResetPasswordPayload {
 	aud: string
 }
 
-export interface ICognitoAccessToken {
+export interface CognitoAccessToken {
 	sub: string
 	device_key: string
 	iss: string

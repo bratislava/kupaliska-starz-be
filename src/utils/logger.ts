@@ -1,6 +1,6 @@
 import pino from 'pino-http'
 import decode from 'jwt-decode'
-import { ICognitoAccessToken } from '../types/interfaces'
+import { CognitoAccessToken } from '../types/interfaces'
 import { REDACTED_FIELDS } from './constants'
 
 export const httpLogger = pino({
@@ -12,7 +12,7 @@ export const httpLogger = pino({
 			req.body = req.raw.body
 			try {
 				if (typeof req?.headers?.authorization === 'string') {
-					const jwt = decode<ICognitoAccessToken>(req.headers.authorization.split(' ')[1])
+					const jwt = decode<CognitoAccessToken>(req.headers.authorization.split(' ')[1])
 					if (jwt?.sub) req.sub = jwt.sub
 				}
 			} catch (err) {
