@@ -136,7 +136,7 @@ export interface MailguntemplatesConfig {
 	order: string
 	setPassword: string
 }
-export interface IMailgunserviceConfig {
+export interface MailgunserviceConfig {
 	apiKey: string
 	domain: string
 	host: string

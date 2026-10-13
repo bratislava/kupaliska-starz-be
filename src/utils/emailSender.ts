@@ -1,7 +1,7 @@
 import { concat, map } from 'lodash'
 import { TicketModel } from '../db/models/ticket'
 import { sendEmail } from '../services/mailerService'
-import { AppConfig, IMailgunserviceConfig } from '../types/interfaces'
+import { AppConfig, MailgunserviceConfig } from '../types/interfaces'
 import { generateQrCodeBuffer } from './qrCodeGenerator'
 import { getChildrenTicketName } from './translationsHelpers'
 import config from 'config'
@@ -19,7 +19,7 @@ import ErrorBuilder from './ErrorBuilder'
 
 const i18NextConfig: InitOptions = config.get('i18next')
 const appConfig: AppConfig = config.get('app')
-const mailgunConfig: IMailgunserviceConfig = config.get('mailgunService')
+const mailgunConfig: MailgunserviceConfig = config.get('mailgunService')
 const orderTemplate = mailgunConfig.templates.order
 
 const { Order } = models
