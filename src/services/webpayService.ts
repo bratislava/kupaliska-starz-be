@@ -8,7 +8,7 @@ import { PaymentResponseModel } from '../db/models/paymentResponse'
 import { createSignature, verifySignature } from '../utils/webpay'
 import {
 	AppConfig,
-	IGPWebpayConfig,
+	GPWebpayConfig,
 	IGPWebpayHttpRequest,
 	IGPWebpayHttpResponse,
 } from '../types/interfaces'
@@ -103,7 +103,7 @@ export const gpWebservicePaymentStatusErrorSchema = z.object({
 })
 
 const appConfig: AppConfig = config.get('app')
-const webpayConfig: IGPWebpayConfig = config.get('gpWebpayService')
+const webpayConfig: GPWebpayConfig = config.get('gpWebpayService')
 
 const gpPaymentServiceURL = `${webpayConfig.httpApi}/pay-ws/v1/PaymentService`
 

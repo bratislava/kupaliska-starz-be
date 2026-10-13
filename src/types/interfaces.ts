@@ -24,7 +24,7 @@ export interface WorkersConfig {
 	}
 }
 
-export interface IGPWebpayConfig {
+export interface GPWebpayConfig {
 	httpApi: string
 	clientAppUrl: string
 	merchantNumber: string
