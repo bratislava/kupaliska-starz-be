@@ -2,11 +2,11 @@ import { Request, Response } from 'express'
 import { Client } from 'minio'
 import { Stream } from 'node:stream'
 import { logger } from './logger'
-import { IMinioConfig } from '../types/interfaces'
+import { MinioConfig } from '../types/interfaces'
 
 import config from 'config'
 
-const minioConfig: IMinioConfig = config.get('minio')
+const minioConfig: MinioConfig = config.get('minio')
 
 export const minioClient = new Client({
 	endPoint: minioConfig.endPoint,

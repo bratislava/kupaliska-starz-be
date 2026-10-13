@@ -39,7 +39,7 @@ export interface GPWebpayConfig {
 // TODO this does not corresponds with values,
 // bucket, accessKey, secretKey can be undefined
 // we need to ensure env vars is available
-export interface IMinioConfig {
+export interface MinioConfig {
 	endPoint: string
 	bucket: string
 	port: number
